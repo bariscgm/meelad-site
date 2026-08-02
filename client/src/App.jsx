@@ -178,10 +178,13 @@ function AdminDashboard() {
 }
 
 function TeamDashboard() {
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const teamName = user.name || 'Team';
+
   return (
     <div className="space-y-6">
       <div className="glass p-8 rounded-3xl">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome back, Team Alpha!</h1>
+        <h1 className="text-3xl font-bold text-slate-800 mb-2">Welcome back, {teamName}!</h1>
         <p className="text-slate-500">Manage your students and view upcoming events here.</p>
       </div>
       
@@ -222,11 +225,11 @@ function JudgeDashboard() {
               <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-purple-100 p-1 rounded-xl border border-purple-200" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex flex-col items-start gap-1">
                 <span dir="rtl">إلى الرسول</span>
-                <span className="text-purple-600 font-mono text-sm">'26</span> Judge Portal
+                <span>Judge Portal</span>
               </h1>
-              <p className="text-xs text-slate-500">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
+              <p className="text-xs text-slate-500 mt-1">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
           </div>
           <Link to="/" className="text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-3.5 py-2 rounded-xl hover:bg-purple-100 transition">
@@ -249,11 +252,11 @@ function StageDashboard() {
               <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-amber-100 p-1 rounded-xl border border-amber-200" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+              <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex flex-col items-start gap-1">
                 <span dir="rtl">إلى الرسول</span>
-                <span className="text-amber-600 font-mono text-sm">'26</span> Stage Manager Portal
+                <span>Stage Manager Portal</span>
               </h1>
-              <p className="text-xs text-slate-500">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
+              <p className="text-xs text-slate-500 mt-1">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
           </div>
           <Link to="/" className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-2 rounded-xl hover:bg-amber-100 transition">
@@ -271,18 +274,20 @@ import CategoryManagement from './pages/CategoryManagement';
 import ProgramManagement from './pages/ProgramManagement';
 import ResultManagement from './pages/ResultManagement';
 import ControllerManagement from './pages/ControllerManagement';
-import AdminLogin from './pages/AdminLogin';
+import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Admin Login */}
-        <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Authentication */}
+        <Route path="/login" element={<Login />} />
+        {/* Support old route just in case */}
+        <Route path="/admin/login" element={<Login />} />
 
         {/* Protected Admin Routes */}
-        <Route element={<ProtectedRoute />}>
+        <Route element={<ProtectedRoute allowedRoles={['Admin']} />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="team-management" element={<TeamManagement />} />
@@ -299,13 +304,21 @@ function App() {
         </Route>
 
         {/* Team Routes */}
-        <Route path="/team" element={<TeamLayout />}>
-          <Route index element={<TeamDashboard />} />
+        <Route element={<ProtectedRoute allowedRoles={['Team Leader']} />}>
+          <Route path="/team" element={<TeamLayout />}>
+            <Route index element={<TeamDashboard />} />
+          </Route>
         </Route>
         
-        {/* Stage & Judge Routes */}
-        <Route path="/stage" element={<StageDashboard />} />
-        <Route path="/judge" element={<JudgeDashboard />} />
+        {/* Stage Route */}
+        <Route element={<ProtectedRoute allowedRoles={['Stage Manager']} />}>
+          <Route path="/stage" element={<StageDashboard />} />
+        </Route>
+
+        {/* Judge Route */}
+        <Route element={<ProtectedRoute allowedRoles={['Judge']} />}>
+          <Route path="/judge" element={<JudgeDashboard />} />
+        </Route>
 
         {/* Public / Scoreboard */}
         <Route path="/" element={<HomePage />} />

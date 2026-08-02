@@ -20,10 +20,17 @@ const io = new Server(httpServer, {
   }
 });
 
+import controllerRoutes from './routes/controllerRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Controller Routes
+app.use('/api/controller', controllerRoutes);
+app.use('/api/auth', authRoutes);
 
 // Basic Route
 app.get('/', (req, res) => {

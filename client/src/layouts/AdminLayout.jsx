@@ -5,9 +5,9 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   const handleSignOut = () => {
-    localStorage.removeItem('isAdminAuthenticated');
-    localStorage.removeItem('adminUser');
-    navigate('/admin/login');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('user');
+    navigate('/login');
   };
 
   const navItems = [
@@ -87,11 +87,11 @@ export default function AdminLayout() {
         <Link to="/" className="p-6 flex items-center gap-3 transition hover:opacity-80">
           <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-10 h-10 object-contain bg-white/10 p-1 rounded-xl" />
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight flex flex-col items-start gap-1">
               <span dir="rtl">إلى الرسول</span>
-              <span className="text-teal-400 font-mono text-sm">'26</span>
-            </h2>
-            <p className="text-[9px] text-slate-400 font-medium leading-tight">Darussalam HSM Narikkuni (Reg 2179)</p>
+              <span className="text-sm font-semibold text-slate-300">Admin Portal</span>
+            </h1>
+            <p className="text-[9px] text-slate-400 font-medium leading-tight mt-1">Darussalam HSM Narikkuni (Reg 2179)</p>
           </div>
         </Link>
 
@@ -147,9 +147,12 @@ export default function AdminLayout() {
       <main className="flex-1 flex flex-col min-h-screen overflow-hidden">
         {/* Header */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-8 z-10 sticky top-0">
-          <div className="md:hidden font-bold text-purple-700 flex items-center gap-2">
-            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-7 h-7 object-contain bg-purple-100 p-0.5 rounded-lg" />
-            <span dir="rtl">إلى الرسول</span>
+          <div className="md:hidden font-bold text-purple-700 flex flex-col items-start justify-center gap-0.5">
+            <div className="flex items-center gap-2">
+              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-7 h-7 object-contain bg-purple-100 p-0.5 rounded-lg" />
+              <span dir="rtl">إلى الرسول</span>
+            </div>
+            <span className="text-xs text-slate-500">Admin Portal</span>
           </div>
 
           <div className="ml-auto flex items-center gap-3">

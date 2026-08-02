@@ -9,16 +9,16 @@ export default function HomePage() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/20 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Navigation / Header */}
-      <header className="relative z-10 border-b border-white/5 bg-slate-900/50 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-white/10 p-1 rounded-xl group-hover:scale-105 transition" />
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-4 group">
+            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-14 h-14 object-contain bg-white/10 p-1.5 rounded-xl group-hover:scale-105 transition" />
+            <div className="flex flex-col justify-center">
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex flex-col items-start leading-tight">
                 <span dir="rtl">إلى الرسول</span>
-                <span className="text-teal-400 font-mono text-lg">'26</span>
+                <span className="text-sm font-semibold text-teal-400">Festival Hub</span>
               </h1>
-              <p className="text-[10px] md:text-xs text-slate-400 font-medium">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
+              <p className="text-[10px] md:text-xs text-slate-400 font-medium mt-1">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
           </Link>
           <div className="hidden md:flex gap-6">
@@ -114,7 +114,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-white mb-2">Admin Control</h3>
                 <p className="text-slate-400 text-sm mb-6">Manage programs, students, results, and overall festival settings.</p>
               </div>
-              <Link to="/admin" className="inline-flex items-center gap-2 text-blue-400 font-medium group-hover:text-blue-300">
+              <Link to="/login" state={{ portal: 'Admin' }} className="inline-flex items-center gap-2 text-blue-400 font-medium group-hover:text-blue-300">
                 Go to Admin <span className="group-hover:translate-x-1 transition">→</span>
               </Link>
             </div>
@@ -130,7 +130,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-white mb-2">Team Leaders</h3>
                 <p className="text-slate-400 text-sm mb-6">Register students, view team schedules, and track individual scores.</p>
               </div>
-              <Link to="/team" className="inline-flex items-center gap-2 text-teal-400 font-medium group-hover:text-teal-300">
+              <Link to="/login" state={{ portal: 'Team Leader' }} className="inline-flex items-center gap-2 text-teal-400 font-medium group-hover:text-teal-300">
                 Go to Team Portal <span className="group-hover:translate-x-1 transition">→</span>
               </Link>
             </div>
@@ -146,7 +146,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-white mb-2">Stage Manager</h3>
                 <p className="text-slate-400 text-sm mb-6">Control live stage proceedings, calls, and performance status.</p>
               </div>
-              <Link to="/stage" className="inline-flex items-center gap-2 text-amber-400 font-medium group-hover:text-amber-300">
+              <Link to="/login" state={{ portal: 'Stage Manager' }} className="inline-flex items-center gap-2 text-amber-400 font-medium group-hover:text-amber-300">
                 Go to Stage Portal <span className="group-hover:translate-x-1 transition">→</span>
               </Link>
             </div>
@@ -162,7 +162,7 @@ export default function HomePage() {
                 <h3 className="text-xl font-bold text-white mb-2">Judge Access</h3>
                 <p className="text-slate-400 text-sm mb-6">Secure portal for entering marks and evaluating live stage performances.</p>
               </div>
-              <Link to="/judge" className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:text-purple-300">
+              <Link to="/login" state={{ portal: 'Judge' }} className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:text-purple-300">
                 Go to Judging <span className="group-hover:translate-x-1 transition">→</span>
               </Link>
             </div>

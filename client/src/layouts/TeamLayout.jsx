@@ -1,6 +1,16 @@
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 
 export default function TeamLayout() {
+  const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const teamName = user.name || 'Team';
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top Navigation */}
@@ -10,11 +20,10 @@ export default function TeamLayout() {
             <Link to="/" className="flex-shrink-0 flex items-center gap-3 transition hover:opacity-80">
               <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-10 h-10 object-contain bg-teal-500/10 p-1 rounded-xl border border-teal-500/20 shadow-sm" />
               <div>
-                <span className="font-bold text-lg text-slate-800 tracking-tight flex items-center gap-1.5">
+                <h1 className="font-bold text-lg text-slate-800 tracking-tight flex flex-col items-start gap-0.5">
                   <span dir="rtl">إلى الرسول</span>
-                  <span className="text-teal-600 font-mono text-sm">'26</span>
-                </span>
-                <p className="text-[10px] text-slate-500 font-medium leading-none">Team Portal</p>
+                  <span className="text-sm font-semibold text-slate-500">{teamName} Portal</span>
+                </h1>
               </div>
             </Link>
             <nav className="hidden md:flex space-x-8">
@@ -26,7 +35,7 @@ export default function TeamLayout() {
               <Link to="/" className="text-xs font-semibold text-teal-600 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition">
                 ← Back to Home
               </Link>
-              <button className="text-sm font-medium text-slate-500 hover:text-slate-700 transition">Log out</button>
+              <button onClick={handleLogout} className="text-sm font-medium text-slate-500 hover:text-slate-700 transition">Log out</button>
             </div>
           </div>
         </div>

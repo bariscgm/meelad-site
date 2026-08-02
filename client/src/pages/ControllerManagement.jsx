@@ -1,32 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { controllerDB } from '../services/controllerDB';
 
 export default function ControllerManagement() {
   const [activeTab, setActiveTab] = useState('Limits');
 
-  // --- Limits State ---
+  // DB Sync State
   const [registrationOpen, setRegistrationOpen] = useState(true);
-  const [categoryLimits, setCategoryLimits] = useState([
-    { category: 'Junior', stage: 3, offstage: 4 },
-    { category: 'Kiddies', stage: 4, offstage: 10 },
-    { category: 'Senior', stage: 3, offstage: 3 },
-    { category: 'Sub Junior', stage: 3, offstage: 4 },
-    { category: 'Super Senior', stage: 3, offstage: 3 },
-  ]);
+  const [categoryLimits, setCategoryLimits] = useState([]);
   const [generalLimits, setGeneralLimits] = useState({
-    stageIndividual: 4,
-    stageGroup: 4,
+    stageIndividual: 3,
+    stageGroup: 2,
     offstageIndividual: 4,
-    offstageGroup: 4,
+    offstageGroup: 3,
   });
 
-  // --- Users State ---
-  const [users, setUsers] = useState([
-    { id: 1, name: 'Team Alpha Leader', username: 'teama', role: 'Team Leader', team: 'Team Alpha', status: 'Active' },
-    { id: 2, name: 'Team Beta Leader', username: 'teamb', role: 'Team Leader', team: 'Team Beta', status: 'Active' },
-    { id: 3, name: 'Ilmul Rasool Admin', username: 'admin', role: 'Admin', team: 'No team', status: 'Active' },
-    { id: 4, name: 'Judge One', username: 'judge1', role: 'Judge', team: 'No team', status: 'Active' },
-    { id: 5, name: 'Stage Manager', username: 'stage1', role: 'Stage Manager', team: 'No team', status: 'Active' },
-  ]);
+  const [users, setUsers] = useState([]);
   const [userForm, setUserForm] = useState({
     name: '',
     username: '',
@@ -35,74 +23,136 @@ export default function ControllerManagement() {
     team: 'Team Alpha',
   });
 
-  // --- Announcements State ---
-  const [announcements, setAnnouncements] = useState([
-    { id: 1, title: 'Welcome to Meelad Fest 2026', description: 'Registrations are now open for all categories.', status: 'Published' },
-    { id: 2, title: 'Stage Schedule Update', description: 'Stage 1 schedule has been updated. Check downloads section.', status: 'Published' },
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
   const [announcementForm, setAnnouncementForm] = useState({
     title: '',
     description: '',
     status: 'Published',
   });
 
-  // --- Downloads State ---
-  const [downloads, setDownloads] = useState([
-    { id: 1, title: 'Meelad Rulebook 2026', category: 'Rules', url: 'https://example.com/rulebook.pdf' },
-    { id: 2, title: 'Stage Schedule PDF', category: 'Schedule', url: 'https://example.com/schedule.pdf' },
-  ]);
+  const [downloads, setDownloads] = useState([]);
   const [downloadForm, setDownloadForm] = useState({
     title: '',
     category: 'Schedule',
     url: '',
   });
 
-  // --- Danger Zone State ---
   const [resetConfirmText, setResetConfirmText] = useState('');
   const [resetSuccessMessage, setResetSuccessMessage] = useState('');
+  const [statusNotification, setStatusNotification] = useState('');
 
-  // Handlers
+  // Load Data from DB Connection on Mount
+  useEffect(() => {
+    loadDatabaseData();
+  }, []);
+
+  const loadDatabaseData = () => {
+    const limits = controllerDB.getLimits();
+    if (limits) {
+      setRegistrationOpen(limits.registrationOpen ?? true);
+      setCategoryLimits(limits.categoryLimits || []);
+      if (limits.generalLimits) setGeneralLimits(limits.generalLimits);
+    }
+
+    setUsers(controllerDB.getUsers());
+    setAnnouncements(controllerDB.getAnnouncements());
+    setDownloads(controllerDB.getDownloads());
+  };
+
+  const showNotification = (msg) => {
+    setStatusNotification(msg);
+    setTimeout(() => setStatusNotification(''), 3000);
+  };
+
+  // --- Handlers ---
   const handleSaveLimits = (e) => {
     e.preventDefault();
-    alert('System control limits saved successfully!');
+    const limitsData = {
+      registrationOpen,
+      categoryLimits,
+      generalLimits,
+    };
+    controllerDB.saveLimits(limitsData);
+    showNotification('System control limits saved successfully to database!');
   };
 
   const handleCreateUser = (e) => {
     e.preventDefault();
     if (!userForm.name || !userForm.username) return;
-    const newUser = {
-      id: Date.now(),
-      name: userForm.name,
-      username: userForm.username,
-      role: userForm.role,
-      team: userForm.team,
-      status: 'Active',
-    };
-    setUsers([...users, newUser]);
-    setUserForm({ name: '', username: '', password: '', role: 'Team Leader', team: 'Team Alpha' });
+    const res = controllerDB.addUser(userForm);
+    if (res.success) {
+      setUsers(res.users);
+      setUserForm({ name: '', username: '', password: '', role: 'Team Leader', team: 'Team Alpha' });
+      showNotification(`User @${res.user.username} created and saved to DB!`);
+    }
+  };
+
+  const handleToggleUserStatus = (userId) => {
+    const res = controllerDB.toggleUserStatus(userId);
+    if (res.success) {
+      setUsers(res.users);
+      showNotification('User status updated in DB.');
+    }
+  };
+
+  const handleDeleteUser = (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user from database?')) return;
+    const res = controllerDB.deleteUser(userId);
+    if (res.success) {
+      setUsers(res.users);
+      showNotification('User deleted from DB.');
+    }
   };
 
   const handleAddAnnouncement = (e) => {
     e.preventDefault();
     if (!announcementForm.title) return;
-    setAnnouncements([{ id: Date.now(), ...announcementForm }, ...announcements]);
-    setAnnouncementForm({ title: '', description: '', status: 'Published' });
+    const res = controllerDB.addAnnouncement(announcementForm);
+    if (res.success) {
+      setAnnouncements(res.announcements);
+      setAnnouncementForm({ title: '', description: '', status: 'Published' });
+      showNotification('Announcement saved & published to DB!');
+    }
+  };
+
+  const handleDeleteAnnouncement = (annId) => {
+    const res = controllerDB.deleteAnnouncement(annId);
+    if (res.success) {
+      setAnnouncements(res.announcements);
+      showNotification('Announcement deleted from DB.');
+    }
   };
 
   const handleAddDownload = (e) => {
     e.preventDefault();
     if (!downloadForm.title || !downloadForm.url) return;
-    setDownloads([{ id: Date.now(), ...downloadForm }, ...downloads]);
-    setDownloadForm({ title: '', category: 'Schedule', url: '' });
+    const res = controllerDB.addDownload(downloadForm);
+    if (res.success) {
+      setDownloads(res.downloads);
+      setDownloadForm({ title: '', category: 'Schedule', url: '' });
+      showNotification('Download link saved to DB!');
+    }
+  };
+
+  const handleDeleteDownload = (downId) => {
+    const res = controllerDB.deleteDownload(downId);
+    if (res.success) {
+      setDownloads(res.downloads);
+      showNotification('Download link removed from DB.');
+    }
   };
 
   const handleResetData = (e) => {
     e.preventDefault();
     if (resetConfirmText === 'RESET ILMUL RASOOL') {
-      setResetSuccessMessage('Event data cleared successfully. System has been reset.');
-      setResetConfirmText('');
+      const res = controllerDB.resetAllDatabaseData();
+      if (res.success) {
+        setResetSuccessMessage('All database data cleared. Event system reset successfully.');
+        setResetConfirmText('');
+        loadDatabaseData();
+      }
     } else {
-      alert('Please type "RESET ILMUL RASOOL" exactly to confirm.');
+      alert('Please type "RESET ILMUL RASOOL" exactly to confirm database wipe.');
     }
   };
 
@@ -118,86 +168,95 @@ export default function ControllerManagement() {
     <div className="space-y-6">
       {/* Top Header */}
       <div>
-        <span className="text-xs uppercase tracking-wider font-semibold text-purple-600">System Control</span>
-        <h1 className="text-3xl font-bold text-slate-800">Controls</h1>
+        <h1 className="text-2xl font-bold text-slate-800">Admin System Controls</h1>
+        <p className="text-slate-500 text-sm">Manage database limits, users, announcements, downloads and system reset.</p>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="glass p-2 rounded-2xl flex flex-wrap gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.name}
-            onClick={() => setActiveTab(tab.name)}
-            className={`px-5 py-2.5 rounded-xl font-semibold text-sm transition flex items-center gap-2 ${
-              activeTab === tab.name
-                ? tab.isDanger
-                  ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20'
-                  : 'bg-purple-600 text-white shadow-md shadow-purple-500/20'
-                : tab.isDanger
-                ? 'text-rose-600 hover:bg-rose-50'
-                : 'text-slate-600 hover:bg-slate-100'
-            }`}
-          >
-            <span>{tab.icon}</span>
-            {tab.name}
-          </button>
-        ))}
+      {/* Database Status Toast Notification */}
+      {statusNotification && (
+        <div className="p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 text-sm font-semibold rounded-2xl flex items-center justify-between shadow-sm animate-fade-in">
+          <span>✅ {statusNotification}</span>
+          <span className="text-xs text-emerald-600 font-mono">DB Synced</span>
+        </div>
+      )}
+
+      {/* Navigation Tabs */}
+      <div className="flex border-b border-slate-200 gap-2 overflow-x-auto">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.name;
+          return (
+            <button
+              key={tab.name}
+              onClick={() => setActiveTab(tab.name)}
+              className={`px-4 py-2.5 font-semibold text-sm rounded-t-xl transition flex items-center gap-2 border-b-2 whitespace-nowrap ${
+                isActive
+                  ? tab.isDanger
+                    ? 'border-rose-500 text-rose-600 bg-rose-50/50'
+                    : 'border-purple-600 text-purple-600 bg-purple-50/50'
+                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {tab.name}
+            </button>
+          );
+        })}
       </div>
 
       {/* --- TAB 1: LIMITS --- */}
       {activeTab === 'Limits' && (
-        <form onSubmit={handleSaveLimits} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left: Registration Status */}
-          <div className="glass p-6 rounded-3xl space-y-4 lg:col-span-1 h-fit">
-            <h2 className="text-lg font-bold text-slate-800">Registration status</h2>
-            <p className="text-slate-500 text-xs">Allow team leaders to create and edit registrations.</p>
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-              <span className={`px-3 py-1 rounded-full text-xs font-bold ${registrationOpen ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                {registrationOpen ? 'OPEN' : 'CLOSED'}
-              </span>
+        <form onSubmit={handleSaveLimits} className="space-y-6">
+          <div className="glass p-6 rounded-3xl space-y-6">
+            {/* Registration Status */}
+            <div className="flex items-center justify-between pb-6 border-b border-slate-100">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Candidate registration</h2>
+                <p className="text-slate-500 text-xs mt-0.5">Control whether team leaders can submit new registrations.</p>
+              </div>
               <button
                 type="button"
                 onClick={() => setRegistrationOpen(!registrationOpen)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition ${registrationOpen ? 'bg-rose-100 text-rose-700 hover:bg-rose-200' : 'bg-emerald-500 text-white hover:bg-emerald-600'}`}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                  registrationOpen ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+                }`}
               >
-                {registrationOpen ? 'Close Registration' : 'Open Registration'}
+                <span className={`w-2.5 h-2.5 rounded-full ${registrationOpen ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                {registrationOpen ? 'OPEN FOR REGISTRATION' : 'REGISTRATION CLOSED'}
               </button>
             </div>
-          </div>
 
-          {/* Right: Limits Settings */}
-          <div className="glass p-6 rounded-3xl space-y-6 lg:col-span-2">
+            {/* Category Limits */}
             <div>
               <h2 className="text-lg font-bold text-slate-800 mb-4">Category-wise programme limits</h2>
               <div className="space-y-3">
-                {categoryLimits.map((item, index) => (
-                  <div key={item.category} className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between gap-4">
-                    <span className="font-bold text-slate-800 text-sm w-32">{item.category}</span>
-                    <div className="flex items-center gap-4">
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Stage</label>
+                {categoryLimits.map((cat, idx) => (
+                  <div key={cat.category} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
+                    <span className="font-bold text-slate-700 text-sm">{cat.category}</span>
+                    <div className="flex items-center gap-6">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500">Stage:</span>
                         <input
                           type="number"
-                          value={item.stage}
+                          value={cat.stage}
                           onChange={(e) => {
-                            const newLimits = [...categoryLimits];
-                            newLimits[index].stage = Number(e.target.value);
-                            setCategoryLimits(newLimits);
+                            const updated = [...categoryLimits];
+                            updated[idx].stage = Number(e.target.value);
+                            setCategoryLimits(updated);
                           }}
-                          className="w-20 px-3 py-1.5 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
+                          className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
                         />
                       </div>
-                      <div>
-                        <label className="block text-[10px] uppercase font-bold text-slate-400 mb-1">Off-stage</label>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-slate-500">Off-stage:</span>
                         <input
                           type="number"
-                          value={item.offstage}
+                          value={cat.offstage}
                           onChange={(e) => {
-                            const newLimits = [...categoryLimits];
-                            newLimits[index].offstage = Number(e.target.value);
-                            setCategoryLimits(newLimits);
+                            const updated = [...categoryLimits];
+                            updated[idx].offstage = Number(e.target.value);
+                            setCategoryLimits(updated);
                           }}
-                          className="w-20 px-3 py-1.5 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
+                          className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
                         />
                       </div>
                     </div>
@@ -206,6 +265,7 @@ export default function ControllerManagement() {
               </div>
             </div>
 
+            {/* General Limits */}
             <div className="pt-4 border-t border-slate-100">
               <h2 className="text-lg font-bold text-slate-800 mb-4">General programme limits</h2>
               <div className="grid grid-cols-2 gap-4">
@@ -252,7 +312,7 @@ export default function ControllerManagement() {
               type="submit"
               className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 transition flex items-center gap-2"
             >
-              💾 Save controls
+              💾 Save controls to Database
             </button>
           </div>
         </form>
@@ -264,7 +324,7 @@ export default function ControllerManagement() {
           {/* Create login user form */}
           <div className="glass p-6 rounded-3xl space-y-4">
             <h2 className="text-lg font-bold text-slate-800">Create login user</h2>
-            <p className="text-slate-500 text-xs">Users can sign in without an email address.</p>
+            <p className="text-slate-500 text-xs">Create new user accounts directly in the database.</p>
 
             <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
               <div>
@@ -317,36 +377,56 @@ export default function ControllerManagement() {
                   type="submit"
                   className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md transition"
                 >
-                  + Create user
+                  + Add User to DB
                 </button>
               </div>
             </form>
           </div>
 
           {/* List of Users */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {users.map((u) => (
-              <div key={u.id} className="glass p-5 rounded-2xl flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center">
-                    {u.name.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-sm">{u.name}</h4>
-                    <p className="text-xs text-slate-500">@{u.username} • <span className="font-semibold text-purple-600">{u.role}</span></p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button className="px-2.5 py-1 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg">
-                    Edit
-                  </button>
-                  <button className="px-2.5 py-1 text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg">
-                    Disable
-                  </button>
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {users.length === 0 ? (
+              <div className="col-span-full p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
+                No users found in database. Create one above!
               </div>
-            ))}
+            ) : (
+              users.map((u) => (
+                <div key={u.id} className="glass p-5 rounded-2xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center">
+                      {u.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{u.name}</h4>
+                      <p className="text-xs text-slate-500">
+                        @{u.username} • <span className="font-semibold text-purple-600">{u.role}</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleToggleUserStatus(u.id)}
+                      className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition ${
+                        u.status === 'Active'
+                          ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                          : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                      }`}
+                    >
+                      {u.status}
+                    </button>
+                    {u.username !== 'admin' && (
+                      <button
+                        onClick={() => handleDeleteUser(u.id)}
+                        className="px-2 py-1 text-xs text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                      >
+                        🗑️
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -356,14 +436,14 @@ export default function ControllerManagement() {
         <div className="space-y-6">
           <div className="glass p-6 rounded-3xl space-y-4">
             <h2 className="text-lg font-bold text-slate-800">Add announcement</h2>
-            <p className="text-slate-500 text-xs">Published announcements appear on the public home page.</p>
+            <p className="text-slate-500 text-xs">Announcements are stored in database and shown on the public site.</p>
 
             <form onSubmit={handleAddAnnouncement} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Title</label>
                 <input
                   type="text"
-                  placeholder="e.g. Schedule Change"
+                  placeholder="e.g. Stage Schedule Updated"
                   value={announcementForm.title}
                   onChange={(e) => setAnnouncementForm({ ...announcementForm, title: e.target.value })}
                   required
@@ -385,27 +465,36 @@ export default function ControllerManagement() {
                   type="submit"
                   className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md transition"
                 >
-                  + Add
+                  + Add to DB
                 </button>
               </div>
             </form>
           </div>
 
           <div className="space-y-3">
-            {announcements.map((a) => (
-              <div key={a.id} className="glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <h4 className="font-bold text-slate-800 text-base">{a.title}</h4>
-                  <p className="text-xs text-slate-500 mt-1">{a.description || 'No description provided.'}</p>
-                </div>
-                <button
-                  onClick={() => setAnnouncements(announcements.filter((item) => item.id !== a.id))}
-                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
-                >
-                  🗑️
-                </button>
+            {announcements.length === 0 ? (
+              <div className="p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
+                No active announcements in database.
               </div>
-            ))}
+            ) : (
+              announcements.map((a) => (
+                <div key={a.id} className="glass p-5 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-slate-800 text-base">{a.title}</h4>
+                      {a.date && <span className="text-[10px] bg-slate-100 text-slate-500 font-mono px-2 py-0.5 rounded-full">{a.date}</span>}
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">{a.description || 'No description provided.'}</p>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteAnnouncement(a.id)}
+                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -415,14 +504,14 @@ export default function ControllerManagement() {
         <div className="space-y-6">
           <div className="glass p-6 rounded-3xl space-y-4">
             <h2 className="text-lg font-bold text-slate-800">Add download link</h2>
-            <p className="text-slate-500 text-xs">Use a public Google Drive or direct PDF link.</p>
+            <p className="text-slate-500 text-xs">Save downloadable PDFs and rules directly into database.</p>
 
             <form onSubmit={handleAddDownload} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Title</label>
                 <input
                   type="text"
-                  placeholder="e.g. Schedule PDF"
+                  placeholder="e.g. Meelad Rulebook 2026"
                   value={downloadForm.title}
                   onChange={(e) => setDownloadForm({ ...downloadForm, title: e.target.value })}
                   required
@@ -457,32 +546,38 @@ export default function ControllerManagement() {
                   type="submit"
                   className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md transition"
                 >
-                  + Add
+                  + Save to DB
                 </button>
               </div>
             </form>
           </div>
 
           <div className="space-y-3">
-            {downloads.map((d) => (
-              <div key={d.id} className="glass p-5 rounded-2xl flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h4 className="font-bold text-slate-800 text-base">{d.title}</h4>
-                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{d.category}</span>
-                  </div>
-                  <a href={d.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline mt-1 block">
-                    {d.url}
-                  </a>
-                </div>
-                <button
-                  onClick={() => setDownloads(downloads.filter((item) => item.id !== d.id))}
-                  className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
-                >
-                  🗑️
-                </button>
+            {downloads.length === 0 ? (
+              <div className="p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
+                No download files found in database.
               </div>
-            ))}
+            ) : (
+              downloads.map((d) => (
+                <div key={d.id} className="glass p-5 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-slate-800 text-base">{d.title}</h4>
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-semibold">{d.category}</span>
+                    </div>
+                    <a href={d.url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline mt-1 block font-mono">
+                      {d.url}
+                    </a>
+                  </div>
+                  <button
+                    onClick={() => handleDeleteDownload(d.id)}
+                    className="p-2 text-rose-500 hover:bg-rose-50 rounded-xl transition"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))
+            )}
           </div>
         </div>
       )}
@@ -493,11 +588,10 @@ export default function ControllerManagement() {
           <div className="flex items-start gap-4">
             <span className="p-3 bg-rose-100 text-rose-600 rounded-2xl text-xl">⚠️</span>
             <div>
-              <h2 className="text-xl font-bold text-rose-900">Clear test and event data</h2>
+              <h2 className="text-xl font-bold text-rose-900">Clear Database & Reset Event Data</h2>
               <p className="text-rose-700 text-sm mt-1">
-                This permanently deletes students, programmes, programme selections, code-letter assignments, results and saved schedules.
+                This operation will clear all database collections, user entries, announcements, downloadable files, and limits.
               </p>
-              <p className="text-xs font-bold text-rose-800 mt-2">Teams, categories, users and limits will remain.</p>
             </div>
           </div>
 
@@ -525,7 +619,7 @@ export default function ControllerManagement() {
               type="submit"
               className="px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-rose-500/25 transition flex items-center gap-2"
             >
-              🗑️ Clear event data
+              🗑️ Clear Database Data
             </button>
           </form>
         </div>

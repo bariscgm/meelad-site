@@ -1,25 +1,69 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
-export default function AdminLogin() {
+export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const portalType = location.state?.portal ? `${location.state.portal} ` : '';
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (
-      (username.trim() === 'admin' || username.trim() === 'admin@festpro.com') &&
-      password === 'admin123'
-    ) {
-      localStorage.setItem('isAdminAuthenticated', 'true');
-      localStorage.setItem('adminUser', username);
-      navigate('/admin');
-    } else {
-      setError('Invalid username or password. Please check your credentials.');
+    try {
+      let data;
+      const normalizedUsername = username.toLowerCase().trim();
+
+      // Admin hardcoded override
+      if (normalizedUsername === 'admin') {
+        if (password === 'admin123') {
+          data = {
+            success: true,
+            user: { 
+              id: 'admin-hardcoded', 
+              name: 'System Administrator', 
+              username: 'admin', 
+              role: 'Admin', 
+              team: 'System', 
+              status: 'Active' 
+            }
+          };
+        } else {
+          data = { success: false, message: 'Invalid username or password.' };
+        }
+      } else {
+        // Fetch from DB for all other users
+        const response = await fetch('http://localhost:5000/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        data = await response.json();
+      }
+
+      if (data.success) {
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('user', JSON.stringify(data.user));
+        
+        // Redirect based on role
+        const role = data.user.role;
+        if (role === 'Admin') navigate('/admin');
+        else if (role === 'Team Leader') navigate('/team');
+        else if (role === 'Stage Manager') navigate('/stage');
+        else if (role === 'Judge') navigate('/judge');
+        else navigate('/');
+      } else {
+        setError(data.message || 'Invalid username or password.');
+      }
+    } catch (err) {
+      setError('Connection error. Please try again later.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,7 +79,7 @@ export default function AdminLogin() {
 
       {/* Background Decorative Gradients */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-600/20 rounded-full blur-3xl pointer-events-none"></div>
 
       <div className="max-w-md w-full glass-dark p-8 md:p-10 rounded-3xl border border-slate-800 shadow-2xl relative z-10 space-y-8">
         {/* Brand Header */}
@@ -47,9 +91,9 @@ export default function AdminLogin() {
               className="w-20 h-20 object-contain mx-auto bg-white/5 p-2 rounded-2xl border border-white/10"
             />
           </Link>
-          <h1 className="text-2xl font-bold text-white tracking-tight flex items-center justify-center gap-2">
+          <h1 className="text-2xl font-bold text-white tracking-tight flex flex-col items-center justify-center gap-2">
             <span dir="rtl">إلى الرسول</span>
-            <span className="text-teal-400 font-mono text-xl">'26</span> Admin Login
+            <span className="text-center">{portalType}Login Portal</span>
           </h1>
           <p className="text-xs text-teal-300 font-semibold">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
         </div>
@@ -64,7 +108,7 @@ export default function AdminLogin() {
         {/* Form */}
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">Username or Email</label>
+            <label className="block text-xs font-semibold text-slate-300 mb-2">Username</label>
             <input
               type="text"
               required
@@ -89,9 +133,10 @@ export default function AdminLogin() {
 
           <button
             type="submit"
-            className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-500/25 transition flex items-center justify-center gap-2"
+            disabled={loading}
+            className={`w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-purple-500/25 transition flex items-center justify-center gap-2 ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
           >
-            Sign In to Admin Portal
+            {loading ? 'Authenticating...' : 'Sign In'}
           </button>
         </form>
       </div>
