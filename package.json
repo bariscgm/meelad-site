@@ -2,11 +2,13 @@
   "name": "meelad-fest-site",
   "version": "1.0.0",
   "description": "Meelad Fest Arts & Cultural Competition Web Portal - MERN / MVC Architecture",
-  "main": "backend/server.js",
+  "main": "server/server.js",
   "type": "module",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "node backend/server.js"
+    "start": "npm start --prefix server",
+    "server": "npm run dev --prefix server",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\""
   },
   "keywords": [
     "mvc",
@@ -18,8 +20,10 @@
   "author": "Meelad Tech Committee",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.19.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
 }
