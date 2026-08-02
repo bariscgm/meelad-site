@@ -11,13 +11,16 @@ export default function HomePage() {
       {/* Navigation / Header */}
       <header className="relative z-10 border-b border-white/5 bg-slate-900/50 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-white/10 p-1 rounded-xl" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-white/10 p-1 rounded-xl group-hover:scale-105 transition" />
             <div>
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">ILMUL RASOOL <span className="text-teal-400">'26</span></h1>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                <span dir="rtl">إلى الرسول</span>
+                <span className="text-teal-400 font-mono text-lg">'26</span>
+              </h1>
               <p className="text-[10px] md:text-xs text-slate-400 font-medium">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
-          </div>
+          </Link>
           <div className="hidden md:flex gap-6">
             <a href="#scoreboard" className="text-sm font-medium hover:text-teal-400 transition">Live Scoreboard</a>
             <a href="#portals" className="text-sm font-medium hover:text-emerald-400 transition">Login Portals</a>
@@ -38,14 +41,14 @@ export default function HomePage() {
               Live Competition
             </div>
 
-            {/* Blended PNG Logo (No Card / No Separation Box) */}
-            <div className="py-2">
+            {/* Blended PNG Logo */}
+            <Link to="/" className="py-2 inline-block transition hover:scale-[1.02]">
               <img
                 src="/ilmul_rasool_logo.png"
                 alt="Ilmul Rasool Logo"
                 className="w-80 md:w-[480px] max-w-full drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)] mx-auto object-contain"
               />
-            </div>
+            </Link>
 
             {/* Madrasa Details Text directly under PNG Logo */}
             <div className="space-y-2">
@@ -95,48 +98,70 @@ export default function HomePage() {
         <section id="portals" className="pt-12 border-t border-white/5">
           <div className="text-center mb-12 space-y-4">
             <h2 className="text-3xl md:text-4xl font-bold text-white">Access Portals</h2>
-            <p className="text-slate-400">Secure access for organizers, team leaders, and judges.</p>
+            <p className="text-slate-400">Secure access for organizers, team leaders, stage managers, and judges.</p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
             {/* Admin Portal Card */}
-            <div className="glass-dark p-8 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-blue-500/30">
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition">
-                <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
-                </svg>
+            <div className="glass-dark p-6 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-blue-500/30 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6 border border-blue-500/20 group-hover:scale-110 transition">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Admin Control</h3>
+                <p className="text-slate-400 text-sm mb-6">Manage programs, students, results, and overall festival settings.</p>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Admin Control</h3>
-              <p className="text-slate-400 text-sm mb-6">Manage programs, students, results, and overall festival settings.</p>
               <Link to="/admin" className="inline-flex items-center gap-2 text-blue-400 font-medium group-hover:text-blue-300">
                 Go to Admin <span className="group-hover:translate-x-1 transition">→</span>
               </Link>
             </div>
 
             {/* Team Portal Card */}
-            <div className="glass-dark p-8 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-teal-500/30">
-              <div className="w-14 h-14 rounded-2xl bg-teal-500/10 flex items-center justify-center mb-6 border border-teal-500/20 group-hover:scale-110 transition">
-                <svg className="w-6 h-6 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
+            <div className="glass-dark p-6 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-teal-500/30 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-teal-500/10 flex items-center justify-center mb-6 border border-teal-500/20 group-hover:scale-110 transition">
+                  <svg className="w-6 h-6 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Team Leaders</h3>
+                <p className="text-slate-400 text-sm mb-6">Register students, view team schedules, and track individual scores.</p>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Team Leaders</h3>
-              <p className="text-slate-400 text-sm mb-6">Register students, view team schedules, and track individual scores.</p>
               <Link to="/team" className="inline-flex items-center gap-2 text-teal-400 font-medium group-hover:text-teal-300">
                 Go to Team Portal <span className="group-hover:translate-x-1 transition">→</span>
               </Link>
             </div>
 
-            {/* Judges Portal Card */}
-            <div className="glass-dark p-8 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-purple-500/30">
-              <div className="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-110 transition">
-                <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
+            {/* Stage Portal Card */}
+            <div className="glass-dark p-6 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-amber-500/30 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center mb-6 border border-amber-500/20 group-hover:scale-110 transition">
+                  <svg className="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Stage Manager</h3>
+                <p className="text-slate-400 text-sm mb-6">Control live stage proceedings, calls, and performance status.</p>
               </div>
-              <h3 className="text-xl font-bold text-white mb-2">Judge Access</h3>
-              <p className="text-slate-400 text-sm mb-6">Secure portal for entering marks and evaluating live stage performances.</p>
+              <Link to="/stage" className="inline-flex items-center gap-2 text-amber-400 font-medium group-hover:text-amber-300">
+                Go to Stage Portal <span className="group-hover:translate-x-1 transition">→</span>
+              </Link>
+            </div>
+
+            {/* Judges Portal Card */}
+            <div className="glass-dark p-6 rounded-3xl hover:-translate-y-2 transition duration-300 group border-t border-purple-500/30 flex flex-col justify-between">
+              <div>
+                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6 border border-purple-500/20 group-hover:scale-110 transition">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-white mb-2">Judge Access</h3>
+                <p className="text-slate-400 text-sm mb-6">Secure portal for entering marks and evaluating live stage performances.</p>
+              </div>
               <Link to="/judge" className="inline-flex items-center gap-2 text-purple-400 font-medium group-hover:text-purple-300">
                 Go to Judging <span className="group-hover:translate-x-1 transition">→</span>
               </Link>

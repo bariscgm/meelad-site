@@ -84,13 +84,16 @@ export default function AdminLayout() {
       {/* Sidebar */}
       <aside className="w-64 bg-[#121124] text-white hidden md:flex flex-col border-r border-slate-800">
         {/* Brand Header */}
-        <div className="p-6 flex items-center gap-3">
+        <Link to="/" className="p-6 flex items-center gap-3 transition hover:opacity-80">
           <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-10 h-10 object-contain bg-white/10 p-1 rounded-xl" />
           <div>
-            <h2 className="text-lg font-bold text-white tracking-tight">Ilmul Rasool '26</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-1.5">
+              <span dir="rtl">إلى الرسول</span>
+              <span className="text-teal-400 font-mono text-sm">'26</span>
+            </h2>
             <p className="text-[9px] text-slate-400 font-medium leading-tight">Darussalam HSM Narikkuni (Reg 2179)</p>
           </div>
-        </div>
+        </Link>
 
         {/* Section Label */}
         <div className="px-6 py-2">
@@ -120,8 +123,14 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        {/* Bottom Sign Out */}
-        <div className="p-4 border-t border-slate-800/80">
+        {/* Bottom Sign Out & Home Link */}
+        <div className="p-4 border-t border-slate-800/80 space-y-2">
+          <Link
+            to="/"
+            className="w-full py-2 px-4 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-300 rounded-xl transition text-xs font-semibold flex items-center justify-center gap-2"
+          >
+            ← Back to Public Site
+          </Link>
           <button
             onClick={handleSignOut}
             className="w-full py-2.5 px-4 bg-white/5 hover:bg-white/10 border border-slate-700/50 text-slate-300 rounded-xl transition text-sm font-semibold flex items-center gap-2"
@@ -139,18 +148,20 @@ export default function AdminLayout() {
         {/* Header */}
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-8 z-10 sticky top-0">
           <div className="md:hidden font-bold text-purple-700 flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs">F</span>
-            Admin Panel
+            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-7 h-7 object-contain bg-purple-100 p-0.5 rounded-lg" />
+            <span dir="rtl">إلى الرسول</span>
           </div>
 
           <div className="ml-auto flex items-center gap-3">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-slate-800">FestPro Administrator</p>
-              <p className="text-[10px] text-slate-400 font-semibold">Administrator</p>
+              <p className="text-xs font-bold text-slate-800">Ilmul Rasool Admin</p>
+              <p className="text-[10px] text-teal-600 font-semibold">Super Admin</p>
             </div>
-            <div className="w-9 h-9 rounded-full bg-purple-100 text-purple-700 font-bold flex items-center justify-center shadow-sm">
-              F
-            </div>
+            <img
+              src="/ilmul_rasool_logo.png"
+              alt="Admin Avatar"
+              className="w-9 h-9 rounded-full bg-purple-50 p-1 object-contain border border-purple-200 shadow-sm"
+            />
           </div>
         </header>
 

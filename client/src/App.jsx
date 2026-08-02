@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
 import TeamLayout from './layouts/TeamLayout';
 
@@ -49,7 +49,7 @@ function AdminDashboard() {
       change: 'Live on scoreboard',
       icon: (
         <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 00.806 1.946 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
         </svg>
       ),
       bgColor: 'bg-emerald-500/10',
@@ -71,13 +71,26 @@ function AdminDashboard() {
     },
   ];
 
+  const quickActions = [
+    { name: 'Team Management', path: '/admin/team-management', color: 'bg-blue-500 text-white', icon: '👥' },
+    { name: 'Add Category', path: '/admin/add-category', color: 'bg-teal-500 text-white', icon: '📖' },
+    { name: 'Programmes', path: '/admin/programs', color: 'bg-purple-500 text-white', icon: '🏆' },
+    { name: 'Results Control', path: '/admin/results', color: 'bg-emerald-500 text-white', icon: '📝' },
+    { name: 'System Controls', path: '/admin/controller', color: 'bg-slate-700 text-white', icon: '⚙️' },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="glass p-8 rounded-3xl">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Admin Dashboard</h1>
-        <p className="text-slate-500">Overview of students, programs, teams, and result status.</p>
+    <div className="space-y-8">
+      {/* Welcome Card */}
+      <div className="glass p-8 rounded-3xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span className="text-xs uppercase font-bold text-teal-600 tracking-wider">Welcome Administrator</span>
+          <h1 className="text-3xl font-bold text-slate-800 mt-1">Meelad Admin Overview</h1>
+          <p className="text-slate-500 text-sm mt-1">Live monitoring for teams, students, programmes, and result publishing.</p>
+        </div>
       </div>
 
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
         {stats.map((stat, idx) => (
           <div key={idx} className={`${stat.bgColor} border ${stat.borderColor} p-6 rounded-2xl transition hover:shadow-lg hover:-translate-y-0.5 duration-200 flex flex-col justify-between`}>
@@ -91,6 +104,74 @@ function AdminDashboard() {
             <p className="text-xs text-slate-500 font-medium mt-4 pt-3 border-t border-slate-200/40">{stat.change}</p>
           </div>
         ))}
+      </div>
+
+      {/* Quick Action Navigation */}
+      <div className="glass p-8 rounded-3xl space-y-4">
+        <h2 className="text-xl font-bold text-slate-800">Quick Navigation Shortcuts</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          {quickActions.map((action) => (
+            <a
+              key={action.name}
+              href={action.path}
+              className="p-4 rounded-2xl border border-slate-200/60 bg-white/80 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition flex flex-col items-center text-center space-y-2 group"
+            >
+              <span className="text-2xl">{action.icon}</span>
+              <span className="text-sm font-bold text-slate-700 group-hover:text-purple-600 transition">{action.name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Activity Feed & Team Standing Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Top Teams Standings */}
+        <div className="glass p-8 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>🏆</span> Top Teams Points Leaderboard
+          </h2>
+          <div className="space-y-3">
+            {[
+              { rank: '1st', name: 'Team Alpha', code: 'ALPHA-01', points: '1,250 pts', color: 'bg-teal-50 text-teal-700 border-teal-200' },
+              { rank: '2nd', name: 'Team Beta', code: 'BETA-02', points: '980 pts', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+              { rank: '3rd', name: 'Team Gamma', code: 'GAMMA-03', points: '840 pts', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+            ].map((t) => (
+              <div key={t.rank} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <span className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs ${t.color}`}>
+                    {t.rank}
+                  </span>
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-sm">{t.name}</h4>
+                    <span className="text-xs font-mono text-slate-500">{t.code}</span>
+                  </div>
+                </div>
+                <span className="font-extrabold text-teal-600 text-sm">{t.points}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Admin Activity Log */}
+        <div className="glass p-8 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>⚡</span> Recent System Activity
+          </h2>
+          <div className="space-y-3 text-xs">
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-between text-emerald-800">
+              <span>Result published: Arabic Song (Super Senior)</span>
+              <span className="font-medium text-emerald-600">5 mins ago</span>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-between text-blue-800">
+              <span>New student registered in Team Alpha</span>
+              <span className="font-medium text-blue-600">22 mins ago</span>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-between text-purple-800">
+              <span>Category updated: Sub Junior (Class 1 - 4)</span>
+              <span className="font-medium text-purple-600">1 hour ago</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -134,9 +215,52 @@ import HomePage from './pages/HomePage';
 function JudgeDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 p-8">
-      <div className="glass p-8 rounded-3xl max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-slate-800 mb-2">Judge Portal</h1>
-        <p className="text-slate-500">Live stage scoring interface coming soon.</p>
+      <div className="glass p-8 rounded-3xl max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+          <div className="flex items-center gap-3">
+            <Link to="/">
+              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-purple-100 p-1 rounded-xl border border-purple-200" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <span dir="rtl">إلى الرسول</span>
+                <span className="text-purple-600 font-mono text-sm">'26</span> Judge Portal
+              </h1>
+              <p className="text-xs text-slate-500">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
+            </div>
+          </div>
+          <Link to="/" className="text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-3.5 py-2 rounded-xl hover:bg-purple-100 transition">
+            ← Back to Home
+          </Link>
+        </div>
+        <p className="text-slate-500">Live stage scoring interface & evaluation forms.</p>
+      </div>
+    </div>
+  );
+}
+
+function StageDashboard() {
+  return (
+    <div className="min-h-screen bg-slate-50 p-8">
+      <div className="glass p-8 rounded-3xl max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+          <div className="flex items-center gap-3">
+            <Link to="/">
+              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-amber-100 p-1 rounded-xl border border-amber-200" />
+            </Link>
+            <div>
+              <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                <span dir="rtl">إلى الرسول</span>
+                <span className="text-amber-600 font-mono text-sm">'26</span> Stage Manager Portal
+              </h1>
+              <p className="text-xs text-slate-500">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
+            </div>
+          </div>
+          <Link to="/" className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-2 rounded-xl hover:bg-amber-100 transition">
+            ← Back to Home
+          </Link>
+        </div>
+        <p className="text-slate-500">Live stage proceedings, chest number calls & order management interface.</p>
       </div>
     </div>
   );
@@ -179,7 +303,8 @@ function App() {
           <Route index element={<TeamDashboard />} />
         </Route>
         
-        {/* Judge Routes */}
+        {/* Stage & Judge Routes */}
+        <Route path="/stage" element={<StageDashboard />} />
         <Route path="/judge" element={<JudgeDashboard />} />
 
         {/* Public / Scoreboard */}

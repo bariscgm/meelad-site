@@ -23,7 +23,7 @@ export default function ControllerManagement() {
   const [users, setUsers] = useState([
     { id: 1, name: 'Team Alpha Leader', username: 'teama', role: 'Team Leader', team: 'Team Alpha', status: 'Active' },
     { id: 2, name: 'Team Beta Leader', username: 'teamb', role: 'Team Leader', team: 'Team Beta', status: 'Active' },
-    { id: 3, name: 'FestPro Administrator', username: 'admin', role: 'Admin', team: 'No team', status: 'Active' },
+    { id: 3, name: 'Ilmul Rasool Admin', username: 'admin', role: 'Admin', team: 'No team', status: 'Active' },
     { id: 4, name: 'Judge One', username: 'judge1', role: 'Judge', team: 'No team', status: 'Active' },
     { id: 5, name: 'Stage Manager', username: 'stage1', role: 'Stage Manager', team: 'No team', status: 'Active' },
   ]);
@@ -98,11 +98,11 @@ export default function ControllerManagement() {
 
   const handleResetData = (e) => {
     e.preventDefault();
-    if (resetConfirmText === 'RESET FESTPRO') {
+    if (resetConfirmText === 'RESET ILMUL RASOOL') {
       setResetSuccessMessage('Event data cleared successfully. System has been reset.');
       setResetConfirmText('');
     } else {
-      alert('Please type "RESET FESTPRO" exactly to confirm.');
+      alert('Please type "RESET ILMUL RASOOL" exactly to confirm.');
     }
   };
 
@@ -510,11 +510,11 @@ export default function ControllerManagement() {
           <form onSubmit={handleResetData} className="space-y-4 max-w-md">
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
-                Type <span className="font-mono text-rose-700">RESET FESTPRO</span> to confirm
+                Type <span className="font-mono text-rose-700">RESET ILMUL RASOOL</span> to confirm
               </label>
               <input
                 type="text"
-                placeholder="RESET FESTPRO"
+                placeholder="RESET ILMUL RASOOL"
                 value={resetConfirmText}
                 onChange={(e) => setResetConfirmText(e.target.value)}
                 className="w-full px-4 py-2.5 rounded-xl border border-rose-300 bg-white font-mono text-sm focus:ring-2 focus:ring-rose-500 focus:outline-none"
