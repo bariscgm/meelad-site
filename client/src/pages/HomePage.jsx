@@ -10,12 +10,13 @@ export default function HomePage() {
 
       {/* Navigation / Header */}
       <header className="relative z-10 border-b border-white/5 bg-slate-900/50 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-400 to-emerald-500 shadow-lg shadow-teal-500/20 flex items-center justify-center font-bold text-white text-xl">
-              M
+            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-white/10 p-1 rounded-xl" />
+            <div>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white">ILMUL RASOOL <span className="text-teal-400">'26</span></h1>
+              <p className="text-[10px] md:text-xs text-slate-400 font-medium">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">ELLAL RASOOL <span className="text-teal-400">'26</span></h1>
           </div>
           <div className="hidden md:flex gap-6">
             <a href="#scoreboard" className="text-sm font-medium hover:text-teal-400 transition">Live Scoreboard</a>
@@ -27,26 +28,40 @@ export default function HomePage() {
       {/* Main Content */}
       <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-24">
 
-        {/* Hero & Scoreboard Section */}
-        <section id="scoreboard" className="grid lg:grid-cols-2 gap-12 items-center">
-          <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-medium">
+        {/* Hero Section */}
+        <section id="scoreboard" className="space-y-12">
+          {/* Centered Hero Content */}
+          <div className="flex flex-col items-center text-center space-y-6 max-w-3xl mx-auto">
+            {/* Live Competition Pill */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-400 text-sm font-medium">
               <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
               Live Competition
             </div>
-            <h2 className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-tight">
-              The Grand <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-emerald-400">Cultural Event</span>
-            </h2>
-            <p className="text-lg text-slate-400 max-w-md">
-              Experience the pulse of Meelad Fest. Follow the live scoreboard, witness the crowning of champions, and support your favorite teams.
-            </p>
+
+            {/* Blended PNG Logo (No Card / No Separation Box) */}
+            <div className="py-2">
+              <img
+                src="/ilmul_rasool_logo.png"
+                alt="Ilmul Rasool Logo"
+                className="w-80 md:w-[480px] max-w-full drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)] mx-auto object-contain"
+              />
+            </div>
+
+            {/* Madrasa Details Text directly under PNG Logo */}
+            <div className="space-y-2">
+              <p className="text-sm md:text-base font-bold text-teal-300 tracking-wide">
+                Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179
+              </p>
+              <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto">
+                Experience the pulse of Meelad Fest. Follow the live scoreboard, witness the crowning of champions, and support your favorite teams.
+              </p>
+            </div>
           </div>
 
           {/* Glassmorphic Scoreboard Preview */}
-          <div className="glass-dark p-8 rounded-3xl relative">
+          <div className="glass-dark p-8 rounded-3xl max-w-3xl mx-auto relative">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl pointer-events-none" />
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+            <h3 className="text-2xl font-bold text-white mb-6 flex items-center justify-center gap-3">
               🏆 Top Teams Leaderboard
             </h3>
 
@@ -60,7 +75,7 @@ export default function HomePage() {
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-gradient-to-br ${team.color} shadow-lg`}>
                     #{team.rank}
                   </div>
-                  <div className="ml-4 flex-1">
+                  <div className="ml-4 flex-1 text-left">
                     <h4 className="text-lg font-bold text-white group-hover:text-teal-300 transition">{team.name}</h4>
                   </div>
                   <div className="text-2xl font-extrabold text-teal-400">
