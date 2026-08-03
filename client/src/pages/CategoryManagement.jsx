@@ -1,12 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
 
 export default function CategoryManagement() {
-  const [categories, setCategories] = useState([
-    { id: 1, name: 'Sub Junior', classFrom: 1, classTo: 4 },
-    { id: 2, name: 'Junior', classFrom: 5, classTo: 7 },
-    { id: 3, name: 'Senior', classFrom: 8, classTo: 10 },
-    { id: 4, name: 'Super Senior', classFrom: 11, classTo: 12 },
-  ]);
+  const [categories, setCategories] = useState([]);
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  });
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data.map(cat => ({ ...cat, id: cat._id })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -24,27 +48,43 @@ export default function CategoryManagement() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name) return;
 
-    if (editingId) {
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === editingId
-            ? { ...cat, name: formData.name, classFrom: formData.classFrom, classTo: formData.classTo }
-            : cat
-        )
-      );
-      setEditingId(null);
-    } else {
-      const newCategory = {
-        id: Date.now(),
-        name: formData.name,
-        classFrom: formData.classFrom,
-        classTo: formData.classTo,
-      };
-      setCategories((prev) => [...prev, newCategory]);
+    try {
+      if (editingId) {
+        const res = await fetch(`/api/categories/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setCategories((prev) =>
+            prev.map((cat) => (cat.id === editingId ? { ...updated, id: updated._id } : cat))
+          );
+          Toast.fire({ icon: 'success', title: 'Category updated successfully' });
+        }
+        setEditingId(null);
+      } else {
+        const res = await fetch('/api/categories', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setCategories((prev) => [...prev, { ...created, id: created._id }]);
+          Toast.fire({ icon: 'success', title: 'Category added successfully' });
+        } else {
+          const err = await res.json();
+          Toast.fire({ icon: 'error', title: err.message || 'Failed to add category' });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save category:', error);
+      Toast.fire({ icon: 'error', title: 'Error saving category' });
     }
 
     setFormData({ name: '', classFrom: 1, classTo: 4 });
@@ -59,11 +99,36 @@ export default function CategoryManagement() {
     });
   };
 
-  const handleDelete = (id) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setFormData({ name: '', classFrom: 1, classTo: 4 });
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/api/categories/${id}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          setCategories((prev) => prev.filter((cat) => cat.id !== id));
+          if (editingId === id) {
+            setEditingId(null);
+            setFormData({ name: '', classFrom: 1, classTo: 4 });
+          }
+          Toast.fire({ icon: 'success', title: 'Category deleted' });
+        } else {
+          Toast.fire({ icon: 'error', title: 'Failed to delete' });
+        }
+      } catch (error) {
+        console.error('Failed to delete category:', error);
+        Toast.fire({ icon: 'error', title: 'Error deleting category' });
+      }
     }
   };
 

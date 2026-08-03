@@ -1,13 +1,41 @@
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import AdminLayout from './layouts/AdminLayout';
 import TeamLayout from './layouts/TeamLayout';
 
 function AdminDashboard() {
+  const [dashboardData, setDashboardData] = useState({
+    stats: {
+      totalStudents: 0,
+      totalTeams: 0,
+      totalPrograms: 0,
+      submittedResults: 0,
+      publishedResults: 0
+    },
+    topTeams: [],
+    recentActivity: []
+  });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const res = await fetch('/api/dashboard/admin');
+        if (res.ok) {
+          const data = await res.json();
+          setDashboardData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      }
+    };
+    fetchDashboardData();
+  }, []);
+
   const stats = [
     {
       title: 'Total Registered Students',
-      value: '450',
-      change: '+12% from last week',
+      value: dashboardData.stats.totalStudents,
+      change: 'Will be available soon',
       icon: (
         <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 100 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -19,8 +47,8 @@ function AdminDashboard() {
     },
     {
       title: 'Total Programs',
-      value: '34',
-      change: '8 Active today',
+      value: dashboardData.stats.totalPrograms,
+      change: 'Active in system',
       icon: (
         <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -32,8 +60,8 @@ function AdminDashboard() {
     },
     {
       title: 'Submitted Results',
-      value: '28',
-      change: 'Pending verification',
+      value: dashboardData.stats.submittedResults,
+      change: 'Total drafted or published',
       icon: (
         <svg className="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -45,7 +73,7 @@ function AdminDashboard() {
     },
     {
       title: 'Published Results',
-      value: '16',
+      value: dashboardData.stats.publishedResults,
       change: 'Live on scoreboard',
       icon: (
         <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,8 +86,8 @@ function AdminDashboard() {
     },
     {
       title: 'Total Teams',
-      value: '12',
-      change: 'All active',
+      value: dashboardData.stats.totalTeams,
+      change: 'Active teams in system',
       icon: (
         <svg className="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -111,14 +139,14 @@ function AdminDashboard() {
         <h2 className="text-xl font-bold text-slate-800">Quick Navigation Shortcuts</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {quickActions.map((action) => (
-            <a
+            <Link
               key={action.name}
-              href={action.path}
+              to={action.path}
               className="p-4 rounded-2xl border border-slate-200/60 bg-white/80 hover:bg-white hover:shadow-md hover:-translate-y-0.5 transition flex flex-col items-center text-center space-y-2 group"
             >
               <span className="text-2xl">{action.icon}</span>
               <span className="text-sm font-bold text-slate-700 group-hover:text-purple-600 transition">{action.name}</span>
-            </a>
+            </Link>
           ))}
         </div>
       </div>
@@ -131,24 +159,24 @@ function AdminDashboard() {
             <span>🏆</span> Top Teams Points Leaderboard
           </h2>
           <div className="space-y-3">
-            {[
-              { rank: '1st', name: 'Team Alpha', code: 'ALPHA-01', points: '1,250 pts', color: 'bg-teal-50 text-teal-700 border-teal-200' },
-              { rank: '2nd', name: 'Team Beta', code: 'BETA-02', points: '980 pts', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-              { rank: '3rd', name: 'Team Gamma', code: 'GAMMA-03', points: '840 pts', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-            ].map((t) => (
-              <div key={t.rank} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <span className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs ${t.color}`}>
-                    {t.rank}
-                  </span>
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-sm">{t.name}</h4>
-                    <span className="text-xs font-mono text-slate-500">{t.code}</span>
+            {dashboardData.topTeams.length > 0 ? (
+              dashboardData.topTeams.map((t) => (
+                <div key={t.rank} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs ${t.color}`}>
+                      {t.rank}
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm">{t.name}</h4>
+                      <span className="text-xs font-mono text-slate-500">{t.code}</span>
+                    </div>
                   </div>
+                  <span className="font-extrabold text-teal-600 text-sm">{t.points}</span>
                 </div>
-                <span className="font-extrabold text-teal-600 text-sm">{t.points}</span>
-              </div>
-            ))}
+              ))
+            ) : (
+              <div className="p-4 text-slate-500 text-sm text-center">No results published yet.</div>
+            )}
           </div>
         </div>
 
@@ -158,18 +186,18 @@ function AdminDashboard() {
             <span>⚡</span> Recent System Activity
           </h2>
           <div className="space-y-3 text-xs">
-            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-between text-emerald-800">
-              <span>Result published: Arabic Song (Super Senior)</span>
-              <span className="font-medium text-emerald-600">5 mins ago</span>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-between text-blue-800">
-              <span>New student registered in Team Alpha</span>
-              <span className="font-medium text-blue-600">22 mins ago</span>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-purple-50 border border-purple-100 flex items-center justify-between text-purple-800">
-              <span>Category updated: Sub Junior (Class 1 - 4)</span>
-              <span className="font-medium text-purple-600">1 hour ago</span>
-            </div>
+            {dashboardData.recentActivity.length > 0 ? (
+              dashboardData.recentActivity.map((activity, idx) => (
+                <div key={idx} className={`p-3.5 rounded-2xl border flex items-center justify-between ${activity.colorClass}`}>
+                  <span>{activity.message}</span>
+                  <span className={`font-medium ${activity.timeClass}`}>
+                    {new Date(activity.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-slate-500 text-sm text-center">No recent activity.</div>
+            )}
           </div>
         </div>
       </div>
@@ -214,60 +242,11 @@ function TeamDashboard() {
 }
 
 import HomePage from './pages/HomePage';
+import LiveScore from './pages/LiveScore';
 
-function JudgeDashboard() {
-  return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="glass p-8 rounded-3xl max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-purple-100 p-1 rounded-xl border border-purple-200" />
-            </Link>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex flex-col items-start gap-1">
-                <span dir="rtl">إلى الرسول</span>
-                <span>Judge Portal</span>
-              </h1>
-              <p className="text-xs text-slate-500 mt-1">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
-            </div>
-          </div>
-          <Link to="/" className="text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-3.5 py-2 rounded-xl hover:bg-purple-100 transition">
-            ← Back to Home
-          </Link>
-        </div>
-        <p className="text-slate-500">Live stage scoring interface & evaluation forms.</p>
-      </div>
-    </div>
-  );
-}
+import JudgeDashboard from './pages/JudgeDashboard';
 
-function StageDashboard() {
-  return (
-    <div className="min-h-screen bg-slate-50 p-8">
-      <div className="glass p-8 rounded-3xl max-w-4xl mx-auto space-y-6">
-        <div className="flex items-center justify-between border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-3">
-            <Link to="/">
-              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-amber-100 p-1 rounded-xl border border-amber-200" />
-            </Link>
-            <div>
-              <h1 className="text-xl md:text-2xl font-bold text-slate-800 flex flex-col items-start gap-1">
-                <span dir="rtl">إلى الرسول</span>
-                <span>Stage Manager Portal</span>
-              </h1>
-              <p className="text-xs text-slate-500 mt-1">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
-            </div>
-          </div>
-          <Link to="/" className="text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-3.5 py-2 rounded-xl hover:bg-amber-100 transition">
-            ← Back to Home
-          </Link>
-        </div>
-        <p className="text-slate-500">Live stage proceedings, chest number calls & order management interface.</p>
-      </div>
-    </div>
-  );
-}
+import StageDashboard from './pages/StageDashboard';
 
 import TeamManagement from './pages/TeamManagement';
 import CategoryManagement from './pages/CategoryManagement';
@@ -275,6 +254,7 @@ import ProgramManagement from './pages/ProgramManagement';
 import ResultManagement from './pages/ResultManagement';
 import ControllerManagement from './pages/ControllerManagement';
 import Login from './pages/Login';
+import CandidateRegistration from './pages/CandidateRegistration';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -307,6 +287,7 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['Team Leader']} />}>
           <Route path="/team" element={<TeamLayout />}>
             <Route index element={<TeamDashboard />} />
+            <Route path="students" element={<CandidateRegistration />} />
           </Route>
         </Route>
         
@@ -322,6 +303,7 @@ function App() {
 
         {/* Public / Scoreboard */}
         <Route path="/" element={<HomePage />} />
+        <Route path="/score" element={<LiveScore />} />
       </Routes>
     </BrowserRouter>
   );

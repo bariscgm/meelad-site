@@ -48,7 +48,11 @@ router.post('/limits', async (req, res) => {
 // --- USERS ENDPOINTS ---
 router.get('/users', async (req, res) => {
   try {
-    const users = await User.find().select('-password').sort({ createdAt: -1 });
+    const filter = {};
+    if (req.query.role) {
+      filter.role = req.query.role;
+    }
+    const users = await User.find(filter).select('-password').sort({ createdAt: -1 });
     res.json({ success: true, data: users });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
@@ -72,6 +76,37 @@ router.post('/users', async (req, res) => {
       status: 'Active',
     });
     res.status(201).json({ success: true, data: newUser });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+router.put('/users/:id', async (req, res) => {
+  try {
+    const { name, username, password, role, team, status } = req.body;
+    const user = await User.findById(req.params.id);
+    
+    if (user) {
+      user.name = name || user.name;
+      if (username) {
+        user.username = username.toLowerCase().trim();
+      }
+      user.role = role || user.role;
+      user.team = team || user.team;
+      user.status = status || user.status;
+      
+      if (password && password.trim() !== '') {
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(password, salt);
+      }
+      
+      const updatedUser = await user.save();
+      // Don't send back the hashed password
+      const userToReturn = await User.findById(updatedUser._id).select('-password');
+      res.json({ success: true, data: userToReturn });
+    } else {
+      res.status(404).json({ success: false, message: 'User not found' });
+    }
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }

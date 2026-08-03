@@ -3,7 +3,7 @@
  * Connects directly to MongoDB Atlas cluster (meeladpro.eg7lsk6.mongodb.net) via Express API
  */
 
-const API_BASE_URL = 'http://localhost:5000/api/controller';
+const API_BASE_URL = '/api/controller';
 
 const STORAGE_KEYS = {
   LIMITS: 'ilmul_rasool_db_limits',

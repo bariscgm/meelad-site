@@ -1,32 +1,63 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import * as XLSX from 'xlsx';
+import Swal from 'sweetalert2';
 
 export default function ProgramManagement() {
-  const initialPrograms = [
-    { id: 1, name: 'Andhakshary', category: 'General', type: 'Group', venueType: 'STAGE', gender: 'Boy', maxParticipants: 4, duration: '30 min' },
-    { id: 2, name: 'Andhakshary', category: 'General', type: 'Group', venueType: 'STAGE', gender: 'Girl', maxParticipants: 4, duration: '30 min' },
-    { id: 3, name: 'Arabic Song', category: 'Super Senior', type: 'Individual', venueType: 'STAGE', gender: 'Girl', maxParticipants: 3, duration: '4 min' },
-    { id: 4, name: 'Baloon Quiz', category: 'Sub Junior', type: 'Individual', venueType: 'OFF-STAGE', gender: 'Boy', maxParticipants: 4, duration: '20 min' },
-    { id: 5, name: 'Baloon Quiz', category: 'Sub Junior', type: 'Individual', venueType: 'OFF-STAGE', gender: 'Girl', maxParticipants: 4, duration: '20 min' },
-    { id: 6, name: 'Bank', category: 'Senior', type: 'Individual', venueType: 'OFF-STAGE', gender: 'Boy', maxParticipants: 4, duration: '4 min' },
-    { id: 7, name: 'Book Review', category: 'Super Senior', type: 'Individual', venueType: 'STAGE', gender: 'Girl', maxParticipants: 3, duration: '4 min' },
-    { id: 8, name: 'Build The Time Line', category: 'Senior', type: 'Individual', venueType: 'OFF-STAGE', gender: 'Boy', maxParticipants: 4, duration: '20 min' },
-    { id: 9, name: 'Burda', category: 'General', type: 'Group', venueType: 'STAGE', gender: 'Boy', maxParticipants: 5, duration: '20 min' },
-    { id: 10, name: 'Chithra Thunnal', category: 'General', type: 'Group', venueType: 'OFF-STAGE', gender: 'Girl', maxParticipants: 2, duration: '20 min' },
-    { id: 11, name: 'Coloring', category: 'Kiddies', type: 'Individual', venueType: 'OFF-STAGE', gender: 'Boy', maxParticipants: 10, duration: '30 min' },
-    { id: 12, name: 'Conversation', category: 'Sub Junior', type: 'Group', venueType: 'STAGE', gender: 'Boy', maxParticipants: 4, duration: '4 min' },
-  ];
-
-  const [programs, setPrograms] = useState(initialPrograms);
+  const [programs, setPrograms] = useState([]);
+  const [categoriesList, setCategoriesList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedGender, setSelectedGender] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.addEventListener('mouseenter', Swal.stopTimer)
+      toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+  });
+
+  // Fetch programs from API
+  useEffect(() => {
+    fetchPrograms();
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategoriesList(data.map(c => c.name));
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
+
+  const fetchPrograms = async () => {
+    try {
+      const res = await fetch('/api/programs');
+      if (res.ok) {
+        const data = await res.json();
+        setPrograms(data.map(p => ({ ...p, id: p._id })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch programs:', error);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
-    category: 'Sub Junior',
+    category: categoriesList.length > 0 ? categoriesList[0] : '',
     type: 'Individual',
     venueType: 'STAGE',
     gender: 'Boy',
@@ -35,7 +66,6 @@ export default function ProgramManagement() {
   });
 
   // Unique lists for dropdown options
-  const categoriesList = ['Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General', 'Kiddies'];
   const typesList = ['Individual', 'Group'];
   const gendersList = ['Boy', 'Girl', 'General'];
 
@@ -50,26 +80,45 @@ export default function ProgramManagement() {
   });
 
   // Handle modal submit (Add / Edit)
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name) return;
 
-    if (editingId) {
-      setPrograms((prev) =>
-        prev.map((p) => (p.id === editingId ? { ...p, ...formData } : p))
-      );
-      setEditingId(null);
-    } else {
-      const newProgram = {
-        id: Date.now(),
-        ...formData,
-      };
-      setPrograms((prev) => [newProgram, ...prev]);
+    try {
+      if (editingId) {
+        const res = await fetch(`/api/programs/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setPrograms((prev) =>
+            prev.map((p) => (p.id === editingId ? { ...updated, id: updated._id } : p))
+          );
+          Toast.fire({ icon: 'success', title: 'Program updated successfully' });
+        }
+        setEditingId(null);
+      } else {
+        const res = await fetch('/api/programs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setPrograms((prev) => [{ ...created, id: created._id }, ...prev]);
+          Toast.fire({ icon: 'success', title: 'Program added successfully' });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save program:', error);
+      Toast.fire({ icon: 'error', title: 'Failed to save program' });
     }
 
     setFormData({
       name: '',
-      category: 'Sub Junior',
+      category: categoriesList.length > 0 ? categoriesList[0] : '',
       type: 'Individual',
       venueType: 'STAGE',
       gender: 'Boy',
@@ -93,8 +142,42 @@ export default function ProgramManagement() {
     setShowAddModal(true);
   };
 
-  const handleDelete = (id) => {
-    setPrograms((prev) => prev.filter((p) => p.id !== id));
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this program deletion!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/api/programs/${id}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          setPrograms((prev) => prev.filter((p) => p.id !== id));
+          Toast.fire({
+            icon: 'success',
+            title: 'Program deleted successfully'
+          });
+        } else {
+          Toast.fire({
+            icon: 'error',
+            title: 'Failed to delete the program'
+          });
+        }
+      } catch (error) {
+        console.error('Failed to delete program:', error);
+        Toast.fire({
+          icon: 'error',
+          title: 'An unexpected error occurred'
+        });
+      }
+    }
   };
 
   // Export to Excel / CSV
@@ -189,6 +272,67 @@ export default function ProgramManagement() {
     printWindow.document.close();
   };
 
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (evt) => {
+      try {
+        const bstr = evt.target.result;
+        const wb = XLSX.read(bstr, { type: 'binary' });
+        const wsname = wb.SheetNames[0];
+        const ws = wb.Sheets[wsname];
+        const data = XLSX.utils.sheet_to_json(ws);
+
+        if (data.length === 0) {
+          Swal.fire('Error', 'The uploaded file is empty.', 'error');
+          return;
+        }
+
+        const res = await fetch('/api/programs/bulk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          const result = await res.json();
+          Swal.fire('Success', result.message, 'success');
+          fetchPrograms(); // Refresh the list
+        } else {
+          const errorData = await res.json();
+          Swal.fire('Error', errorData.message || 'Failed to import programs.', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'An error occurred while parsing the file.', 'error');
+        console.error(error);
+      }
+    };
+    reader.readAsBinaryString(file);
+    // Reset file input
+    e.target.value = null;
+  };
+
+  const downloadCSVTemplate = () => {
+    const templateData = [
+      {
+        Name: 'Qiraat',
+        Category: 'Senior',
+        Type: 'Individual',
+        VenueType: 'STAGE',
+        Gender: 'Boy',
+        MaxParticipants: 1,
+        Duration: '10 mins',
+        Class: '10A',
+      }
+    ];
+    const ws = XLSX.utils.json_to_sheet(templateData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Template');
+    XLSX.writeFile(wb, 'Programme_Import_Template.csv');
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Title & Main Action Bar */}
@@ -204,6 +348,24 @@ export default function ProgramManagement() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Import Excel */}
+          <input 
+            type="file" 
+            accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel" 
+            ref={fileInputRef} 
+            onChange={handleFileUpload} 
+            className="hidden" 
+          />
+          <button
+            onClick={() => fileInputRef.current.click()}
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            Import Excel
+          </button>
+
           {/* Export to Excel */}
           <button
             onClick={exportToExcel}
@@ -232,7 +394,7 @@ export default function ProgramManagement() {
               setEditingId(null);
               setFormData({
                 name: '',
-                category: 'Sub Junior',
+                category: categoriesList.length > 0 ? categoriesList[0] : '',
                 type: 'Individual',
                 venueType: 'STAGE',
                 gender: 'Boy',
@@ -265,13 +427,17 @@ export default function ProgramManagement() {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
+          <button 
+            onClick={downloadCSVTemplate}
+            className="px-4 py-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shadow-sm">
             <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             CSV template
           </button>
-          <button className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+          <button 
+            onClick={() => fileInputRef.current.click()}
+            className="px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-700 text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>

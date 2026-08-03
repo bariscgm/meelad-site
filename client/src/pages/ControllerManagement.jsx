@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { controllerDB } from '../services/controllerDB';
+import Swal from 'sweetalert2';
 
 export default function ControllerManagement() {
   const [activeTab, setActiveTab] = useState('Limits');
@@ -15,12 +16,14 @@ export default function ControllerManagement() {
   });
 
   const [users, setUsers] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [editingUserId, setEditingUserId] = useState(null);
   const [userForm, setUserForm] = useState({
     name: '',
     username: '',
     password: '',
     role: 'Team Leader',
-    team: 'Team Alpha',
+    team: '',
   });
 
   const [announcements, setAnnouncements] = useState([]);
@@ -44,7 +47,33 @@ export default function ControllerManagement() {
   // Load Data from DB Connection on Mount
   useEffect(() => {
     loadDatabaseData();
+    fetchUsers();
+    fetchTeams();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch('/api/controller/users');
+      if (res.ok) {
+        const data = await res.json();
+        setUsers(data.data.map(u => ({ ...u, id: u._id })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch users', error);
+    }
+  };
+
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch('/api/teams');
+      if (res.ok) {
+        const data = await res.json();
+        setTeams(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch teams', error);
+    }
+  };
 
   const loadDatabaseData = () => {
     const limits = controllerDB.getLimits();
@@ -54,7 +83,6 @@ export default function ControllerManagement() {
       if (limits.generalLimits) setGeneralLimits(limits.generalLimits);
     }
 
-    setUsers(controllerDB.getUsers());
     setAnnouncements(controllerDB.getAnnouncements());
     setDownloads(controllerDB.getDownloads());
   };
@@ -76,31 +104,97 @@ export default function ControllerManagement() {
     showNotification('System control limits saved successfully to database!');
   };
 
-  const handleCreateUser = (e) => {
+  const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!userForm.name || !userForm.username) return;
-    const res = controllerDB.addUser(userForm);
-    if (res.success) {
-      setUsers(res.users);
-      setUserForm({ name: '', username: '', password: '', role: 'Team Leader', team: 'Team Alpha' });
-      showNotification(`User @${res.user.username} created and saved to DB!`);
+    
+    try {
+      if (editingUserId) {
+        const res = await fetch(`/api/controller/users/${editingUserId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userForm)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setUsers(users.map(u => u.id === editingUserId ? { ...updated.data, id: updated.data._id } : u));
+          showNotification(`User @${updated.data.username} updated in DB!`);
+          setEditingUserId(null);
+        }
+      } else {
+        const res = await fetch('/api/controller/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userForm)
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setUsers([{ ...created.data, id: created.data._id }, ...users]);
+          showNotification(`User @${created.data.username} created and saved to DB!`);
+        }
+      }
+      setUserForm({ name: '', username: '', password: '', role: 'Team Leader', team: '' });
+    } catch (error) {
+      console.error('Failed to save user', error);
     }
   };
 
-  const handleToggleUserStatus = (userId) => {
-    const res = controllerDB.toggleUserStatus(userId);
-    if (res.success) {
-      setUsers(res.users);
-      showNotification('User status updated in DB.');
+  const handleEditUser = (u) => {
+    setEditingUserId(u.id);
+    setUserForm({
+      name: u.name,
+      username: u.username,
+      password: '',
+      role: u.role,
+      team: u.team || '',
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleToggleUserStatus = async (user) => {
+    const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
+    try {
+      const res = await fetch(`/api/controller/users/${user.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setUsers(users.map(u => u.id === user.id ? { ...u, status: newStatus } : u));
+        showNotification('User status updated in DB.');
+      }
+    } catch (error) {
+      console.error('Failed to toggle status', error);
     }
   };
 
-  const handleDeleteUser = (userId) => {
-    if (!window.confirm('Are you sure you want to delete this user from database?')) return;
-    const res = controllerDB.deleteUser(userId);
-    if (res.success) {
-      setUsers(res.users);
-      showNotification('User deleted from DB.');
+  const handleDeleteUser = async (userId) => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`/api/controller/users/${userId}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          setUsers(users.filter(u => u.id !== userId));
+          if (editingUserId === userId) {
+            setEditingUserId(null);
+            setUserForm({ name: '', username: '', password: '', role: 'Team Leader', team: '' });
+          }
+          Swal.fire('Deleted!', 'User has been deleted.', 'success');
+        }
+      } catch (error) {
+        console.error('Failed to delete user', error);
+      }
     }
   };
 
@@ -323,10 +417,10 @@ export default function ControllerManagement() {
         <div className="space-y-6">
           {/* Create login user form */}
           <div className="glass p-6 rounded-3xl space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Create login user</h2>
-            <p className="text-slate-500 text-xs">Create new user accounts directly in the database.</p>
+            <h2 className="text-lg font-bold text-slate-800">{editingUserId ? 'Edit User' : 'Create login user'}</h2>
+            <p className="text-slate-500 text-xs">Manage user accounts directly in the database.</p>
 
-            <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+            <form onSubmit={handleCreateUser} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-end">
               <div>
                 <label className="block text-xs font-semibold text-slate-600 mb-1">Name</label>
                 <input
@@ -350,13 +444,14 @@ export default function ControllerManagement() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Temporary password</label>
+                <label className="block text-xs font-semibold text-slate-600 mb-1">{editingUserId ? 'New password (optional)' : 'Temporary password'}</label>
                 <input
                   type="password"
                   placeholder="••••••••"
                   value={userForm.password}
                   onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
                   className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                  required={!editingUserId}
                 />
               </div>
               <div>
@@ -372,13 +467,40 @@ export default function ControllerManagement() {
                   <option value="Admin">Admin</option>
                 </select>
               </div>
+              {userForm.role === 'Team Leader' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1">Team</label>
+                  <select
+                    value={userForm.team}
+                    onChange={(e) => setUserForm({ ...userForm, team: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
+                  >
+                    <option value="">Select Team</option>
+                    {teams.map((t) => (
+                      <option key={t._id} value={t.name}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div>
                 <button
                   type="submit"
                   className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm rounded-xl shadow-md transition"
                 >
-                  + Add User to DB
+                  {editingUserId ? 'Update User' : '+ Add User'}
                 </button>
+                {editingUserId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingUserId(null);
+                      setUserForm({ name: '', username: '', password: '', role: 'Team Leader', team: '' });
+                    }}
+                    className="w-full mt-2 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold text-sm rounded-xl transition"
+                  >
+                    Cancel Edit
+                  </button>
+                )}
               </div>
             </form>
           </div>
@@ -400,13 +522,14 @@ export default function ControllerManagement() {
                       <h4 className="font-bold text-slate-800 text-sm">{u.name}</h4>
                       <p className="text-xs text-slate-500">
                         @{u.username} • <span className="font-semibold text-purple-600">{u.role}</span>
+                        {u.role === 'Team Leader' && u.team && <span> • {u.team}</span>}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
-                      onClick={() => handleToggleUserStatus(u.id)}
+                      onClick={() => handleToggleUserStatus(u)}
                       className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition ${
                         u.status === 'Active'
                           ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
@@ -416,12 +539,20 @@ export default function ControllerManagement() {
                       {u.status}
                     </button>
                     {u.username !== 'admin' && (
-                      <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="px-2 py-1 text-xs text-rose-500 hover:bg-rose-50 rounded-lg transition"
-                      >
-                        🗑️
-                      </button>
+                      <>
+                        <button
+                          onClick={() => handleEditUser(u)}
+                          className="px-2 py-1 text-xs text-amber-600 hover:bg-amber-50 rounded-lg transition"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="px-2 py-1 text-xs text-rose-500 hover:bg-rose-50 rounded-lg transition"
+                        >
+                          🗑️
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

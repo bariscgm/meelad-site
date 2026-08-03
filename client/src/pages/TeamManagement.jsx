@@ -1,11 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function TeamManagement() {
-  const [teams, setTeams] = useState([
-    { id: 1, name: 'Team Alpha', code: 'ALPHA-01', color: '#0d9488', status: 'Enabled' },
-    { id: 2, name: 'Team Beta', code: 'BETA-02', color: '#3b82f6', status: 'Enabled' },
-    { id: 3, name: 'Team Gamma', code: 'GAMMA-03', color: '#8b5cf6', status: 'Disabled' },
-  ]);
+  const [teams, setTeams] = useState([]);
+
+  useEffect(() => {
+    fetchTeams();
+  }, []);
+
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch('/api/teams');
+      if (res.ok) {
+        const data = await res.json();
+        setTeams(data.map(t => ({ ...t, id: t._id })));
+      }
+    } catch (error) {
+      console.error('Failed to fetch teams:', error);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -20,28 +32,37 @@ export default function TeamManagement() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.code) return;
 
-    if (editingId) {
-      setTeams((prev) =>
-        prev.map((team) =>
-          team.id === editingId
-            ? { ...team, name: formData.name, code: formData.code, color: formData.color }
-            : team
-        )
-      );
-      setEditingId(null);
-    } else {
-      const newTeam = {
-        id: Date.now(),
-        name: formData.name,
-        code: formData.code,
-        color: formData.color || '#0d9488',
-        status: 'Enabled',
-      };
-      setTeams((prev) => [...prev, newTeam]);
+    try {
+      if (editingId) {
+        const res = await fetch(`/api/teams/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const updated = await res.json();
+          setTeams((prev) =>
+            prev.map((team) => (team.id === editingId ? { ...updated, id: updated._id } : team))
+          );
+        }
+        setEditingId(null);
+      } else {
+        const res = await fetch('/api/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+        if (res.ok) {
+          const created = await res.json();
+          setTeams((prev) => [{ ...created, id: created._id }, ...prev]);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save team:', error);
     }
 
     setFormData({ name: '', code: '', color: '#0d9488' });
@@ -52,21 +73,38 @@ export default function TeamManagement() {
     setFormData({ name: team.name, code: team.code, color: team.color });
   };
 
-  const handleToggleStatus = (id) => {
-    setTeams((prev) =>
-      prev.map((team) =>
-        team.id === id
-          ? { ...team, status: team.status === 'Enabled' ? 'Disabled' : 'Enabled' }
-          : team
-      )
-    );
+  const handleToggleStatus = async (team) => {
+    const newStatus = team.status === 'Enabled' ? 'Disabled' : 'Enabled';
+    try {
+      const res = await fetch(`/api/teams/${team.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setTeams((prev) =>
+          prev.map((t) => (t.id === team.id ? { ...t, status: newStatus } : t))
+        );
+      }
+    } catch (error) {
+      console.error('Failed to toggle status:', error);
+    }
   };
 
-  const handleDelete = (id) => {
-    setTeams((prev) => prev.filter((team) => team.id !== id));
-    if (editingId === id) {
-      setEditingId(null);
-      setFormData({ name: '', code: '', color: '#0d9488' });
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`/api/teams/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setTeams((prev) => prev.filter((team) => team.id !== id));
+        if (editingId === id) {
+          setEditingId(null);
+          setFormData({ name: '', code: '', color: '#0d9488' });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete team:', error);
     }
   };
 
@@ -237,7 +275,7 @@ export default function TeamManagement() {
 
                         {/* Enable / Disable Button */}
                         <button
-                          onClick={() => handleToggleStatus(team.id)}
+                          onClick={() => handleToggleStatus(team)}
                           className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition ${
                             team.status === 'Enabled'
                               ? 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200'

@@ -1,24 +1,64 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export default function HomePage() {
+  const [teams, setTeams] = useState([]);
+  const [latestResults, setLatestResults] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [resultsRes, teamsRes] = await Promise.all([
+          fetch('/api/results'),
+          fetch('/api/teams')
+        ]);
+        
+        if (resultsRes.ok && teamsRes.ok) {
+          const resultsData = await resultsRes.json();
+          const teamsData = await teamsRes.json();
+          
+          const published = resultsData.filter(r => r.status === 'Published').reverse();
+          setLatestResults(published.slice(0, 5));
+          
+          const teamPoints = {};
+          teamsData.forEach(t => teamPoints[t._id] = { ...t, totalPoints: 0 });
+          
+          published.forEach(r => {
+            r.winners.forEach(w => {
+              if (w.team && w.team._id && teamPoints[w.team._id]) {
+                teamPoints[w.team._id].totalPoints += (Number(w.points) || 0);
+              }
+            });
+          });
+          
+          const sortedTeams = Object.values(teamPoints).sort((a, b) => b.totalPoints - a.totalPoints);
+          setTeams(sortedTeams);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    
+    fetchData();
+  }, []);
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-200 relative overflow-hidden font-sans selection:bg-teal-500/30">
+    <div className="flex flex-col min-h-screen bg-[#020617] text-slate-200 relative overflow-hidden font-sans selection:bg-teal-500/30">
 
       {/* Abstract Background Orbs */}
       <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-teal-600/20 blur-[120px] rounded-full pointer-events-none" />
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/20 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Navigation / Header */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-slate-900/80 backdrop-blur-md">
+      <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-4 group">
             <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-14 h-14 object-contain bg-white/10 p-1.5 rounded-xl group-hover:scale-105 transition" />
             <div className="flex flex-col justify-center">
-              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex flex-col items-start leading-tight">
-                <span dir="rtl">إلى الرسول</span>
-                <span className="text-sm font-semibold text-teal-400">Festival Hub</span>
+              <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2 leading-tight">
+                <span dir="rtl" className="text-2xl mt-1">إلى الرسول</span>
+                <span className="text-sm md:text-base font-semibold text-teal-400">Festival Hub</span>
               </h1>
-              <p className="text-[10px] md:text-xs text-slate-400 font-medium mt-1">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
+              <p className="text-[10px] md:text-xs text-slate-400 font-medium mt-0.5 max-w-[200px] md:max-w-none truncate md:whitespace-normal">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
           </Link>
           <div className="hidden md:flex gap-6">
@@ -29,7 +69,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-6 py-12 space-y-24">
+      <main className="flex-1 relative z-10 w-full max-w-7xl mx-auto px-6 py-12 space-y-24">
 
         {/* Hero Section */}
         <section id="scoreboard" className="space-y-12">
@@ -62,35 +102,76 @@ export default function HomePage() {
           </div>
 
           {/* Glassmorphic Scoreboard Preview */}
-          <div className="glass-dark p-8 rounded-3xl max-w-3xl mx-auto relative">
+          <div className="glass-dark p-8 rounded-3xl max-w-5xl mx-auto relative grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl pointer-events-none" />
-            <h3 className="text-2xl font-bold text-white mb-6 flex items-center justify-center gap-3">
-              🏆 Top Teams Leaderboard
-            </h3>
+            
+            {/* Top Teams Standings */}
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                🏆 Top Teams
+              </h3>
 
-            <div className="space-y-4">
-              {/* Dummy Teams */}
-              {[
-                { rank: 1, name: "Team Alpha", points: 1250, color: "from-amber-400 to-orange-500" },
-                { rank: 2, name: "Team Beta", points: 980, color: "from-slate-300 to-slate-400" },
-              ].map(team => (
-                <div key={team.rank} className="flex items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white bg-gradient-to-br ${team.color} shadow-lg`}>
-                    #{team.rank}
-                  </div>
-                  <div className="ml-4 flex-1 text-left">
-                    <h4 className="text-lg font-bold text-white group-hover:text-teal-300 transition">{team.name}</h4>
-                  </div>
-                  <div className="text-2xl font-extrabold text-teal-400">
-                    {team.points} <span className="text-sm font-medium text-slate-500">pts</span>
-                  </div>
-                </div>
-              ))}
+              <div className="space-y-4">
+                {teams.length === 0 ? (
+                  <p className="text-slate-400">Loading standings...</p>
+                ) : (
+                  teams.slice(0, 3).map((team, index) => (
+                    <div key={team._id} className="flex items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg"
+                           style={{ backgroundColor: team.color || '#2dd4bf' }}>
+                        #{index + 1}
+                      </div>
+                      <div className="ml-4 flex-1 text-left">
+                        <h4 className="text-lg font-bold text-white group-hover:text-teal-300 transition">{team.name}</h4>
+                      </div>
+                      <div className="text-2xl font-extrabold text-teal-400">
+                        {team.totalPoints} <span className="text-sm font-medium text-slate-500">pts</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              <Link to="/score" className="block text-center w-full mt-6 py-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-medium transition border border-teal-500/20">
+                View Full Scoreboard
+              </Link>
             </div>
-
-            <button className="w-full mt-6 py-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-medium transition border border-teal-500/20">
-              View Full Scoreboard
-            </button>
+            
+            {/* Latest Published Results */}
+            <div>
+              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                Latest Results
+              </h3>
+              
+              <div className="space-y-4">
+                {latestResults.length === 0 ? (
+                  <p className="text-slate-400">No results published yet.</p>
+                ) : (
+                  latestResults.map(res => (
+                    <div key={res._id} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-col gap-2">
+                      <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <h4 className="text-sm font-bold text-white">{res.program?.name}</h4>
+                        <span className="text-[10px] text-teal-400 uppercase tracking-wider">{res.program?.category}</span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        {res.winners?.slice(0, 3).map((w, idx) => (
+                          <div key={idx} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold w-4" style={{ color: w.team?.color || '#94a3b8' }}>{w.position}</span>
+                              <span className="text-slate-300 truncate max-w-[120px]">{w.name}</span>
+                            </div>
+                            <span className="font-semibold px-2 py-0.5 rounded text-white" style={{ backgroundColor: `${w.team?.color}40` || '#334155' }}>
+                              {w.team?.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           </div>
         </section>
 
@@ -171,6 +252,19 @@ export default function HomePage() {
         </section>
 
       </main>
+
+      {/* Proper Footer */}
+      <footer className="w-full bg-slate-900 border-t border-white/10 mt-auto relative z-10">
+        <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-4">
+            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-white/10 p-1.5 rounded-xl" />
+          </div>
+          
+          <div className="text-center md:text-right">
+            <p className="text-slate-400 text-sm">© {new Date().getFullYear()} Meelad Fest. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
