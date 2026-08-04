@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import { API_URL } from '../config/api.js';
 
 export default function StageDashboard() {
   const [programs, setPrograms] = useState([]);
   const [judges, setJudges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pendingJudges, setPendingJudges] = useState({});
 
   // Filters
   const [filterClass, setFilterClass] = useState('All');
@@ -34,6 +36,13 @@ export default function StageDashboard() {
         setPrograms(programsData);
         setJudges(judgesData.data || []);
 
+        // Initialize pending judges state based on actual assignments
+        const initialPending = {};
+        programsData.forEach(p => {
+          initialPending[p._id] = p.assignedJudges?.map(j => j._id || j) || [];
+        });
+        setPendingJudges(initialPending);
+
         // Calculate Stats
         const pending = programsData.filter(p => p.status === 'Pending').length;
         const finished = programsData.filter(p => p.status === 'Finished').length;
@@ -46,17 +55,21 @@ export default function StageDashboard() {
     }
   };
 
-  const handleAssignJudge = async (programId, judgeId) => {
-    try {
-      const program = programs.find(p => p._id === programId);
-      let assignedJudges = program.assignedJudges.map(j => j._id || j);
-      
-      if (assignedJudges.includes(judgeId)) {
-        assignedJudges = assignedJudges.filter(id => id !== judgeId);
+  const handleCheckboxChange = (programId, judgeId) => {
+    setPendingJudges(prev => {
+      const current = prev[programId] || [];
+      if (current.includes(judgeId)) {
+        return { ...prev, [programId]: current.filter(id => id !== judgeId) };
       } else {
-        assignedJudges.push(judgeId);
+        return { ...prev, [programId]: [...current, judgeId] };
       }
+    });
+  };
 
+  const handleAssignJudgeSubmit = async (programId) => {
+    try {
+      const assignedJudges = pendingJudges[programId] || [];
+      
       const res = await fetch(`${API_URL}/api/programs/${programId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -64,10 +77,19 @@ export default function StageDashboard() {
       });
 
       if (res.ok) {
+        Swal.fire({
+          title: 'Success!',
+          text: 'Judges successfully assigned to program.',
+          icon: 'success',
+          confirmButtonColor: '#14b8a6'
+        });
         fetchData();
+      } else {
+        Swal.fire('Error', 'Failed to assign judges', 'error');
       }
     } catch (error) {
       console.error('Error assigning judge:', error);
+      Swal.fire('Error', 'Network error occurred', 'error');
     }
   };
 
@@ -175,11 +197,11 @@ export default function StageDashboard() {
                   </div>
                   
                   {/* Judge Assignment */}
-                  <div className="pt-4 border-t border-slate-100">
-                    <p className="text-sm font-semibold text-slate-700 mb-2">Assign Judges:</p>
+                  <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                    <p className="text-sm font-semibold text-slate-700">Assign Judges:</p>
                     <div className="flex flex-wrap gap-2">
                       {judges.map(judge => {
-                        const isAssigned = program.assignedJudges?.some(j => (j._id || j) === judge._id);
+                        const isAssigned = (pendingJudges[program._id] || []).includes(judge._id);
                         return (
                           <label key={judge._id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition ${
                             isAssigned ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
@@ -187,7 +209,7 @@ export default function StageDashboard() {
                             <input 
                               type="checkbox" 
                               checked={isAssigned} 
-                              onChange={() => handleAssignJudge(program._id, judge._id)}
+                              onChange={() => handleCheckboxChange(program._id, judge._id)}
                               className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500"
                             />
                             <span className="text-sm font-medium">{judge.name}</span>
@@ -195,6 +217,12 @@ export default function StageDashboard() {
                         );
                       })}
                     </div>
+                    <button 
+                      onClick={() => handleAssignJudgeSubmit(program._id)}
+                      className="mt-2 self-start px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl transition shadow-sm"
+                    >
+                      Submit Assignment
+                    </button>
                   </div>
                 </div>
               ))}
