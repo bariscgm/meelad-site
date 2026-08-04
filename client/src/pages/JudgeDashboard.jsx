@@ -38,7 +38,7 @@ export default function JudgeDashboard() {
         
         // Filter programs assigned to this judge
         const assigned = programsData.filter(p => 
-          p.assignedJudges?.some(j => (j._id || j) === user._id)
+          p.assignedJudges?.some(j => (j._id || j) === (user.id || user._id))
         );
         
         setPrograms(assigned);
@@ -86,7 +86,7 @@ export default function JudgeDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           program: selectedProgram._id,
-          judge: user._id,
+          judge: user.id || user._id,
           winners: validWinners,
         })
       });
