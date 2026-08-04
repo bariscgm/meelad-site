@@ -5,6 +5,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import connectDB from './config/db.js';
 import nocache from 'nocache';
+import cron from 'node-cron';
 
 // Load environment variables
 dotenv.config();
@@ -110,6 +111,15 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log('❌ Client disconnected:', socket.id);
   });
+});
+
+// --- Keep Render Awake Cron Job ---
+// Pings the /health endpoint every 14 minutes to prevent the Render free tier from sleeping
+cron.schedule('*/14 * * * *', () => {
+  const backendUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${process.env.PORT || 5000}`;
+  fetch(`${backendUrl}/health`)
+    .then(res => console.log(`⏰ Cron Job: Pinged ${backendUrl}/health - Status: ${res.status}`))
+    .catch(err => console.error(`⏰ Cron Job Error: Failed to ping server:`, err.message));
 });
 
 // --- Start Server ---
