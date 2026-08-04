@@ -149,7 +149,9 @@ export default function JudgeDashboard() {
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="text-lg font-bold text-slate-800">{program.name}</h3>
                       <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
-                        program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 
+                        program.status === 'Assigned' ? 'bg-blue-100 text-blue-700' :
+                        'bg-amber-100 text-amber-700'
                       }`}>
                         {program.status || 'Pending'}
                       </span>

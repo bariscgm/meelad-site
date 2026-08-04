@@ -39,7 +39,7 @@ const programSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['Pending', 'Finished'],
+    enum: ['Pending', 'Assigned', 'Finished'],
     default: 'Pending',
   },
   assignedJudges: [{

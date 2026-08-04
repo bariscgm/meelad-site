@@ -33,7 +33,14 @@ export default function StageDashboard() {
         const programsData = await programsRes.json();
         const judgesData = await judgesRes.json();
 
-        setPrograms(programsData);
+        // Limit Finished programs to 10
+        const finishedPrograms = programsData.filter(p => p.status === 'Finished');
+        finishedPrograms.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+        const top10Finished = finishedPrograms.slice(0, 10);
+        
+        const processedPrograms = programsData.filter(p => p.status !== 'Finished' || top10Finished.some(f => f._id === p._id));
+
+        setPrograms(processedPrograms);
         setJudges(judgesData.data || []);
 
         // Initialize pending judges state based on actual assignments
@@ -69,11 +76,12 @@ export default function StageDashboard() {
   const handleAssignJudgeSubmit = async (programId) => {
     try {
       const assignedJudges = pendingJudges[programId] || [];
+      const status = assignedJudges.length > 0 ? 'Assigned' : 'Pending';
       
       const res = await fetch(`${API_URL}/api/programs/${programId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assignedJudges })
+        body: JSON.stringify({ assignedJudges, status })
       });
 
       if (res.ok) {
@@ -190,7 +198,9 @@ export default function StageDashboard() {
                       {program.class && <p className="text-xs font-semibold text-amber-600 mt-1">Class: {program.class}</p>}
                     </div>
                     <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${
-                      program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                      program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 
+                      program.status === 'Assigned' ? 'bg-blue-100 text-blue-700' :
+                      'bg-amber-100 text-amber-700'
                     }`}>
                       {program.status || 'Pending'}
                     </span>
