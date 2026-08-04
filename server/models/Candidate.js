@@ -9,7 +9,7 @@ const candidateSchema = new mongoose.Schema({
   gender: {
     type: String,
     required: true,
-    enum: ['Male', 'Female']
+    enum: ['Male', 'Female', 'Boy', 'Girl', 'General']
   },
   className: {
     type: String,

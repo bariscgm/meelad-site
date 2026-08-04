@@ -203,18 +203,20 @@ export default function CandidateRegistration() {
     }
   };
 
-  const availablePrograms = useMemo(() => {
-    if (!formData.category) return [];
+  const { categoryPrograms, generalPrograms } = useMemo(() => {
+    if (!formData.category) return { categoryPrograms: [], generalPrograms: [] };
     
-    const categoryPrograms = allPrograms.filter(p => p.category === formData.category);
-    const generalPrograms = allPrograms.filter(p => p.category.toLowerCase() === 'general');
+    let catProgs = allPrograms.filter(p => p.category === formData.category);
+    let genProgs = allPrograms.filter(p => p.category.toLowerCase() === 'general');
     
-    const combined = formData.category.toLowerCase() === 'general' 
-      ? categoryPrograms 
-      : [...categoryPrograms, ...generalPrograms];
+    if (formData.category.toLowerCase() === 'general') {
+      genProgs = []; // avoid duplicating if category is already general
+    }
       
-    // Return unique program names
-    return Array.from(new Set(combined.map(p => p.name)));
+    return {
+      categoryPrograms: Array.from(new Set(catProgs.map(p => p.name))),
+      generalPrograms: Array.from(new Set(genProgs.map(p => p.name)))
+    };
   }, [formData.category, allPrograms]);
 
   return (
@@ -300,58 +302,99 @@ export default function CandidateRegistration() {
             <label className="block text-sm font-semibold text-slate-700 mb-3">Gender</label>
             <div className="flex items-center gap-6">
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${formData.gender === 'Male' ? 'border-teal-500' : 'border-slate-300 group-hover:border-teal-400'}`}>
-                  {formData.gender === 'Male' && <div className="w-3 h-3 rounded-full bg-teal-500" />}
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${formData.gender === 'Boy' ? 'border-teal-500' : 'border-slate-300 group-hover:border-teal-400'}`}>
+                  {formData.gender === 'Boy' && <div className="w-3 h-3 rounded-full bg-teal-500" />}
                 </div>
-                <input type="radio" name="gender" value="Male" checked={formData.gender === 'Male'} onChange={handleInputChange} className="hidden" />
-                <span className="text-slate-700 font-medium group-hover:text-teal-600 transition">Male</span>
+                <input type="radio" name="gender" value="Boy" checked={formData.gender === 'Boy'} onChange={handleInputChange} className="hidden" />
+                <span className="text-slate-700 font-medium group-hover:text-teal-600 transition">Boy</span>
               </label>
 
               <label className="flex items-center gap-3 cursor-pointer group">
-                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${formData.gender === 'Female' ? 'border-teal-500' : 'border-slate-300 group-hover:border-teal-400'}`}>
-                  {formData.gender === 'Female' && <div className="w-3 h-3 rounded-full bg-teal-500" />}
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${formData.gender === 'Girl' ? 'border-teal-500' : 'border-slate-300 group-hover:border-teal-400'}`}>
+                  {formData.gender === 'Girl' && <div className="w-3 h-3 rounded-full bg-teal-500" />}
                 </div>
-                <input type="radio" name="gender" value="Female" checked={formData.gender === 'Female'} onChange={handleInputChange} className="hidden" />
-                <span className="text-slate-700 font-medium group-hover:text-teal-600 transition">Female</span>
+                <input type="radio" name="gender" value="Girl" checked={formData.gender === 'Girl'} onChange={handleInputChange} className="hidden" />
+                <span className="text-slate-700 font-medium group-hover:text-teal-600 transition">Girl</span>
               </label>
             </div>
           </div>
 
           {/* Programs Checkboxes */}
           {formData.category && (
-            <div className="pt-4 border-t border-slate-100">
-              <label className="block text-sm font-semibold text-slate-700 mb-4">
-                Available Programs for {formData.category}
-              </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {availablePrograms.map(program => (
-                  <label
-                    key={program}
-                    className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
-                        ? 'border-teal-500 bg-teal-50/50 shadow-sm'
-                        : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
-                      }`}
-                  >
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
-                      }`}>
-                      {formData.programs.includes(program) && (
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <input
-                      type="checkbox"
-                      className="hidden"
-                      checked={formData.programs.includes(program)}
-                      onChange={() => handleCheckboxChange(program)}
-                    />
-                    <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-teal-800' : 'text-slate-600'}`}>
-                      {program}
-                    </span>
+            <div className="space-y-6">
+              {categoryPrograms.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-700 mb-4">
+                    Available Programs for {formData.category}
                   </label>
-                ))}
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {categoryPrograms.map(program => (
+                      <label
+                        key={program}
+                        className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
+                            ? 'border-teal-500 bg-teal-50/50 shadow-sm'
+                            : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
+                          }`}
+                      >
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
+                          }`}>
+                          {formData.programs.includes(program) && (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={formData.programs.includes(program)}
+                          onChange={() => handleCheckboxChange(program)}
+                        />
+                        <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-teal-800' : 'text-slate-600'}`}>
+                          {program}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {generalPrograms.length > 0 && (
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-700 mb-4">
+                    General Programs
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {generalPrograms.map(program => (
+                      <label
+                        key={program}
+                        className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
+                            ? 'border-teal-500 bg-teal-50/50 shadow-sm'
+                            : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
+                          }`}
+                      >
+                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
+                          }`}>
+                          {formData.programs.includes(program) && (
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={formData.programs.includes(program)}
+                          onChange={() => handleCheckboxChange(program)}
+                        />
+                        <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-teal-800' : 'text-slate-600'}`}>
+                          {program}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -397,7 +440,7 @@ export default function CandidateRegistration() {
                       <span className="bg-teal-50 text-teal-700 px-2 py-1 rounded-md">{candidate.category}</span>
                     </div>
                   </div>
-                  <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${candidate.gender === 'Male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
+                  <span className={`px-2.5 py-1 text-xs font-bold rounded-lg ${candidate.gender === 'Boy' || candidate.gender === 'Male' ? 'bg-blue-50 text-blue-600' : 'bg-pink-50 text-pink-600'}`}>
                     {candidate.gender}
                   </span>
                 </div>
