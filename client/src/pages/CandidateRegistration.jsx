@@ -204,20 +204,71 @@ export default function CandidateRegistration() {
   };
 
   const { categoryPrograms, generalPrograms } = useMemo(() => {
-    if (!formData.category) return { categoryPrograms: [], generalPrograms: [] };
+    if (!formData.category || !formData.gender) return { 
+      categoryPrograms: { stage: [], offStage: [] }, 
+      generalPrograms: { stage: [], offStage: [] } 
+    };
     
-    let catProgs = allPrograms.filter(p => p.category === formData.category);
-    let genProgs = allPrograms.filter(p => p.category.toLowerCase() === 'general');
+    const filterPrograms = (progs, categoryName) => {
+      return progs.filter(p => 
+        p.category.toLowerCase() === categoryName.toLowerCase() && 
+        (p.gender === formData.gender || p.gender.toLowerCase() === 'general')
+      );
+    };
+
+    let catProgs = filterPrograms(allPrograms, formData.category);
+    let genProgs = filterPrograms(allPrograms, 'general');
     
     if (formData.category.toLowerCase() === 'general') {
       genProgs = []; // avoid duplicating if category is already general
     }
       
-    return {
-      categoryPrograms: Array.from(new Set(catProgs.map(p => p.name))),
-      generalPrograms: Array.from(new Set(genProgs.map(p => p.name)))
+    const groupAndMap = (programsList) => {
+      const stage = programsList.filter(p => p.venueType?.toUpperCase() === 'STAGE').map(p => p.name);
+      const offStage = programsList.filter(p => p.venueType?.toUpperCase() === 'OFF-STAGE' || p.venueType?.toUpperCase() === 'OFFSTAGE').map(p => p.name);
+      return {
+        stage: Array.from(new Set(stage)),
+        offStage: Array.from(new Set(offStage))
+      };
     };
-  }, [formData.category, allPrograms]);
+
+    return {
+      categoryPrograms: groupAndMap(catProgs),
+      generalPrograms: groupAndMap(genProgs)
+    };
+  }, [formData.category, formData.gender, allPrograms]);
+
+  const renderProgramCheckboxes = (programsList) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {programsList.map(program => (
+        <label
+          key={program}
+          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
+              ? 'border-teal-500 bg-teal-50/50 shadow-sm'
+              : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
+            }`}
+        >
+          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
+            }`}>
+            {formData.programs.includes(program) && (
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+          <input
+            type="checkbox"
+            className="hidden"
+            checked={formData.programs.includes(program)}
+            onChange={() => handleCheckboxChange(program)}
+          />
+          <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-teal-800' : 'text-slate-600'}`}>
+            {program}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
 
   return (
     <div className="space-y-8">
@@ -320,79 +371,49 @@ export default function CandidateRegistration() {
           </div>
 
           {/* Programs Checkboxes */}
-          {formData.category && (
+          {formData.category && formData.gender && (
             <div className="space-y-6">
-              {categoryPrograms.length > 0 && (
+              {(categoryPrograms.stage.length > 0 || categoryPrograms.offStage.length > 0) && (
                 <div className="pt-4 border-t border-slate-100">
                   <label className="block text-sm font-semibold text-slate-700 mb-4">
                     Available Programs for {formData.category}
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {categoryPrograms.map(program => (
-                      <label
-                        key={program}
-                        className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
-                            ? 'border-teal-500 bg-teal-50/50 shadow-sm'
-                            : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
-                          }`}
-                      >
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
-                          }`}>
-                          {formData.programs.includes(program) && (
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <input
-                          type="checkbox"
-                          className="hidden"
-                          checked={formData.programs.includes(program)}
-                          onChange={() => handleCheckboxChange(program)}
-                        />
-                        <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-teal-800' : 'text-slate-600'}`}>
-                          {program}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                  
+                  {categoryPrograms.stage.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-xs font-bold text-teal-600 uppercase tracking-wider mb-3">Stage Programs</h4>
+                      {renderProgramCheckboxes(categoryPrograms.stage)}
+                    </div>
+                  )}
+
+                  {categoryPrograms.offStage.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-teal-600 uppercase tracking-wider mb-3">Off-Stage Programs</h4>
+                      {renderProgramCheckboxes(categoryPrograms.offStage)}
+                    </div>
+                  )}
                 </div>
               )}
 
-              {generalPrograms.length > 0 && (
+              {(generalPrograms.stage.length > 0 || generalPrograms.offStage.length > 0) && (
                 <div className="pt-4 border-t border-slate-100">
                   <label className="block text-sm font-semibold text-slate-700 mb-4">
                     General Programs
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {generalPrograms.map(program => (
-                      <label
-                        key={program}
-                        className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
-                            ? 'border-teal-500 bg-teal-50/50 shadow-sm'
-                            : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
-                          }`}
-                      >
-                        <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
-                          }`}>
-                          {formData.programs.includes(program) && (
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                        </div>
-                        <input
-                          type="checkbox"
-                          className="hidden"
-                          checked={formData.programs.includes(program)}
-                          onChange={() => handleCheckboxChange(program)}
-                        />
-                        <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-teal-800' : 'text-slate-600'}`}>
-                          {program}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
+                  
+                  {generalPrograms.stage.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-xs font-bold text-teal-600 uppercase tracking-wider mb-3">Stage Programs</h4>
+                      {renderProgramCheckboxes(generalPrograms.stage)}
+                    </div>
+                  )}
+
+                  {generalPrograms.offStage.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-teal-600 uppercase tracking-wider mb-3">Off-Stage Programs</h4>
+                      {renderProgramCheckboxes(generalPrograms.offStage)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
