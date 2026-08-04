@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { API_URL } from '../config/api.js';
 
 export default function ResultManagement() {
   const [results, setResults] = useState([]);
@@ -11,7 +12,7 @@ export default function ResultManagement() {
   const fetchResults = async () => {
     try {
       setLoading(true);
-      const res = await fetch('/api/results');
+      const res = await fetch(`${API_URL}/api/results`);
       if (res.ok) {
         const data = await res.json();
         setResults(data);
@@ -42,7 +43,7 @@ export default function ResultManagement() {
   const handleTogglePublish = async (id, currentStatus) => {
     const newStatus = currentStatus === 'Published' ? 'Draft' : 'Published';
     try {
-      const res = await fetch(`/api/results/${id}`, {
+      const res = await fetch(`${API_URL}/api/results/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -71,7 +72,7 @@ export default function ResultManagement() {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/results/${id}`, {
+        const res = await fetch(`${API_URL}/api/results/${id}`, {
           method: 'DELETE',
         });
         if (res.ok) {

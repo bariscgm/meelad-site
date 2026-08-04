@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { API_URL } from '../config/api.js';
 
 export default function JudgeDashboard() {
   const [programs, setPrograms] = useState([]);
@@ -27,8 +28,8 @@ export default function JudgeDashboard() {
     try {
       setLoading(true);
       const [programsRes, teamsRes] = await Promise.all([
-        fetch('/api/programs'),
-        fetch('/api/teams')
+        fetch(`${API_URL}/api/programs`),
+        fetch(`${API_URL}/api/teams`)
       ]);
 
       if (programsRes.ok && teamsRes.ok) {
@@ -80,7 +81,7 @@ export default function JudgeDashboard() {
     }
 
     try {
-      const res = await fetch('/api/results', {
+      const res = await fetch(`${API_URL}/api/results`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

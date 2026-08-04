@@ -54,7 +54,16 @@ export const createResult = async (req, res) => {
     
     // Update program status to Finished
     await Program.findByIdAndUpdate(program, { status: 'Finished' });
-    
+
+    // Emit real-time event to all connected clients
+    const io = req.app.get('io');
+    if (io) {
+      const populated = await Result.findById(savedResult._id)
+        .populate('program')
+        .populate('winners.team');
+      io.emit('result:created', populated);
+    }
+
     res.status(201).json(savedResult);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -72,6 +81,21 @@ export const updateResult = async (req, res) => {
     if (winners) result.winners = winners;
     
     const updatedResult = await result.save();
+
+    // Emit real-time event — especially important when status changes to 'Published'
+    const io = req.app.get('io');
+    if (io) {
+      const populated = await Result.findById(updatedResult._id)
+        .populate('program')
+        .populate('winners.team');
+      io.emit('result:updated', populated);
+
+      // If published, also notify scoreboard room specifically
+      if (status === 'Published') {
+        io.to('scoreboard').emit('scoreboard:update', populated);
+      }
+    }
+
     res.status(200).json(updatedResult);
   } catch (error) {
     res.status(400).json({ message: error.message });
@@ -86,6 +110,12 @@ export const deleteResult = async (req, res) => {
     
     // Optionally set program back to Pending
     await Program.findByIdAndUpdate(result.program, { status: 'Pending' });
+
+    // Emit real-time event
+    const io = req.app.get('io');
+    if (io) {
+      io.emit('result:deleted', { id: req.params.id, programId: result.program });
+    }
 
     res.status(200).json({ message: 'Result deleted successfully' });
   } catch (error) {

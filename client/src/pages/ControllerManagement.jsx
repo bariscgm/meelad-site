@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { controllerDB } from '../services/controllerDB';
 import Swal from 'sweetalert2';
+import { API_URL } from '../config/api.js';
 
 export default function ControllerManagement() {
   const [activeTab, setActiveTab] = useState('Limits');
@@ -53,7 +54,7 @@ export default function ControllerManagement() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch('/api/controller/users');
+      const res = await fetch(`${API_URL}/api/controller/users`);
       if (res.ok) {
         const data = await res.json();
         setUsers(data.data.map(u => ({ ...u, id: u._id })));
@@ -65,7 +66,7 @@ export default function ControllerManagement() {
 
   const fetchTeams = async () => {
     try {
-      const res = await fetch('/api/teams');
+      const res = await fetch(`${API_URL}/api/teams`);
       if (res.ok) {
         const data = await res.json();
         setTeams(data);
@@ -110,7 +111,7 @@ export default function ControllerManagement() {
     
     try {
       if (editingUserId) {
-        const res = await fetch(`/api/controller/users/${editingUserId}`, {
+        const res = await fetch(`${API_URL}/api/controller/users/${editingUserId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userForm)
@@ -122,7 +123,7 @@ export default function ControllerManagement() {
           setEditingUserId(null);
         }
       } else {
-        const res = await fetch('/api/controller/users', {
+        const res = await fetch(`${API_URL}/api/controller/users`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userForm)
@@ -154,7 +155,7 @@ export default function ControllerManagement() {
   const handleToggleUserStatus = async (user) => {
     const newStatus = user.status === 'Active' ? 'Inactive' : 'Active';
     try {
-      const res = await fetch(`/api/controller/users/${user.id}`, {
+      const res = await fetch(`${API_URL}/api/controller/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -181,7 +182,7 @@ export default function ControllerManagement() {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/controller/users/${userId}`, {
+        const res = await fetch(`${API_URL}/api/controller/users/${userId}`, {
           method: 'DELETE'
         });
         if (res.ok) {

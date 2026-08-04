@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { API_URL } from '../config/api.js';
 
 export default function CategoryManagement() {
   const [categories, setCategories] = useState([]);
@@ -22,7 +23,7 @@ export default function CategoryManagement() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories');
+      const res = await fetch(`${API_URL}/api/categories`);
       if (res.ok) {
         const data = await res.json();
         setCategories(data.map(cat => ({ ...cat, id: cat._id })));
@@ -54,7 +55,7 @@ export default function CategoryManagement() {
 
     try {
       if (editingId) {
-        const res = await fetch(`/api/categories/${editingId}`, {
+        const res = await fetch(`${API_URL}/api/categories/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -68,7 +69,7 @@ export default function CategoryManagement() {
         }
         setEditingId(null);
       } else {
-        const res = await fetch('/api/categories', {
+        const res = await fetch(`${API_URL}/api/categories`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -112,7 +113,7 @@ export default function CategoryManagement() {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/categories/${id}`, {
+        const res = await fetch(`${API_URL}/api/categories/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {

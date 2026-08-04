@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import Swal from 'sweetalert2';
+import { API_URL } from '../config/api.js';
 
 export default function CandidateRegistration() {
   const [formData, setFormData] = useState({
@@ -18,7 +19,7 @@ export default function CandidateRegistration() {
   useEffect(() => {
     const fetchPrograms = async () => {
       try {
-        const res = await fetch('/api/programs');
+        const res = await fetch(`${API_URL}/api/programs`);
         if (res.ok) {
           const data = await res.json();
           setAllPrograms(data);

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { API_URL } from './config/api.js';
 import AdminLayout from './layouts/AdminLayout';
 import TeamLayout from './layouts/TeamLayout';
 
@@ -19,7 +20,7 @@ function AdminDashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const res = await fetch('/api/dashboard/admin');
+        const res = await fetch(`${API_URL}/api/dashboard/admin`);
         if (res.ok) {
           const data = await res.json();
           setDashboardData(data);

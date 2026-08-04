@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: meelad-fest-api
+    runtime: node
+    region: singapore  # Closest to India
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false  # Set manually in Render dashboard
+      - key: CLIENT_URL
+        sync: false  # Set to your Vercel domain (e.g. https://meelad-site.vercel.app)
+      - key: PORT
+        value: 10000

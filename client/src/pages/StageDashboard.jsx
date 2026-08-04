@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../config/api.js';
 
 export default function StageDashboard() {
   const [programs, setPrograms] = useState([]);
@@ -22,8 +23,8 @@ export default function StageDashboard() {
     try {
       setLoading(true);
       const [programsRes, judgesRes] = await Promise.all([
-        fetch('/api/programs'),
-        fetch('/api/controller/users?role=Judge')
+        fetch(`${API_URL}/api/programs`),
+        fetch(`${API_URL}/api/controller/users?role=Judge`)
       ]);
 
       if (programsRes.ok && judgesRes.ok) {
@@ -56,7 +57,7 @@ export default function StageDashboard() {
         assignedJudges.push(judgeId);
       }
 
-      const res = await fetch(`/api/programs/${programId}`, {
+      const res = await fetch(`${API_URL}/api/programs/${programId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ assignedJudges })

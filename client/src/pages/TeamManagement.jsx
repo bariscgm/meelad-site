@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API_URL } from '../config/api.js';
 
 export default function TeamManagement() {
   const [teams, setTeams] = useState([]);
@@ -9,7 +10,7 @@ export default function TeamManagement() {
 
   const fetchTeams = async () => {
     try {
-      const res = await fetch('/api/teams');
+      const res = await fetch(`${API_URL}/api/teams`);
       if (res.ok) {
         const data = await res.json();
         setTeams(data.map(t => ({ ...t, id: t._id })));
@@ -38,7 +39,7 @@ export default function TeamManagement() {
 
     try {
       if (editingId) {
-        const res = await fetch(`/api/teams/${editingId}`, {
+        const res = await fetch(`${API_URL}/api/teams/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -51,7 +52,7 @@ export default function TeamManagement() {
         }
         setEditingId(null);
       } else {
-        const res = await fetch('/api/teams', {
+        const res = await fetch(`${API_URL}/api/teams`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -76,7 +77,7 @@ export default function TeamManagement() {
   const handleToggleStatus = async (team) => {
     const newStatus = team.status === 'Enabled' ? 'Disabled' : 'Enabled';
     try {
-      const res = await fetch(`/api/teams/${team.id}`, {
+      const res = await fetch(`${API_URL}/api/teams/${team.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -93,7 +94,7 @@ export default function TeamManagement() {
 
   const handleDelete = async (id) => {
     try {
-      const res = await fetch(`/api/teams/${id}`, {
+      const res = await fetch(`${API_URL}/api/teams/${id}`, {
         method: 'DELETE'
       });
       if (res.ok) {

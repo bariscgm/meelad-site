@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { API_URL } from '../config/api.js';
 
 export default function HomePage() {
   const [teams, setTeams] = useState([]);
@@ -9,8 +10,8 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [resultsRes, teamsRes] = await Promise.all([
-          fetch('/api/results'),
-          fetch('/api/teams')
+          fetch(`${API_URL}/api/results`),
+          fetch(`${API_URL}/api/teams`)
         ]);
         
         if (resultsRes.ok && teamsRes.ok) {

@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API_URL } from '../config/api.js';
+import { socket } from '../config/socket.js';
 
 export default function LiveScore() {
   const [results, setResults] = useState([]);
@@ -10,8 +12,8 @@ export default function LiveScore() {
     const fetchData = async () => {
       try {
         const [resultsRes, teamsRes] = await Promise.all([
-          fetch('/api/results'),
-          fetch('/api/teams')
+          fetch(`${API_URL}/api/results`),
+          fetch(`${API_URL}/api/teams`)
         ]);
         
         if (resultsRes.ok && teamsRes.ok) {
@@ -46,9 +48,23 @@ export default function LiveScore() {
     
     fetchData();
     
-    // Auto refresh every 30 seconds
+    // Auto refresh every 30 seconds as fallback
     const interval = setInterval(fetchData, 30000);
-    return () => clearInterval(interval);
+
+    // Real-time updates via Socket.IO
+    socket.emit('join:scoreboard');
+    socket.on('scoreboard:update', () => fetchData());
+    socket.on('result:updated', () => fetchData());
+    socket.on('result:created', () => fetchData());
+    socket.on('result:deleted', () => fetchData());
+
+    return () => {
+      clearInterval(interval);
+      socket.off('scoreboard:update');
+      socket.off('result:updated');
+      socket.off('result:created');
+      socket.off('result:deleted');
+    };
   }, []);
 
   const latestResults = results.slice(0, 5);

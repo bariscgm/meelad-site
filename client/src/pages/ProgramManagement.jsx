@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import * as XLSX from 'xlsx';
 import Swal from 'sweetalert2';
+import { API_URL } from '../config/api.js';
 
 export default function ProgramManagement() {
   const [programs, setPrograms] = useState([]);
@@ -33,7 +34,7 @@ export default function ProgramManagement() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories');
+      const res = await fetch(`${API_URL}/api/categories`);
       if (res.ok) {
         const data = await res.json();
         setCategoriesList(data.map(c => c.name));
@@ -45,7 +46,7 @@ export default function ProgramManagement() {
 
   const fetchPrograms = async () => {
     try {
-      const res = await fetch('/api/programs');
+      const res = await fetch(`${API_URL}/api/programs`);
       if (res.ok) {
         const data = await res.json();
         setPrograms(data.map(p => ({ ...p, id: p._id })));
@@ -86,7 +87,7 @@ export default function ProgramManagement() {
 
     try {
       if (editingId) {
-        const res = await fetch(`/api/programs/${editingId}`, {
+        const res = await fetch(`${API_URL}/api/programs/${editingId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -100,7 +101,7 @@ export default function ProgramManagement() {
         }
         setEditingId(null);
       } else {
-        const res = await fetch('/api/programs', {
+        const res = await fetch(`${API_URL}/api/programs`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formData)
@@ -155,7 +156,7 @@ export default function ProgramManagement() {
 
     if (result.isConfirmed) {
       try {
-        const res = await fetch(`/api/programs/${id}`, {
+        const res = await fetch(`${API_URL}/api/programs/${id}`, {
           method: 'DELETE'
         });
         if (res.ok) {
@@ -290,7 +291,7 @@ export default function ProgramManagement() {
           return;
         }
 
-        const res = await fetch('/api/programs/bulk', {
+        const res = await fetch(`${API_URL}/api/programs/bulk`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
