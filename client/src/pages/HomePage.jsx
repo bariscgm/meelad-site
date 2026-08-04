@@ -88,10 +88,8 @@ export default function HomePage() {
 
             {/* Blended SVG Logo */}
             <div className="py-2 inline-flex flex-col items-center justify-center transition hover:scale-[1.02] gap-4 mb-4">
-              <div className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-3xl drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)]">
-                <svg className="w-16 h-16 md:w-20 md:h-20 text-teal-400" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
-                </svg>
+              <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center rounded-3xl overflow-hidden drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)]">
+                <img src="/hero-logo.jpg" alt="Meelad Fest Logo" className="w-full h-full object-cover" />
               </div>
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mt-4">
                 Meelad Fest
