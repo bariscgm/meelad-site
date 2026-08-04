@@ -5,6 +5,7 @@
   "main": "server/server.js",
   "type": "module",
   "scripts": {
+    "postinstall": "npm install --prefix server",
     "start": "npm start --prefix server",
     "server": "npm run dev --prefix server",
     "client": "npm run dev --prefix client",
