@@ -72,11 +72,13 @@ export default function LiveScore() {
   const secondTeam = teams.length > 1 ? teams[1] : null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#020617] text-slate-200 relative overflow-x-hidden font-sans selection:bg-teal-500/30">
+    <div className="flex flex-col min-h-screen bg-[#020617] text-slate-200 relative font-sans selection:bg-teal-500/30">
       
       {/* Abstract Background Orbs */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-teal-600/20 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/20 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-teal-600/20 blur-[120px] rounded-full" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-emerald-600/20 blur-[120px] rounded-full" />
+      </div>
 
       {/* Navbar */}
       <header className="relative z-10 border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0">
