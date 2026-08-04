@@ -16,14 +16,19 @@ export default function CandidateRegistration() {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
-  // Fetch programs and categories from API
+  // Fetch programs, categories, and candidates from API
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [progRes, catRes] = await Promise.all([
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const teamId = user.id || user._id;
+
+        const [progRes, catRes, candRes] = await Promise.all([
           fetch(`${API_URL}/api/programs`),
-          fetch(`${API_URL}/api/categories`)
+          fetch(`${API_URL}/api/categories`),
+          teamId ? fetch(`${API_URL}/api/candidates/team/${teamId}`) : Promise.resolve({ ok: false })
         ]);
+        
         if (progRes.ok) {
           const data = await progRes.json();
           setAllPrograms(data);
@@ -31,6 +36,10 @@ export default function CandidateRegistration() {
         if (catRes.ok) {
           const catData = await catRes.json();
           setCategories(catData);
+        }
+        if (candRes.ok) {
+          const candData = await candRes.json();
+          setCandidates(candData);
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -40,17 +49,8 @@ export default function CandidateRegistration() {
   }, []);
 
   const getClassNumber = (classNameStr) => {
-    const mapping = {
-      '5th Standard': 5,
-      '6th Standard': 6,
-      '7th Standard': 7,
-      '8th Standard': 8,
-      '9th Standard': 9,
-      '10th Standard': 10,
-      'Plus One': 11,
-      'Plus Two': 12
-    };
-    return mapping[classNameStr] || 0;
+    const match = classNameStr.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
   };
 
   const handleInputChange = (e) => {
@@ -91,30 +91,57 @@ export default function CandidateRegistration() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.gender || !formData.className || !formData.category) return;
 
-    if (editingId) {
-      setCandidates(prev => prev.map(c => 
-        c.id === editingId ? { ...c, ...formData } : c
-      ));
-      setEditingId(null);
-    } else {
-      const newCandidate = {
-        id: Date.now(),
-        status: 'Active',
-        ...formData
-      };
-      setCandidates(prev => [newCandidate, ...prev]);
+    try {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const teamId = user.id || user._id;
+
+      const payload = { ...formData, team: teamId };
+
+      if (editingId) {
+        const res = await fetch(`${API_URL}/api/candidates/${editingId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const updatedCandidate = await res.json();
+          setCandidates(prev => prev.map(c => c._id === editingId ? updatedCandidate : c));
+          setEditingId(null);
+          Swal.fire('Success', 'Candidate updated successfully', 'success');
+        } else {
+          const err = await res.json();
+          Swal.fire('Error', err.message || 'Failed to update candidate', 'error');
+        }
+      } else {
+        const res = await fetch(`${API_URL}/api/candidates`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const newCandidate = await res.json();
+          setCandidates(prev => [newCandidate, ...prev]);
+          Swal.fire('Success', 'Candidate registered successfully', 'success');
+        } else {
+          const err = await res.json();
+          Swal.fire('Error', err.message || 'Failed to register candidate', 'error');
+        }
+      }
+      
+      // Reset form except category to allow faster bulk entry
+      setFormData(prev => ({
+        ...prev,
+        name: '',
+        programs: []
+      }));
+    } catch (error) {
+      console.error('Submit error:', error);
+      Swal.fire('Error', 'Server connection failed', 'error');
     }
-    
-    // Reset form except category to allow faster bulk entry
-    setFormData(prev => ({
-      ...prev,
-      name: '',
-      programs: []
-    }));
   };
 
   const handleEdit = (candidate) => {
@@ -138,22 +165,38 @@ export default function CandidateRegistration() {
       confirmButtonColor: '#0f766e',
       cancelButtonColor: '#ef4444',
       confirmButtonText: 'Yes, delete it!'
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
-        setCandidates(prev => prev.filter(c => c.id !== id));
-        Swal.fire(
-          'Deleted!',
-          'Candidate has been deleted.',
-          'success'
-        );
+        try {
+          const res = await fetch(`${API_URL}/api/candidates/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            setCandidates(prev => prev.filter(c => c._id !== id));
+            Swal.fire('Deleted!', 'Candidate has been deleted.', 'success');
+          } else {
+            Swal.fire('Error', 'Failed to delete candidate', 'error');
+          }
+        } catch (error) {
+          Swal.fire('Error', 'Server connection failed', 'error');
+        }
       }
     });
   };
 
-  const handleHold = (id) => {
-    setCandidates(prev => prev.map(c => 
-      c.id === id ? { ...c, status: c.status === 'Hold' ? 'Active' : 'Hold' } : c
-    ));
+  const handleHold = async (id, currentStatus) => {
+    try {
+      const newStatus = currentStatus === 'Hold' ? 'Active' : 'Hold';
+      const res = await fetch(`${API_URL}/api/candidates/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        const updatedCandidate = await res.json();
+        setCandidates(prev => prev.map(c => c._id === id ? updatedCandidate : c));
+      }
+    } catch (error) {
+      console.error('Status update failed:', error);
+    }
   };
 
   const availablePrograms = useMemo(() => {
@@ -208,14 +251,18 @@ export default function CandidateRegistration() {
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none transition text-slate-800 appearance-none"
               >
                 <option value="" disabled>Select Class</option>
-                <option value="5th Standard">5th Standard</option>
-                <option value="6th Standard">6th Standard</option>
-                <option value="7th Standard">7th Standard</option>
-                <option value="8th Standard">8th Standard</option>
-                <option value="9th Standard">9th Standard</option>
-                <option value="10th Standard">10th Standard</option>
-                <option value="Plus One">Plus One</option>
-                <option value="Plus Two">Plus Two</option>
+                <option value="Class 1">Class 1</option>
+                <option value="Class 2">Class 2</option>
+                <option value="Class 3">Class 3</option>
+                <option value="Class 4">Class 4</option>
+                <option value="Class 5">Class 5</option>
+                <option value="Class 6">Class 6</option>
+                <option value="Class 7">Class 7</option>
+                <option value="Class 8">Class 8</option>
+                <option value="Class 9">Class 9</option>
+                <option value="Class 10">Class 10</option>
+                <option value="Class 11">Class 11</option>
+                <option value="Class 12">Class 12</option>
               </select>
             </div>
 
@@ -327,7 +374,7 @@ export default function CandidateRegistration() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {candidates.map(candidate => (
-              <div key={candidate.id} className={`bg-white/60 border ${candidate.status === 'Hold' ? 'border-amber-400 bg-amber-50/30' : 'border-slate-100'} p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col h-full`}>
+              <div key={candidate._id} className={`bg-white/60 border ${candidate.status === 'Hold' ? 'border-amber-400 bg-amber-50/30' : 'border-slate-100'} p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col h-full`}>
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-bold text-slate-800 text-lg flex items-center gap-2">
@@ -360,8 +407,8 @@ export default function CandidateRegistration() {
 
                 <div className="mt-5 pt-4 border-t border-slate-100 flex justify-end gap-2">
                   <button type="button" onClick={() => handleEdit(candidate)} className="px-3 py-1.5 text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">Edit</button>
-                  <button type="button" onClick={() => handleHold(candidate.id)} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition ${candidate.status === 'Hold' ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-amber-100 hover:bg-amber-200 text-amber-700'}`}>{candidate.status === 'Hold' ? 'Unhold' : 'Hold'}</button>
-                  <button type="button" onClick={() => handleDelete(candidate.id)} className="px-3 py-1.5 text-sm font-semibold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg transition">Delete</button>
+                  <button type="button" onClick={() => handleHold(candidate._id, candidate.status)} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition ${candidate.status === 'Hold' ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-amber-100 hover:bg-amber-200 text-amber-700'}`}>{candidate.status === 'Hold' ? 'Unhold' : 'Hold'}</button>
+                  <button type="button" onClick={() => handleDelete(candidate._id)} className="px-3 py-1.5 text-sm font-semibold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg transition">Delete</button>
                 </div>
               </div>
             ))}

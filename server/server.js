@@ -65,6 +65,7 @@ import teamRoutes from './routes/teamRoutes.js';
 import resultRoutes from './routes/resultRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
+import candidateRoutes from './routes/candidateRoutes.js';
 
 // Middleware
 app.use(nocache());
@@ -88,6 +89,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/candidates', candidateRoutes);
 
 // Root Route
 app.get('/', (req, res) => {
