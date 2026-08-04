@@ -1,11 +1,12 @@
 import express from 'express';
-import { getPrograms, addProgram, updateProgram, deleteProgram, bulkCreatePrograms } from '../controllers/programController.js';
+import { getPrograms, addProgram, updateProgram, deleteProgram, bulkCreatePrograms, deleteAllPrograms } from '../controllers/programController.js';
 
 const router = express.Router();
 
 router.route('/')
   .get(getPrograms)
-  .post(addProgram);
+  .post(addProgram)
+  .delete(deleteAllPrograms);
 
 router.post('/bulk', bulkCreatePrograms);
 

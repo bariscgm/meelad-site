@@ -94,6 +94,19 @@ export const deleteProgram = async (req, res) => {
   }
 };
 
+// @desc    Delete all programs
+// @route   DELETE /api/programs
+// @access  Admin
+export const deleteAllPrograms = async (req, res) => {
+  try {
+    await Program.deleteMany({});
+    res.json({ message: 'All programs removed' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error: ' + error.message });
+  }
+};
+
+
 // @desc    Bulk create programs from CSV/Excel
 // @route   POST /api/programs/bulk
 // @access  Admin

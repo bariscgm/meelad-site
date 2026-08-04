@@ -181,6 +181,45 @@ export default function ProgramManagement() {
     }
   };
 
+  // Delete All Programs
+  const handleDeleteAll = async () => {
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: "This will delete ALL programs! You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete ALL!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`${API_URL}/api/programs`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          setPrograms([]);
+          Toast.fire({
+            icon: 'success',
+            title: 'All programs deleted successfully'
+          });
+        } else {
+          Toast.fire({
+            icon: 'error',
+            title: 'Failed to delete programs'
+          });
+        }
+      } catch (error) {
+        console.error('Failed to delete programs:', error);
+        Toast.fire({
+          icon: 'error',
+          title: 'An unexpected error occurred'
+        });
+      }
+    }
+  };
+
   // Export to Excel / CSV
   const exportToExcel = () => {
     const headers = ['ID', 'Programme Name', 'Category', 'Type', 'Venue Type', 'Gender', 'Max Participants', 'Duration'];
@@ -411,6 +450,19 @@ export default function ProgramManagement() {
             </svg>
             Add programme
           </button>
+
+          {/* Delete All Button */}
+          {programs.length > 0 && (
+            <button
+              onClick={handleDeleteAll}
+              className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete All
+            </button>
+          )}
         </div>
       </div>
 

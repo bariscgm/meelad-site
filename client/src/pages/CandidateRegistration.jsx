@@ -28,7 +28,7 @@ export default function CandidateRegistration() {
           fetch(`${API_URL}/api/categories`),
           teamId ? fetch(`${API_URL}/api/candidates/team/${teamId}`) : Promise.resolve({ ok: false })
         ]);
-        
+
         if (progRes.ok) {
           const data = await progRes.json();
           setAllPrograms(data);
@@ -55,10 +55,10 @@ export default function CandidateRegistration() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     setFormData(prev => {
       const updated = { ...prev, [name]: value };
-      
+
       // Auto-assign category based on class
       if (name === 'className') {
         const classNum = getClassNumber(value);
@@ -66,7 +66,7 @@ export default function CandidateRegistration() {
         updated.category = matchedCategory ? matchedCategory.name : '';
         updated.programs = []; // Reset programs when class/category changes
       }
-      
+
       return updated;
     });
   };
@@ -131,7 +131,7 @@ export default function CandidateRegistration() {
           Swal.fire('Error', err.message || 'Failed to register candidate', 'error');
         }
       }
-      
+
       // Reset form except category to allow faster bulk entry
       setFormData(prev => ({
         ...prev,
@@ -200,7 +200,7 @@ export default function CandidateRegistration() {
   };
 
   const availablePrograms = useMemo(() => {
-    return formData.category 
+    return formData.category
       ? allPrograms.filter(p => p.category === formData.category).map(p => p.name)
       : [];
   }, [formData.category, allPrograms]);
@@ -217,14 +217,14 @@ export default function CandidateRegistration() {
       {/* Registration Form */}
       <div className="glass p-8 rounded-3xl space-y-6 relative overflow-hidden">
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
-        
+
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 relative z-10">
           <span className="w-3 h-3 rounded-full bg-teal-500"></span>
           Student Details
         </h2>
 
         <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Name */}
             <div className="lg:col-span-2">
@@ -313,17 +313,15 @@ export default function CandidateRegistration() {
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {availablePrograms.map(program => (
-                  <label 
-                    key={program} 
-                    className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                      formData.programs.includes(program) 
-                        ? 'border-teal-500 bg-teal-50/50 shadow-sm' 
+                  <label
+                    key={program}
+                    className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
+                        ? 'border-teal-500 bg-teal-50/50 shadow-sm'
                         : 'border-slate-100 bg-white/50 hover:border-teal-200 hover:bg-white'
-                    }`}
+                      }`}
                   >
-                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-                      formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
-                    }`}>
+                    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-teal-500 border-teal-500 text-white' : 'border-slate-300'
+                      }`}>
                       {formData.programs.includes(program) && (
                         <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
@@ -347,6 +345,7 @@ export default function CandidateRegistration() {
 
           {/* Buttons */}
           <div className="pt-6 flex justify-end">
+
             <button
               type="submit"
               className="px-8 py-3.5 bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-600 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg shadow-teal-500/20 hover:shadow-teal-500/30 transition flex items-center gap-2"
@@ -390,7 +389,7 @@ export default function CandidateRegistration() {
                     {candidate.gender}
                   </span>
                 </div>
-                
+
                 <div className="mt-4 pt-4 border-t border-slate-100 flex-grow">
                   <p className="text-xs font-semibold text-slate-500 mb-2">Registered Programs ({candidate.programs.length})</p>
                   <div className="flex flex-wrap gap-2">
