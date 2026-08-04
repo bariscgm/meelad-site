@@ -62,7 +62,11 @@ export default function CandidateRegistration() {
       // Auto-assign category based on class
       if (name === 'className') {
         const classNum = getClassNumber(value);
-        const matchedCategory = categories.find(cat => classNum >= cat.classFrom && classNum <= cat.classTo);
+        const matchedCategory = categories.find(cat => 
+          cat.name.toLowerCase() !== 'general' && 
+          classNum >= cat.classFrom && 
+          classNum <= cat.classTo
+        );
         updated.category = matchedCategory ? matchedCategory.name : '';
         updated.programs = []; // Reset programs when class/category changes
       }
@@ -200,9 +204,17 @@ export default function CandidateRegistration() {
   };
 
   const availablePrograms = useMemo(() => {
-    return formData.category
-      ? allPrograms.filter(p => p.category === formData.category).map(p => p.name)
-      : [];
+    if (!formData.category) return [];
+    
+    const categoryPrograms = allPrograms.filter(p => p.category === formData.category);
+    const generalPrograms = allPrograms.filter(p => p.category.toLowerCase() === 'general');
+    
+    const combined = formData.category.toLowerCase() === 'general' 
+      ? categoryPrograms 
+      : [...categoryPrograms, ...generalPrograms];
+      
+    // Return unique program names
+    return Array.from(new Set(combined.map(p => p.name)));
   }, [formData.category, allPrograms]);
 
   return (
