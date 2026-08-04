@@ -47,6 +47,15 @@ export default function CandidateRegistration() {
       if (currentPrograms.includes(program)) {
         return { ...prev, programs: currentPrograms.filter(p => p !== program) };
       } else {
+        if (currentPrograms.length >= 4) {
+          Swal.fire({
+            title: 'Limit Exceeded',
+            text: 'A candidate can only attend a maximum of 4 programs.',
+            icon: 'warning',
+            confirmButtonColor: '#0f766e'
+          });
+          return prev;
+        }
         return { ...prev, programs: [...currentPrograms, program] };
       }
     });
