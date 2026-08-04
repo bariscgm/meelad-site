@@ -1,5 +1,6 @@
 import express from 'express';
 import User from '../models/User.js';
+import Team from '../models/Team.js';
 
 const router = express.Router();
 
@@ -26,9 +27,18 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid username or password' });
     }
     
+    let actualTeamId = user._id;
+    if (user.role === 'Team Leader' && user.team && user.team !== 'Unassigned') {
+      const teamDoc = await Team.findOne({ name: user.team });
+      if (teamDoc) {
+        actualTeamId = teamDoc._id;
+      }
+    }
+    
     // Send user details back (excluding password)
     const userData = {
       id: user._id,
+      teamId: actualTeamId,
       name: user.name,
       username: user.username,
       role: user.role,

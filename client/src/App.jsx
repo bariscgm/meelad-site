@@ -211,7 +211,7 @@ function TeamDashboard() {
   const [results, setResults] = useState([]);
   
   const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const teamId = user.id || user._id;
+  const teamId = user.teamId || user.id || user._id;
   const teamName = user.name || 'Team';
 
   useEffect(() => {

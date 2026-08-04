@@ -21,7 +21,7 @@ export default function CandidateRegistration() {
     const fetchData = async () => {
       try {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
-        const teamId = user.id || user._id;
+        const teamId = user.teamId || user.id || user._id;
 
         const [progRes, catRes, candRes] = await Promise.all([
           fetch(`${API_URL}/api/programs`),
@@ -101,7 +101,7 @@ export default function CandidateRegistration() {
 
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      const teamId = user.id || user._id;
+      const teamId = user.teamId || user.id || user._id;
 
       const payload = { ...formData, team: teamId };
 
