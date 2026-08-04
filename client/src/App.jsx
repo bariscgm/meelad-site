@@ -207,8 +207,37 @@ function AdminDashboard() {
 }
 
 function TeamDashboard() {
+  const [candidates, setCandidates] = useState([]);
+  const [results, setResults] = useState([]);
+  
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const teamId = user.id || user._id;
   const teamName = user.name || 'Team';
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (!teamId) return;
+        const [candRes, resRes] = await Promise.all([
+          fetch(`${API_URL}/api/candidates/team/${teamId}`),
+          fetch(`${API_URL}/api/results`)
+        ]);
+        if (candRes.ok) setCandidates(await candRes.json());
+        if (resRes.ok) setResults(await resRes.json());
+      } catch (error) {
+        console.error('Error fetching team data', error);
+      }
+    };
+    fetchData();
+  }, [teamId]);
+
+  const totalPoints = results
+    .filter(r => r.status === 'Published')
+    .flatMap(r => r.winners)
+    .filter(w => (w.team?._id || w.team?.id || w.team) === teamId)
+    .reduce((sum, w) => sum + (w.points || 0), 0);
+
+  const upcomingPrograms = [...new Set(candidates.flatMap(c => c.programs))];
 
   return (
     <div className="space-y-6">
@@ -223,19 +252,29 @@ function TeamDashboard() {
            <div className="space-y-4">
               <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <span className="text-slate-500">Registered Students</span>
-                <span className="font-bold text-slate-700">24</span>
+                <span className="font-bold text-slate-700">{candidates.length}</span>
               </div>
               <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <span className="text-slate-500">Total Points</span>
-                <span className="font-bold text-teal-600">1,250</span>
+                <span className="font-bold text-teal-600">{totalPoints}</span>
               </div>
            </div>
         </div>
         <div className="glass p-6 rounded-3xl">
-           <h3 className="text-lg font-bold text-slate-800 mb-4">Upcoming Programs</h3>
-           <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl">
-             <span className="text-slate-400">No upcoming programs</span>
-           </div>
+           <h3 className="text-lg font-bold text-slate-800 mb-4">Your Candidates' Programs</h3>
+           {upcomingPrograms.length > 0 ? (
+             <div className="flex flex-wrap gap-2">
+               {upcomingPrograms.map(p => (
+                 <span key={p} className="px-3 py-1.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-lg text-sm font-medium">
+                   {p}
+                 </span>
+               ))}
+             </div>
+           ) : (
+             <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl">
+               <span className="text-slate-400">No programs registered yet</span>
+             </div>
+           )}
         </div>
       </div>
     </div>
