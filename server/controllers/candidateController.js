@@ -1,5 +1,16 @@
 import Candidate from '../models/Candidate.js';
 
+// @desc    Get all candidates (Admin only)
+// @route   GET /api/candidates
+export const getAllCandidates = async (req, res) => {
+  try {
+    const candidates = await Candidate.find().populate('team').sort({ createdAt: -1 });
+    res.json(candidates);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch all candidates' });
+  }
+};
+
 // @desc    Get all candidates for a specific team
 // @route   GET /api/candidates/team/:teamId
 export const getCandidatesByTeam = async (req, res) => {

@@ -1,0 +1,239 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import { API_URL } from '../config/api.js';
+import Swal from 'sweetalert2';
+
+export default function RegistrationControl() {
+  const [candidates, setCandidates] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [programs, setPrograms] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [filterTeam, setFilterTeam] = useState('All teams');
+  const [filterCategory, setFilterCategory] = useState('All categories');
+  const [filterProgram, setFilterProgram] = useState('All programmes');
+  const [filterGender, setFilterGender] = useState('All genders');
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [candRes, teamRes, catRes, progRes] = await Promise.all([
+        fetch(`${API_URL}/api/candidates`),
+        fetch(`${API_URL}/api/teams`),
+        fetch(`${API_URL}/api/categories`),
+        fetch(`${API_URL}/api/programs`)
+      ]);
+
+      if (candRes.ok) setCandidates(await candRes.json());
+      if (teamRes.ok) setTeams(await teamRes.json());
+      if (catRes.ok) setCategories(await catRes.json());
+      if (progRes.ok) setPrograms(await progRes.json());
+
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      Swal.fire('Error', 'Failed to fetch registration data', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: 'Delete Registration?',
+      text: 'This action cannot be undone.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#64748b',
+      confirmButtonText: 'Yes, delete it!'
+    });
+
+    if (result.isConfirmed) {
+      try {
+        const res = await fetch(`${API_URL}/api/candidates/${id}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          setCandidates(prev => prev.filter(c => c._id !== id));
+          Swal.fire('Deleted!', 'Candidate has been removed.', 'success');
+        } else {
+          throw new Error('Failed to delete');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Could not delete candidate', 'error');
+      }
+    }
+  };
+
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter(c => {
+      // Search
+      const searchMatch = !search || 
+        c.name.toLowerCase().includes(search.toLowerCase()) || 
+        c._id.slice(-4).includes(search);
+      
+      // Team
+      const teamMatch = filterTeam === 'All teams' || (c.team?.name === filterTeam);
+      
+      // Category
+      const categoryMatch = filterCategory === 'All categories' || c.category === filterCategory;
+      
+      // Program
+      const programMatch = filterProgram === 'All programmes' || c.programs.includes(filterProgram);
+      
+      // Gender
+      const genderMatch = filterGender === 'All genders' || c.gender === filterGender;
+
+      return searchMatch && teamMatch && categoryMatch && programMatch && genderMatch;
+    });
+  }, [candidates, search, filterTeam, filterCategory, filterProgram, filterGender]);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <span className="text-xs uppercase font-bold text-purple-600 tracking-wider">REGISTRATION CONTROL</span>
+        <div className="flex justify-between items-center mt-1">
+          <h1 className="text-3xl font-bold text-slate-800">Student registrations</h1>
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-purple-600 bg-purple-100 px-3 py-1 rounded-lg font-medium">
+              {filteredCandidates.length} of {candidates.length}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="glass p-4 rounded-2xl flex flex-wrap gap-4 items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Name or registration num..."
+            className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-purple-500 outline-none"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        
+        <select 
+          className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+          value={filterTeam}
+          onChange={(e) => setFilterTeam(e.target.value)}
+        >
+          <option>All teams</option>
+          {teams.map(t => <option key={t._id} value={t.name}>{t.name}</option>)}
+        </select>
+
+        <select 
+          className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+          value={filterCategory}
+          onChange={(e) => setFilterCategory(e.target.value)}
+        >
+          <option>All categories</option>
+          {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+        </select>
+
+        <select 
+          className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+          value={filterProgram}
+          onChange={(e) => setFilterProgram(e.target.value)}
+        >
+          <option>All programmes</option>
+          {programs.map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
+        </select>
+
+        <select 
+          className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-500 min-w-[150px]"
+          value={filterGender}
+          onChange={(e) => setFilterGender(e.target.value)}
+        >
+          <option>All genders</option>
+          <option value="Boy">Boy</option>
+          <option value="Girl">Girl</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="General">General</option>
+        </select>
+        
+        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition hidden sm:flex">
+          <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          Print list
+        </button>
+      </div>
+
+      {/* List */}
+      <div className="glass rounded-3xl overflow-hidden">
+        {loading ? (
+          <div className="p-12 text-center text-slate-500">Loading registrations...</div>
+        ) : filteredCandidates.length === 0 ? (
+          <div className="p-12 text-center text-slate-500 flex flex-col items-center">
+            <svg className="w-12 h-12 mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            No registrations found.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[600px]">
+              <thead>
+                <tr className="bg-slate-100/50 text-[11px] uppercase tracking-wider text-slate-500 font-bold border-b border-slate-200/60">
+                  <th className="px-6 py-4">Reg. No.</th>
+                  <th className="px-6 py-4">Student & Programmes</th>
+                  <th className="px-6 py-4">Team & Category</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredCandidates.map((c) => (
+                  <tr key={c._id} className="hover:bg-slate-50/50 transition">
+                    <td className="px-6 py-4 align-top pt-5">
+                      <span className="font-bold text-blue-600">{c._id.slice(-4).toUpperCase()}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-slate-800 text-base">{c.name}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">
+                        Class {c.className} • <span className="uppercase">{c.gender}</span>
+                      </div>
+                      <div className="text-xs font-medium text-slate-600 mt-1.5 leading-relaxed">
+                        {c.programs.join(', ')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 align-top pt-5">
+                      <div className="font-bold text-slate-800">{c.team?.name || 'Unknown'}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{c.category}</div>
+                    </td>
+                    <td className="px-6 py-4 align-top pt-5">
+                      <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleDelete(c._id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

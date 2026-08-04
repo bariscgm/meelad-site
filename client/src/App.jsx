@@ -295,6 +295,7 @@ import ResultManagement from './pages/ResultManagement';
 import ControllerManagement from './pages/ControllerManagement';
 import Login from './pages/Login';
 import CandidateRegistration from './pages/CandidateRegistration';
+import RegistrationControl from './pages/RegistrationControl';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -320,6 +321,7 @@ function App() {
             <Route path="result" element={<ResultManagement />} />
             <Route path="controller" element={<ControllerManagement />} />
             <Route path="controls" element={<ControllerManagement />} />
+            <Route path="registrations" element={<RegistrationControl />} />
           </Route>
         </Route>
 
