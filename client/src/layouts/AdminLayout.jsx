@@ -85,13 +85,16 @@ export default function AdminLayout() {
       <aside className="w-64 bg-[#121124] text-white hidden md:flex flex-col border-r border-slate-800">
         {/* Brand Header */}
         <Link to="/" className="p-6 flex items-center gap-3 transition hover:opacity-80">
-          <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-10 h-10 object-contain bg-white/10 p-1 rounded-xl" />
+          <div className="w-10 h-10 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-xl">
+            <svg className="w-6 h-6 text-teal-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+            </svg>
+          </div>
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight flex flex-col items-start gap-1">
-              <span dir="rtl">إلى الرسول</span>
+              Meelad Fest
               <span className="text-sm font-semibold text-slate-300">Admin Portal</span>
             </h1>
-            <p className="text-[9px] text-slate-400 font-medium leading-tight mt-1">Darussalam HSM Narikkuni (Reg 2179)</p>
           </div>
         </Link>
 
@@ -149,8 +152,12 @@ export default function AdminLayout() {
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-8 z-10 sticky top-0">
           <div className="md:hidden font-bold text-purple-700 flex flex-col items-start justify-center gap-0.5">
             <div className="flex items-center gap-2">
-              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-7 h-7 object-contain bg-purple-100 p-0.5 rounded-lg" />
-              <span dir="rtl">إلى الرسول</span>
+              <div className="w-7 h-7 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-lg">
+                <svg className="w-4 h-4 text-teal-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+                </svg>
+              </div>
+              <span>Meelad Fest</span>
             </div>
             <span className="text-xs text-slate-500">Admin Portal</span>
           </div>
@@ -160,11 +167,11 @@ export default function AdminLayout() {
               <p className="text-xs font-bold text-slate-800">Ilmul Rasool Admin</p>
               <p className="text-[10px] text-teal-600 font-semibold">Super Admin</p>
             </div>
-            <img
-              src="/ilmul_rasool_logo.png"
-              alt="Admin Avatar"
-              className="w-9 h-9 rounded-full bg-purple-50 p-1 object-contain border border-purple-200 shadow-sm"
-            />
+            <div className="w-9 h-9 flex items-center justify-center bg-slate-100 rounded-full border border-slate-200">
+              <svg className="w-5 h-5 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
           </div>
         </header>
 

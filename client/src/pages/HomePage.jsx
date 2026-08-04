@@ -55,13 +55,15 @@ export default function HomePage() {
       <header className="sticky top-0 z-50 w-full border-b border-white/5 bg-slate-900/80 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-4 group">
-            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-14 h-14 object-contain bg-white/10 p-1.5 rounded-xl group-hover:scale-105 transition" />
+            <div className="w-12 h-12 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-xl group-hover:bg-teal-500/20 transition">
+              <svg className="w-7 h-7 text-teal-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+              </svg>
+            </div>
             <div className="flex flex-col justify-center">
               <h1 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2 leading-tight">
-                <span dir="rtl" className="text-2xl mt-1">إلى الرسول</span>
-                <span className="text-sm md:text-base font-semibold text-teal-400">Festival Hub</span>
+                Meelad Fest
               </h1>
-              <p className="text-[10px] md:text-xs text-slate-400 font-medium mt-0.5 max-w-[200px] md:max-w-none truncate md:whitespace-normal">Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179</p>
             </div>
           </Link>
           <div className="hidden md:flex gap-6">
@@ -84,20 +86,20 @@ export default function HomePage() {
               Live Competition
             </div>
 
-            {/* Blended PNG Logo */}
-            <Link to="/" className="py-2 inline-block transition hover:scale-[1.02]">
-              <img
-                src="/ilmul_rasool_logo.png"
-                alt="Ilmul Rasool Logo"
-                className="w-80 md:w-[480px] max-w-full drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)] mx-auto object-contain"
-              />
-            </Link>
+            {/* Blended SVG Logo */}
+            <div className="py-2 inline-flex flex-col items-center justify-center transition hover:scale-[1.02] gap-4 mb-4">
+              <div className="w-24 h-24 md:w-32 md:h-32 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-3xl drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)]">
+                <svg className="w-16 h-16 md:w-20 md:h-20 text-teal-400" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+                </svg>
+              </div>
+              <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mt-4">
+                Meelad Fest
+              </h1>
+            </div>
 
-            {/* Madrasa Details Text directly under PNG Logo */}
+            {/* Subtext */}
             <div className="space-y-2">
-              <p className="text-sm md:text-base font-bold text-teal-300 tracking-wide">
-                Darussalam Higher Secondary Madrasa Narikkuni | Calicut Reg No: 2179
-              </p>
               <p className="text-sm md:text-base text-slate-400 max-w-lg mx-auto">
                 Experience the pulse of Meelad Fest. Follow the live scoreboard, witness the crowning of champions, and support your favorite teams.
               </p>
@@ -260,7 +262,12 @@ export default function HomePage() {
       <footer className="w-full bg-slate-900 border-t border-white/10 mt-auto relative z-10">
         <div className="max-w-7xl mx-auto px-6 py-8 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-4">
-            <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-12 h-12 object-contain bg-white/10 p-1.5 rounded-xl" />
+            <div className="w-10 h-10 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-xl">
+              <svg className="w-6 h-6 text-teal-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+              </svg>
+            </div>
+            <span className="font-bold text-lg text-white">Meelad Fest</span>
           </div>
           
           <div className="text-center md:text-right">

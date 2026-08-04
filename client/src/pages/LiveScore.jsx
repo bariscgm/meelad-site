@@ -84,11 +84,14 @@ export default function LiveScore() {
       <header className="relative z-10 border-b border-white/5 bg-slate-950/50 backdrop-blur-md sticky top-0">
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <img src="/ilmul_rasool_logo.png" alt="Logo" className="w-10 h-10 object-contain bg-white/10 p-1 rounded-lg" />
+            <div className="w-10 h-10 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-lg group-hover:bg-teal-500/20 transition">
+              <svg className="w-6 h-6 text-teal-400" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+              </svg>
+            </div>
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-                <span dir="rtl" className="text-2xl text-teal-400">إلى الرسول</span> 
-                Festival Hub
+                Meelad Fest
               </h1>
             </div>
           </Link>

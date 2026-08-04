@@ -18,10 +18,14 @@ export default function TeamLayout() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <Link to="/" className="flex-shrink-0 flex items-center gap-3 transition hover:opacity-80">
-              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-10 h-10 object-contain bg-teal-500/10 p-1 rounded-xl border border-teal-500/20 shadow-sm" />
+              <div className="w-10 h-10 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-xl">
+                <svg className="w-6 h-6 text-teal-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+                </svg>
+              </div>
               <div>
                 <h1 className="font-bold text-lg text-slate-800 tracking-tight flex flex-col items-start gap-0.5">
-                  <span dir="rtl">إلى الرسول</span>
+                  Meelad Fest
                   <span className="text-sm font-semibold text-slate-500">{teamName} Portal</span>
                 </h1>
               </div>

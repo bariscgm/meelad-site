@@ -90,12 +90,16 @@ export default function StageDashboard() {
         <div className="flex items-center justify-between border-b border-slate-200 pb-6">
           <div className="flex items-center gap-4">
             <Link to="/">
-              <img src="/ilmul_rasool_logo.png" alt="Ilmul Rasool Logo" className="w-14 h-14 object-contain bg-amber-100 p-2 rounded-2xl border border-amber-200" />
+              <div className="w-14 h-14 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-2xl group-hover:bg-teal-500/20 transition">
+                <svg className="w-8 h-8 text-teal-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1.894-15.682a8.001 8.001 0 00-4.57 11.238A8.001 8.001 0 0015.68 15.54a6.5 6.5 0 11-5.575-9.222z"/>
+                </svg>
+              </div>
             </Link>
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-slate-800 flex flex-col items-start gap-1">
-                <span dir="rtl" className="text-amber-600">إلى الرسول</span>
-                <span>Stage Manager Portal</span>
+                <span className="text-teal-600">Meelad Fest</span>
+                <span className="text-xl">Stage Manager Portal</span>
               </h1>
               <p className="text-sm text-slate-500 mt-1">Live stage proceedings, calls & order management interface.</p>
             </div>
