@@ -13,32 +13,62 @@ export default function CandidateRegistration() {
 
   const [candidates, setCandidates] = useState([]);
   const [allPrograms, setAllPrograms] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
 
-  // Fetch programs from API
+  // Fetch programs and categories from API
   useEffect(() => {
-    const fetchPrograms = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/programs`);
-        if (res.ok) {
-          const data = await res.json();
+        const [progRes, catRes] = await Promise.all([
+          fetch(`${API_URL}/api/programs`),
+          fetch(`${API_URL}/api/categories`)
+        ]);
+        if (progRes.ok) {
+          const data = await progRes.json();
           setAllPrograms(data);
         }
+        if (catRes.ok) {
+          const catData = await catRes.json();
+          setCategories(catData);
+        }
       } catch (error) {
-        console.error('Failed to fetch programs:', error);
+        console.error('Failed to fetch data:', error);
       }
     };
-    fetchPrograms();
+    fetchData();
   }, []);
+
+  const getClassNumber = (classNameStr) => {
+    const mapping = {
+      '5th Standard': 5,
+      '6th Standard': 6,
+      '7th Standard': 7,
+      '8th Standard': 8,
+      '9th Standard': 9,
+      '10th Standard': 10,
+      'Plus One': 11,
+      'Plus Two': 12
+    };
+    return mapping[classNameStr] || 0;
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
     
-    // Reset programs when category changes
-    if (name === 'category') {
-      setFormData(prev => ({ ...prev, programs: [] }));
-    }
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      
+      // Auto-assign category based on class
+      if (name === 'className') {
+        const classNum = getClassNumber(value);
+        const matchedCategory = categories.find(cat => classNum >= cat.classFrom && classNum <= cat.classTo);
+        updated.category = matchedCategory ? matchedCategory.name : '';
+        updated.programs = []; // Reset programs when class/category changes
+      }
+      
+      return updated;
+    });
   };
 
   const handleCheckboxChange = (program) => {
@@ -191,18 +221,17 @@ export default function CandidateRegistration() {
 
             {/* Category */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Category (Auto-assigned)</label>
               <select
                 name="category"
                 value={formData.category}
-                onChange={handleInputChange}
-                required
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none transition text-slate-800 appearance-none"
+                disabled
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 cursor-not-allowed transition text-slate-800 appearance-none"
               >
-                <option value="" disabled>Select Category</option>
-                <option value="Junior">Junior</option>
-                <option value="Senior">Senior</option>
-                <option value="General">General</option>
+                <option value="">Select Class First</option>
+                {categories.map(cat => (
+                  <option key={cat._id} value={cat.name}>{cat.name}</option>
+                ))}
               </select>
             </div>
           </div>
