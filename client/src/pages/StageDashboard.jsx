@@ -212,27 +212,38 @@ export default function StageDashboard() {
                     <div className="flex flex-wrap gap-2">
                       {judges.map(judge => {
                         const isAssigned = (pendingJudges[program._id] || []).includes(judge._id);
+                        const isLocked = program.status !== 'Pending';
                         return (
-                          <label key={judge._id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition ${
-                            isAssigned ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                          }`}>
+                          <label key={judge._id} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition ${
+                            isAssigned ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-slate-50 border-slate-200 text-slate-600'
+                          } ${isLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-slate-100'}`}>
                             <input 
                               type="checkbox" 
                               checked={isAssigned} 
+                              disabled={isLocked}
                               onChange={() => handleCheckboxChange(program._id, judge._id)}
-                              className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500"
+                              className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 disabled:opacity-50"
                             />
                             <span className="text-sm font-medium">{judge.name}</span>
                           </label>
                         );
                       })}
                     </div>
-                    <button 
-                      onClick={() => handleAssignJudgeSubmit(program._id)}
-                      className="mt-2 self-start px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl transition shadow-sm"
-                    >
-                      Submit Assignment
-                    </button>
+                    {program.status === 'Pending' ? (
+                      <button 
+                        onClick={() => handleAssignJudgeSubmit(program._id)}
+                        className="mt-2 self-start px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl transition shadow-sm"
+                      >
+                        Submit Assignment
+                      </button>
+                    ) : (
+                      <button 
+                        disabled
+                        className="mt-2 self-start px-4 py-2 bg-slate-200 text-slate-500 font-bold text-sm rounded-xl cursor-not-allowed"
+                      >
+                        {program.status === 'Finished' ? 'Scoring Completed' : 'Already Assigned'}
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
