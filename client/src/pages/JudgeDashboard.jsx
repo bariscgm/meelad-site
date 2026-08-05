@@ -13,6 +13,7 @@ export default function JudgeDashboard() {
   const [programCandidates, setProgramCandidates] = useState([]);
   const [candidateScores, setCandidateScores] = useState({});
   const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [showScored, setShowScored] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -159,17 +160,17 @@ export default function JudgeDashboard() {
 
         {/* Assigned Programs */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-800">Your Assigned Programs</h2>
+          <h2 className="text-lg font-bold text-slate-800">Your Pending Programs</h2>
           
           {loading ? (
             <p className="text-slate-500 text-center py-8">Loading programs...</p>
-          ) : programs.length === 0 ? (
+          ) : programs.filter(p => p.status !== 'Finished').length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500">
-              You haven't been assigned to any programs yet.
+              You don't have any pending programs to score.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {programs.map(program => (
+              {programs.filter(p => p.status !== 'Finished').map(program => (
                 <div key={program._id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col justify-between gap-4">
                   <div>
                     <div className="flex justify-between items-start mb-2">
@@ -204,6 +205,41 @@ export default function JudgeDashboard() {
           )}
         </div>
 
+        {/* Scored Programs Section */}
+        {programs.filter(p => p.status === 'Finished').length > 0 && (
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <button 
+              onClick={() => setShowScored(!showScored)}
+              className="flex items-center justify-between w-full p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition text-slate-700 font-semibold"
+            >
+              <span>View Scored Programs ({programs.filter(p => p.status === 'Finished').length})</span>
+              <svg className={`w-5 h-5 transition-transform ${showScored ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showScored && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                {programs.filter(p => p.status === 'Finished').map(program => (
+                  <div key={program._id} className="p-5 rounded-2xl bg-slate-50 border border-slate-200 shadow-sm opacity-75">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="text-lg font-bold text-slate-800">{program.name}</h3>
+                      <span className="px-2.5 py-1 text-xs font-bold rounded-lg bg-emerald-100 text-emerald-700">
+                        {program.status}
+                      </span>
+                    </div>
+                    <p className="text-sm text-slate-500">{program.category} • {program.gender} • {program.type}</p>
+                    {program.class && <p className="text-xs font-semibold text-purple-600 mt-1">Class: {program.class}</p>}
+                    
+                    <button disabled className="w-full mt-4 py-2 bg-slate-200 text-slate-500 font-medium rounded-xl cursor-not-allowed">
+                      Score Submitted
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Scoring Modal */}
