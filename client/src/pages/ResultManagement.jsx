@@ -1,6 +1,26 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { API_URL } from '../config/api.js';
+const calculatePoints = (type, position, grade) => {
+  let pts = 0;
+  const pos = Number(position);
+  if (type === 'Individual') {
+    if (pos === 1) pts += 5;
+    else if (pos === 2) pts += 3;
+    else if (pos === 3) pts += 1;
+    if (grade === 'A') pts += 5;
+    else if (grade === 'B') pts += 3;
+    else if (grade === 'C') pts += 1;
+  } else if (type === 'Group') {
+    if (pos === 1) pts += 10;
+    else if (pos === 2) pts += 5;
+    else if (pos === 3) pts += 3;
+    if (grade === 'A') pts += 10;
+    else if (grade === 'B') pts += 5;
+    else if (grade === 'C') pts += 3;
+  }
+  return pts;
+};
 
 export default function ResultManagement() {
   const [results, setResults] = useState([]);
@@ -11,6 +31,11 @@ export default function ResultManagement() {
   const [loading, setLoading] = useState(true);
   const [editingResult, setEditingResult] = useState(null);
   const [showTotalPoints, setShowTotalPoints] = useState(false);
+  const [expandedResults, setExpandedResults] = useState({});
+
+  const toggleExpand = (id) => {
+    setExpandedResults(prev => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const fetchResults = async () => {
     try {
@@ -347,6 +372,36 @@ export default function ResultManagement() {
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Judge: {r.judge?.name}</p>
+                  
+                  {/* Team Points for this program */}
+                  {(() => {
+                    const teamPts = {};
+                    r.winners?.forEach(w => {
+                      if (w.team) {
+                        const tId = w.team._id || w.team;
+                        const tName = w.team.name || 'Team';
+                        const tColor = w.team.color || '#ccc';
+                        const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                        if (!teamPts[tId]) {
+                          teamPts[tId] = { name: tName, color: tColor, pts: 0 };
+                        }
+                        teamPts[tId].pts += pts;
+                      }
+                    });
+                    const teamsArray = Object.values(teamPts).sort((a,b) => b.pts - a.pts);
+                    if (teamsArray.length === 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {teamsArray.map(t => (
+                          <div key={t.name} className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs font-semibold shadow-sm">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }}></span>
+                            <span className="text-slate-600">{t.name}:</span>
+                            <span className="text-slate-800 font-bold">{t.pts}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 <div className="flex items-center gap-3 print:hidden">
@@ -373,6 +428,12 @@ export default function ResultManagement() {
                   
                   <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
                     <button
+                      onClick={() => toggleExpand(r._id)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${expandedResults[r._id] ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      {expandedResults[r._id] ? 'Hide' : 'View'}
+                    </button>
+                    <button
                       onClick={() => setEditingResult(r)}
                       className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                       title="Edit Result"
@@ -395,60 +456,39 @@ export default function ResultManagement() {
               </div>
 
               {/* Winners List */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {r.winners?.map((w, idx) => {
-                  const getPosColor = (pos) => {
-                    if (pos === 1) return { bg: '#dcfce7', text: '#15803d' }; // green
-                    if (pos === 2) return { bg: '#dbeafe', text: '#1d4ed8' }; // blue
-                    if (pos === 3) return { bg: '#fee2e2', text: '#b91c1c' }; // red
-                    return { bg: '#f1f5f9', text: '#64748b' };
-                  };
-                  
-                  const calculatePoints = (type, position, grade) => {
-                    let pts = 0;
-                    const pos = Number(position);
-                    if (type === 'Individual') {
-                      if (pos === 1) pts += 5;
-                      else if (pos === 2) pts += 3;
-                      else if (pos === 3) pts += 1;
-                      if (grade === 'A') pts += 5;
-                      else if (grade === 'B') pts += 3;
-                      else if (grade === 'C') pts += 1;
-                    } else if (type === 'Group') {
-                      if (pos === 1) pts += 10;
-                      else if (pos === 2) pts += 5;
-                      else if (pos === 3) pts += 3;
-                      if (grade === 'A') pts += 10;
-                      else if (grade === 'B') pts += 5;
-                      else if (grade === 'C') pts += 3;
-                    }
-                    return pts;
-                  };
-
-                  const posColors = getPosColor(w.position);
-                  const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
-                  
-                  return (
-                    <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
-                        {w.position}
+              {expandedResults[r._id] && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {r.winners?.map((w, idx) => {
+                    const getPosColor = (pos) => {
+                      if (pos === 1) return { bg: '#dcfce7', text: '#15803d' }; // green
+                      if (pos === 2) return { bg: '#dbeafe', text: '#1d4ed8' }; // blue
+                      if (pos === 3) return { bg: '#fee2e2', text: '#b91c1c' }; // red
+                      return { bg: '#f1f5f9', text: '#64748b' };
+                    };
+                    const posColors = getPosColor(w.position);
+                    const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                    return (
+                      <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
+                          {w.position}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                          <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
+                          <div className="flex gap-2 mt-1">
+                            <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
+                              Grade {w.grade}
+                            </span>
+                            <span className="inline-block bg-slate-200 text-slate-700 text-xs font-bold px-1.5 py-0.5 rounded">
+                              {displayPoints} pts
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
-                        <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
-                      <div className="flex gap-2 mt-1">
-                        <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
-                          Grade {w.grade}
-                        </span>
-                        <span className="inline-block bg-slate-200 text-slate-700 text-xs font-bold px-1.5 py-0.5 rounded">
-                          {displayPoints} pts
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           ))}
         </div>
