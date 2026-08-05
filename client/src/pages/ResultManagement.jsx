@@ -4,15 +4,12 @@ import { API_URL } from '../config/api.js';
 
 export default function ResultManagement() {
   const [results, setResults] = useState([]);
+  const [teams, setTeams] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [loading, setLoading] = useState(true);
-  const [heldCategories, setHeldCategories] = useState([]);
-
-  const toggleHoldCategory = (cat) => {
-    setHeldCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
-  };
+  const [editingResult, setEditingResult] = useState(null);
 
   const fetchResults = async () => {
     try {
@@ -29,8 +26,21 @@ export default function ResultManagement() {
     }
   };
 
+  const fetchTeams = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/teams`);
+      if (res.ok) {
+        const data = await res.json();
+        setTeams(data);
+      }
+    } catch (error) {
+      console.error('Error fetching teams:', error);
+    }
+  };
+
   useEffect(() => {
     fetchResults();
+    fetchTeams();
   }, []);
 
   const categoriesList = ['All', ...new Set(results.map(r => r.program?.category).filter(Boolean))];
@@ -45,8 +55,7 @@ export default function ResultManagement() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const handleTogglePublish = async (id, currentStatus) => {
-    const newStatus = currentStatus === 'Published' ? 'Draft' : 'Published';
+  const handleStatusChange = async (id, newStatus) => {
     try {
       const res = await fetch(`${API_URL}/api/results/${id}`, {
         method: 'PUT',
@@ -90,6 +99,27 @@ export default function ResultManagement() {
     }
   };
 
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`${API_URL}/api/results/${editingResult._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winners: editingResult.winners }),
+      });
+      if (res.ok) {
+        setEditingResult(null);
+        fetchResults();
+        Swal.fire('Success', 'Result updated successfully', 'success');
+      } else {
+        Swal.fire('Error', 'Failed to update result', 'error');
+      }
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Error', 'Server connection failed', 'error');
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Page Title & Stats */}
@@ -126,23 +156,6 @@ export default function ResultManagement() {
           <span>🏆</span> Team Points Overview
         </h2>
 
-        {/* Category Hold Controls */}
-        <div className="flex flex-wrap gap-4 mb-4">
-          {categoriesList.filter(c => c !== 'All').map(cat => (
-             <div key={cat} className="flex flex-col border border-slate-200 rounded-2xl overflow-hidden bg-white/60 min-w-[120px] shadow-sm">
-               <button
-                 onClick={() => toggleHoldCategory(cat)}
-                 className={`py-2 text-xs font-bold uppercase tracking-wider transition ${heldCategories.includes(cat) ? 'bg-amber-500 text-white shadow-inner' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
-               >
-                 {heldCategories.includes(cat) ? 'Held' : 'Hold'}
-               </button>
-               <div className="py-3 px-4 text-center">
-                 <span className="text-sm font-bold text-slate-700">{cat}</span>
-               </div>
-             </div>
-          ))}
-        </div>
-
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -158,8 +171,7 @@ export default function ResultManagement() {
                 const teamStats = {};
                 results.forEach(r => {
                   const isPub = r.status === 'Published';
-                  const cat = r.program?.category || 'General';
-                  const isHeld = heldCategories.includes(cat);
+                  const isHeld = r.status === 'Hold';
 
                   r.winners?.forEach(w => {
                     if (w.team) {
@@ -315,24 +327,36 @@ export default function ResultManagement() {
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <span className={`px-3 py-1 text-xs font-bold rounded-xl flex items-center gap-1.5 ${
-                    r.status === 'Published' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${r.status === 'Published' ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
-                    {r.status === 'Published' ? 'Published' : 'Draft'}
-                  </span>
-                  
-                  <div className="flex items-center gap-2">
+                  <div className="flex bg-slate-100 rounded-xl p-1">
                     <button
-                      onClick={() => handleTogglePublish(r._id, r.status)}
-                      className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition"
-                      title={r.status === 'Published' ? 'Unpublish' : 'Publish'}
+                      onClick={() => handleStatusChange(r._id, 'Draft')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Draft' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
                     >
-                      {r.status === 'Published' ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                      )}
+                      Draft
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(r._id, 'Hold')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Hold' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-slate-500 hover:text-amber-600'}`}
+                    >
+                      Hold
+                    </button>
+                    <button
+                      onClick={() => handleStatusChange(r._id, 'Published')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Published' ? 'bg-emerald-100 text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-emerald-600'}`}
+                    >
+                      Publish
+                    </button>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
+                    <button
+                      onClick={() => setEditingResult(r)}
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      title="Edit Result"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
                     </button>
                     <button
                       onClick={() => handleDelete(r._id)}
@@ -404,6 +428,122 @@ export default function ResultManagement() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+      {/* Edit Modal */}
+      {editingResult && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">Edit Result</h3>
+                <p className="text-sm text-slate-500 mt-1">{editingResult.program?.name} - {editingResult.program?.category}</p>
+              </div>
+              <button onClick={() => setEditingResult(null)} className="p-2 hover:bg-slate-200 rounded-full transition text-slate-500">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto flex-1">
+              <form id="editResultForm" onSubmit={handleEditSubmit} className="space-y-6">
+                {editingResult.winners?.map((w, index) => (
+                  <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-slate-100 rounded-2xl bg-slate-50/50">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Position</label>
+                      <input 
+                        type="number" 
+                        value={w.position || ''} 
+                        onChange={(e) => {
+                          const newWinners = [...editingResult.winners];
+                          newWinners[index].position = Number(e.target.value);
+                          setEditingResult({...editingResult, winners: newWinners});
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Chest No</label>
+                      <input 
+                        type="text" 
+                        value={w.chestNo || ''} 
+                        onChange={(e) => {
+                          const newWinners = [...editingResult.winners];
+                          newWinners[index].chestNo = e.target.value;
+                          setEditingResult({...editingResult, winners: newWinners});
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Name</label>
+                      <input 
+                        type="text" 
+                        value={w.name || ''} 
+                        onChange={(e) => {
+                          const newWinners = [...editingResult.winners];
+                          newWinners[index].name = e.target.value;
+                          setEditingResult({...editingResult, winners: newWinners});
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Team</label>
+                      <select 
+                        value={w.team?._id || w.team || ''}
+                        onChange={(e) => {
+                          const newWinners = [...editingResult.winners];
+                          const selectedTeam = teams.find(t => t._id === e.target.value);
+                          newWinners[index].team = selectedTeam || e.target.value;
+                          setEditingResult({...editingResult, winners: newWinners});
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
+                      >
+                        <option value="">Select Team</option>
+                        {teams.map(t => (
+                          <option key={t._id} value={t._id}>{t.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Grade</label>
+                      <select 
+                        value={w.grade || ''}
+                        onChange={(e) => {
+                          const newWinners = [...editingResult.winners];
+                          newWinners[index].grade = e.target.value;
+                          setEditingResult({...editingResult, winners: newWinners});
+                        }}
+                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
+                      >
+                        <option value="None">None</option>
+                        <option value="A">A Grade</option>
+                        <option value="B">B Grade</option>
+                        <option value="C">C Grade</option>
+                      </select>
+                    </div>
+                  </div>
+                ))}
+              </form>
+            </div>
+            
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+              <button 
+                type="button"
+                onClick={() => setEditingResult(null)}
+                className="px-6 py-2.5 rounded-xl font-bold text-slate-600 hover:bg-slate-200 transition"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit"
+                form="editResultForm"
+                className="px-6 py-2.5 rounded-xl font-bold bg-teal-600 text-white hover:bg-teal-700 shadow-md shadow-teal-500/20 transition"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
