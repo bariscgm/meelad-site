@@ -32,6 +32,7 @@ export default function ResultManagement() {
   const [editingResult, setEditingResult] = useState(null);
   const [showTotalPoints, setShowTotalPoints] = useState(false);
   const [expandedResults, setExpandedResults] = useState({});
+  const [categoriesList, setCategoriesList] = useState(['All']);
 
   const toggleExpand = (id) => {
     setExpandedResults(prev => ({ ...prev, [id]: !prev[id] }));
@@ -64,12 +65,23 @@ export default function ResultManagement() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/categories`);
+      if (res.ok) {
+        const data = await res.json();
+        setCategoriesList(['All', ...data.map(c => c.name)]);
+      }
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   useEffect(() => {
     fetchResults();
     fetchTeams();
+    fetchCategories();
   }, []);
-
-  const categoriesList = ['All', ...new Set(results.map(r => r.program?.category).filter(Boolean))];
 
   // Filtered results
   const filteredResults = results.filter((r) => {
