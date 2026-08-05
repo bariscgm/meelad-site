@@ -276,12 +276,21 @@ export default function LiveScore() {
                           
                           {/* Winners Rows */}
                           <div className="divide-y divide-white/5">
-                            {res.winners?.map((w, idx) => (
+                            {res.winners?.map((w, idx) => {
+                              const getPosColor = (pos) => {
+                                if (pos === 1) return { bg: 'rgba(74, 222, 128, 0.15)', text: '#4ade80' }; // Green
+                                if (pos === 2) return { bg: 'rgba(96, 165, 250, 0.15)', text: '#60a5fa' }; // Blue
+                                if (pos === 3) return { bg: 'rgba(248, 113, 113, 0.15)', text: '#f87171' }; // Red
+                                return { bg: 'rgba(148, 163, 184, 0.15)', text: '#94a3b8' }; // Default Slate
+                              };
+                              const posStyle = getPosColor(w.position);
+                              
+                              return (
                               <div key={idx} className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition"
-                                   style={{ borderLeft: `4px solid ${w.team?.color || '#333'}` }}>
+                                   style={{ borderLeft: `4px solid ${posStyle.text}` }}>
                                 <div className="flex items-center gap-4">
                                   <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg"
-                                       style={{ backgroundColor: `${w.team?.color}20`, color: w.team?.color || '#fff' }}>
+                                       style={{ backgroundColor: posStyle.bg, color: posStyle.text }}>
                                     {w.position}
                                   </div>
                                   <div>
@@ -296,7 +305,7 @@ export default function LiveScore() {
                                   {w.grade && <div className="text-xs font-semibold text-emerald-400">Grade {w.grade}</div>}
                                 </div>
                               </div>
-                            ))}
+                            )})}
                           </div>
                         </div>
                       ))
