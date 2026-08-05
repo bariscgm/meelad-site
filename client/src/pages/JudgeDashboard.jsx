@@ -221,62 +221,65 @@ export default function JudgeDashboard() {
             </div>
 
             <form onSubmit={handleSubmitScore} className="space-y-6">
-              <div className="overflow-x-auto">
+              <div className="overflow-y-auto max-h-[60vh] pr-1 -mr-1">
                 {loadingCandidates ? (
                   <p className="text-center py-8 text-slate-500">Loading candidates...</p>
                 ) : programCandidates.length === 0 ? (
                   <p className="text-center py-8 text-slate-500">No candidates found for this program.</p>
                 ) : (
-                  <table className="w-full text-left border-collapse min-w-[500px]">
-                    <thead>
-                      <tr className="bg-slate-50 border-y border-slate-200">
-                        <th className="p-3 text-sm font-semibold text-slate-700 w-1/3">Code Letter</th>
-                        <th className="p-3 text-sm font-semibold text-slate-700 w-1/3">Position</th>
-                        <th className="p-3 text-sm font-semibold text-slate-700 w-1/3">Grade</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {programCandidates.map((cand) => {
-                        const score = candidateScores[cand._id] || { position: '', grade: '' };
-                        const code = cand.programCodes?.[selectedProgram._id];
-                        return (
-                          <tr key={cand._id} className="hover:bg-slate-50/50">
-                            <td className="p-3 font-bold text-slate-700">
-                              {code ? (
-                                <span className="px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg text-lg">{code}</span>
-                              ) : (
-                                <span className="text-xs text-slate-400">Not assigned</span>
-                              )}
-                            </td>
-                            <td className="p-3">
+                  <div className="space-y-3">
+                    {/* Header for desktop only */}
+                    <div className="hidden sm:flex items-center px-4 py-2 bg-slate-50 rounded-lg border border-slate-200">
+                      <div className="w-1/3 font-semibold text-sm text-slate-600">Code Letter</div>
+                      <div className="w-1/3 font-semibold text-sm text-slate-600 pl-2">Position</div>
+                      <div className="w-1/3 font-semibold text-sm text-slate-600 pl-2">Grade</div>
+                    </div>
+                    
+                    {programCandidates.map((cand) => {
+                      const score = candidateScores[cand._id] || { position: '', grade: '' };
+                      const code = cand.programCodes?.[selectedProgram._id];
+                      return (
+                        <div key={cand._id} className="p-4 sm:p-3 sm:px-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-purple-200 transition-colors flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0">
+                          <div className="flex justify-between items-center sm:w-1/3">
+                            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider sm:hidden">Code</span>
+                            {code ? (
+                              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg text-lg font-bold">{code}</span>
+                            ) : (
+                              <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">N/A</span>
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-3 sm:flex sm:w-2/3 sm:gap-4">
+                            <div className="sm:w-1/2">
+                              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block sm:hidden">Position</label>
                               <select 
                                 value={score.position} 
                                 onChange={(e) => handleScoreChange(cand._id, 'position', e.target.value)} 
-                                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                className="w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all text-sm font-medium text-slate-700"
                               >
                                 <option value="">None</option>
-                                <option value="1">1st</option>
-                                <option value="2">2nd</option>
-                                <option value="3">3rd</option>
+                                <option value="1">1st Position</option>
+                                <option value="2">2nd Position</option>
+                                <option value="3">3rd Position</option>
                               </select>
-                            </td>
-                            <td className="p-3">
+                            </div>
+                            <div className="sm:w-1/2">
+                              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1 block sm:hidden">Grade</label>
                               <select 
                                 value={score.grade} 
                                 onChange={(e) => handleScoreChange(cand._id, 'grade', e.target.value)} 
-                                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                className="w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all text-sm font-medium text-slate-700"
                               >
                                 <option value="">None</option>
                                 <option value="A">A Grade</option>
                                 <option value="B">B Grade</option>
                                 <option value="C">C Grade</option>
                               </select>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
