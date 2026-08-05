@@ -231,10 +231,27 @@ function TeamDashboard() {
     fetchData();
   }, [teamId]);
 
-  const totalPoints = results
-    .flatMap(r => r.winners)
-    .filter(w => (w.team?._id || w.team?.id || w.team) === teamId)
-    .reduce((sum, w) => sum + (w.points || 0), 0);
+  const teamWins = [];
+  let totalPoints = 0;
+  let aGrades = 0;
+  let bGrades = 0;
+  let cGrades = 0;
+
+  results.forEach(r => {
+    r.winners.forEach(w => {
+      if ((w.team?._id || w.team?.id || w.team) === teamId) {
+        teamWins.push({
+          programName: r.program?.name,
+          programCategory: r.program?.category,
+          ...w
+        });
+        totalPoints += (w.points || 0);
+        if (w.grade === 'A') aGrades++;
+        else if (w.grade === 'B') bGrades++;
+        else if (w.grade === 'C') cGrades++;
+      }
+    });
+  });
 
   const upcomingPrograms = [...new Set(candidates.flatMap(c => c.programs))];
 
@@ -255,7 +272,15 @@ function TeamDashboard() {
               </div>
               <div className="flex justify-between items-center pb-4 border-b border-slate-100">
                 <span className="text-slate-500">Total Points</span>
-                <span className="font-bold text-teal-600">{totalPoints}</span>
+                <span className="font-bold text-teal-600 text-lg">{totalPoints}</span>
+              </div>
+              <div className="flex justify-between items-center pb-2">
+                <span className="text-slate-500">Grades Earned</span>
+                <span className="font-bold text-slate-700 flex gap-3">
+                  <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">A: {aGrades}</span>
+                  <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">B: {bGrades}</span>
+                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded">C: {cGrades}</span>
+                </span>
               </div>
            </div>
         </div>
@@ -272,6 +297,39 @@ function TeamDashboard() {
            ) : (
              <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl">
                <span className="text-slate-400">No programs registered yet</span>
+             </div>
+           )}
+        </div>
+        
+        {/* Team Results Section */}
+        <div className="glass p-6 rounded-3xl md:col-span-2">
+           <h3 className="text-lg font-bold text-slate-800 mb-4">Published Results</h3>
+           {teamWins.length > 0 ? (
+             <div className="space-y-3">
+               {teamWins.map((w, idx) => (
+                 <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100 gap-3">
+                   <div>
+                     <div className="flex items-center gap-2 mb-1">
+                       <h4 className="font-bold text-slate-800">{w.programName}</h4>
+                       <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">{w.programCategory}</span>
+                     </div>
+                     <p className="font-medium text-slate-600 text-sm">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                   </div>
+                   <div className="flex items-center gap-2 sm:justify-end">
+                     {w.position && (
+                        <span className="px-2.5 py-1 bg-teal-100 text-teal-800 rounded-lg text-xs font-bold">{w.position} Position</span>
+                     )}
+                     {w.grade && (
+                        <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-xs font-bold">{w.grade} Grade</span>
+                     )}
+                     <span className="font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-lg text-sm">{w.points} pts</span>
+                   </div>
+                 </div>
+               ))}
+             </div>
+           ) : (
+             <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl">
+               <span className="text-slate-400">No results published yet for your team.</span>
              </div>
            )}
         </div>

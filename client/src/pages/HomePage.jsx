@@ -21,19 +21,52 @@ export default function HomePage() {
           const published = resultsData.reverse();
           setLatestResults(published.slice(0, 5));
           
-          const teamPoints = {};
-          teamsData.forEach(t => teamPoints[t._id] = { ...t, totalPoints: 0 });
+          const overallPoints = {};
+          const catPoints = {};
+          
+          teamsData.forEach(t => {
+            overallPoints[t._id] = { ...t, totalPoints: 0, aGrades: 0, bGrades: 0, cGrades: 0 };
+          });
           
           published.forEach(r => {
+            const cat = r.program?.category || 'General';
+            if (!catPoints[cat]) {
+              catPoints[cat] = {};
+              teamsData.forEach(t => {
+                catPoints[cat][t._id] = { ...t, totalPoints: 0, aGrades: 0, bGrades: 0, cGrades: 0 };
+              });
+            }
+
             r.winners.forEach(w => {
-              if (w.team && w.team._id && teamPoints[w.team._id]) {
-                teamPoints[w.team._id].totalPoints += (Number(w.points) || 0);
+              if (w.team && w.team._id) {
+                const tId = w.team._id;
+                const pts = Number(w.points) || 0;
+                
+                if (overallPoints[tId]) {
+                  overallPoints[tId].totalPoints += pts;
+                  if (w.grade === 'A') overallPoints[tId].aGrades++;
+                  else if (w.grade === 'B') overallPoints[tId].bGrades++;
+                  else if (w.grade === 'C') overallPoints[tId].cGrades++;
+                }
+
+                if (catPoints[cat][tId]) {
+                  catPoints[cat][tId].totalPoints += pts;
+                  if (w.grade === 'A') catPoints[cat][tId].aGrades++;
+                  else if (w.grade === 'B') catPoints[cat][tId].bGrades++;
+                  else if (w.grade === 'C') catPoints[cat][tId].cGrades++;
+                }
               }
             });
           });
           
-          const sortedTeams = Object.values(teamPoints).sort((a, b) => b.totalPoints - a.totalPoints);
+          const sortedTeams = Object.values(overallPoints).sort((a, b) => b.totalPoints - a.totalPoints);
           setTeams(sortedTeams);
+          
+          const categorized = {};
+          Object.keys(catPoints).forEach(c => {
+            categorized[c] = Object.values(catPoints[c]).sort((a, b) => b.totalPoints - a.totalPoints);
+          });
+          setCategorizedTeams(categorized);
         }
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -109,31 +142,73 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl pointer-events-none" />
             
             {/* Top Teams Standings */}
-            <div>
-              <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                🏆 Top Teams
-              </h3>
-
-              <div className="space-y-4">
-                {teams.length === 0 ? (
-                  <p className="text-slate-400">Loading standings...</p>
-                ) : (
-                  teams.slice(0, 3).map((team, index) => (
-                    <div key={team._id} className="flex items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg"
-                           style={{ backgroundColor: team.color || '#2dd4bf' }}>
-                        #{index + 1}
+            <div className="space-y-10">
+              {/* Overall Teams */}
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
+                  🏆 Overall Top Teams
+                </h3>
+                <div className="space-y-4">
+                  {teams.length === 0 ? (
+                    <p className="text-slate-400">Loading standings...</p>
+                  ) : (
+                    teams.slice(0, 3).map((team, index) => (
+                      <div key={team._id} className="flex items-center p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-white shadow-lg shrink-0"
+                             style={{ backgroundColor: team.color || '#2dd4bf' }}>
+                          #{index + 1}
+                        </div>
+                        <div className="ml-4 flex-1 text-left min-w-0">
+                          <h4 className="text-lg font-bold text-white group-hover:text-teal-300 transition truncate">{team.name}</h4>
+                          <div className="flex gap-2 text-xs font-semibold mt-1">
+                            <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">A:{team.aGrades}</span>
+                            <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">B:{team.bGrades}</span>
+                            <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">C:{team.cGrades}</span>
+                          </div>
+                        </div>
+                        <div className="text-2xl font-extrabold text-teal-400 ml-4">
+                          {team.totalPoints} <span className="text-sm font-medium text-slate-500">pts</span>
+                        </div>
                       </div>
-                      <div className="ml-4 flex-1 text-left">
-                        <h4 className="text-lg font-bold text-white group-hover:text-teal-300 transition">{team.name}</h4>
-                      </div>
-                      <div className="text-2xl font-extrabold text-teal-400">
-                        {team.totalPoints} <span className="text-sm font-medium text-slate-500">pts</span>
-                      </div>
-                    </div>
-                  ))
-                )}
+                    ))
+                  )}
+                </div>
               </div>
+              
+              {/* Categorized Teams */}
+              {Object.keys(categorizedTeams).map(cat => {
+                const catTeams = categorizedTeams[cat].slice(0, 3);
+                if (catTeams.length === 0 || catTeams[0].totalPoints === 0) return null; // hide empty categories
+                return (
+                  <div key={cat}>
+                    <h3 className="text-xl font-bold text-teal-400 mb-4 flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-teal-400" />
+                      {cat} Top Teams
+                    </h3>
+                    <div className="space-y-3">
+                      {catTeams.map((team, index) => (
+                        <div key={team._id} className="flex items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition group">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white shadow-lg shrink-0 text-sm"
+                               style={{ backgroundColor: team.color || '#2dd4bf' }}>
+                            #{index + 1}
+                          </div>
+                          <div className="ml-3 flex-1 text-left min-w-0">
+                            <h4 className="text-base font-bold text-white group-hover:text-teal-300 transition truncate">{team.name}</h4>
+                            <div className="flex gap-2 text-[10px] font-semibold mt-0.5">
+                              <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">A:{team.aGrades}</span>
+                              <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">B:{team.bGrades}</span>
+                              <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">C:{team.cGrades}</span>
+                            </div>
+                          </div>
+                          <div className="text-lg font-extrabold text-teal-400 ml-4">
+                            {team.totalPoints} <span className="text-xs font-medium text-slate-500">pts</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
               
               <Link to="/score" className="block text-center w-full mt-6 py-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-medium transition border border-teal-500/20">
                 View Full Scoreboard
