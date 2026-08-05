@@ -1,4 +1,5 @@
 import Program from '../models/Program.js';
+import Candidate from '../models/Candidate.js';
 
 // @desc    Get all programs
 // @route   GET /api/programs
@@ -176,5 +177,77 @@ export const bulkCreatePrograms = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: 'Bulk Import Error: ' + error.message });
+  }
+};
+
+// @desc    Get all candidates for a specific program
+// @route   GET /api/programs/:id/candidates
+// @access  Admin/Stage Manager
+export const getProgramCandidates = async (req, res) => {
+  try {
+    const program = await Program.findById(req.params.id);
+    if (!program) return res.status(404).json({ message: 'Program not found' });
+
+    // Find candidates matching the program criteria
+    const query = {
+      programs: program.name,
+      category: program.category,
+      status: 'Active'
+    };
+
+    if (program.gender !== 'General') {
+      query.gender = program.gender;
+    }
+
+    const candidates = await Candidate.find(query).populate('team', 'name code').sort({ createdAt: 1 });
+    res.json(candidates);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error: ' + error.message });
+  }
+};
+
+// @desc    Auto-shuffle code letters for candidates in a program
+// @route   POST /api/programs/:id/shuffle-codes
+// @access  Admin/Stage Manager
+export const shuffleProgramCodes = async (req, res) => {
+  try {
+    const program = await Program.findById(req.params.id);
+    if (!program) return res.status(404).json({ message: 'Program not found' });
+
+    const query = {
+      programs: program.name,
+      category: program.category,
+      status: 'Active'
+    };
+    if (program.gender !== 'General') {
+      query.gender = program.gender;
+    }
+
+    const candidates = await Candidate.find(query);
+    if (candidates.length === 0) {
+      return res.status(400).json({ message: 'No active candidates found in this program' });
+    }
+
+    // Generate letters (A, B, C...)
+    const letters = [];
+    for (let i = 0; i < candidates.length; i++) {
+      letters.push(String.fromCharCode(65 + i));
+    }
+
+    // Shuffle the letters
+    for (let i = letters.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [letters[i], letters[j]] = [letters[j], letters[i]];
+    }
+
+    // Save to candidates
+    await Promise.all(candidates.map((cand, idx) => {
+      cand.set(`programCodes.${program._id.toString()}`, letters[idx]);
+      return cand.save();
+    }));
+
+    res.json({ message: 'Code letters shuffled successfully!' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error: ' + error.message });
   }
 };

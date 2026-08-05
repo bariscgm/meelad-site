@@ -27,6 +27,11 @@ const candidateSchema = new mongoose.Schema({
   programs: [{
     type: String, // Storing program names for simplicity as in frontend
   }],
+  programCodes: {
+    type: Map,
+    of: String,
+    default: {}
+  },
   status: {
     type: String,
     enum: ['Active', 'Hold'],

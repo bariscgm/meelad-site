@@ -9,6 +9,10 @@ export default function StageDashboard() {
   const [loading, setLoading] = useState(true);
   const [pendingJudges, setPendingJudges] = useState({});
 
+  const [expandedProgramId, setExpandedProgramId] = useState(null);
+  const [programCandidates, setProgramCandidates] = useState([]);
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
+
   // Filters
   const [filterClass, setFilterClass] = useState('All');
   const [filterCategory, setFilterCategory] = useState('All');
@@ -97,6 +101,51 @@ export default function StageDashboard() {
       }
     } catch (error) {
       console.error('Error assigning judge:', error);
+      Swal.fire('Error', 'Network error occurred', 'error');
+    }
+  };
+
+  const handleToggleCandidates = async (programId) => {
+    if (expandedProgramId === programId) {
+      setExpandedProgramId(null);
+      setProgramCandidates([]);
+      return;
+    }
+    
+    setExpandedProgramId(programId);
+    setLoadingCandidates(true);
+    try {
+      const res = await fetch(`${API_URL}/api/programs/${programId}/candidates`);
+      if (res.ok) {
+        const data = await res.json();
+        setProgramCandidates(data);
+      }
+    } catch (error) {
+      console.error('Failed to load candidates:', error);
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
+  const handleShuffleCodes = async (programId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/programs/${programId}/shuffle-codes`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        Swal.fire('Success', 'Code letters auto-shuffled!', 'success');
+        // Reload candidates to see the new codes
+        const reloadRes = await fetch(`${API_URL}/api/programs/${programId}/candidates`);
+        if (reloadRes.ok) {
+          const data = await reloadRes.json();
+          setProgramCandidates(data);
+        }
+      } else {
+        const err = await res.json();
+        Swal.fire('Error', err.message || 'Failed to shuffle codes', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to shuffle codes:', error);
       Swal.fire('Error', 'Network error occurred', 'error');
     }
   };
@@ -245,6 +294,62 @@ export default function StageDashboard() {
                       </button>
                     )}
                   </div>
+
+                  {/* Candidates Management Section */}
+                  <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                    <button
+                      onClick={() => handleToggleCandidates(program._id)}
+                      className="text-sm font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1 w-fit"
+                    >
+                      {expandedProgramId === program._id ? 'Hide Candidates' : 'View Candidates'} 
+                      <svg className={`w-4 h-4 transform transition-transform ${expandedProgramId === program._id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+
+                    {expandedProgramId === program._id && (
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mt-2">
+                        <div className="flex justify-between items-center mb-3">
+                          <h4 className="text-sm font-bold text-slate-800">Candidates ({programCandidates.length})</h4>
+                          {programCandidates.length > 0 && (
+                            <button
+                              onClick={() => handleShuffleCodes(program._id)}
+                              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200 transition"
+                            >
+                              Auto-Shuffle Code Letters
+                            </button>
+                          )}
+                        </div>
+                        
+                        {loadingCandidates ? (
+                          <p className="text-xs text-slate-500">Loading...</p>
+                        ) : programCandidates.length === 0 ? (
+                          <p className="text-xs text-slate-500">No active candidates found for this program.</p>
+                        ) : (
+                          <ul className="space-y-2">
+                            {programCandidates.map((cand, idx) => (
+                              <li key={cand._id} className="flex justify-between items-center text-sm p-2 bg-white rounded border border-slate-100 shadow-sm">
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-slate-700">{idx + 1}. {cand.name}</span>
+                                  <span className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'} • {cand.className}</span>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                  {cand.programCodes && cand.programCodes[program._id] ? (
+                                    <span className="px-2 py-1 bg-amber-100 text-amber-800 font-bold text-xs rounded">
+                                      Code: {cand.programCodes[program._id]}
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-1 bg-slate-100 text-slate-500 font-medium text-[10px] rounded">
+                                      No Code
+                                    </span>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                 </div>
               ))}
             </div>
