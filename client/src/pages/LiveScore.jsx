@@ -12,7 +12,7 @@ export default function LiveScore() {
     const fetchData = async () => {
       try {
         const [resultsRes, teamsRes] = await Promise.all([
-          fetch(`${API_URL}/api/results`),
+          fetch(`${API_URL}/api/results/published`),
           fetch(`${API_URL}/api/teams`)
         ]);
         
@@ -20,7 +20,7 @@ export default function LiveScore() {
           const resultsData = await resultsRes.json();
           const teamsData = await teamsRes.json();
           
-          const published = resultsData.filter(r => r.status === 'Published');
+          const published = resultsData; // Backend already filters
           // Sort by creation date or just reverse since latest are typically at the end
           setResults(published.reverse());
           

@@ -10,7 +10,7 @@ export default function HomePage() {
     const fetchData = async () => {
       try {
         const [resultsRes, teamsRes] = await Promise.all([
-          fetch(`${API_URL}/api/results`),
+          fetch(`${API_URL}/api/results/published`),
           fetch(`${API_URL}/api/teams`)
         ]);
         
@@ -18,7 +18,7 @@ export default function HomePage() {
           const resultsData = await resultsRes.json();
           const teamsData = await teamsRes.json();
           
-          const published = resultsData.filter(r => r.status === 'Published').reverse();
+          const published = resultsData.reverse();
           setLatestResults(published.slice(0, 5));
           
           const teamPoints = {};

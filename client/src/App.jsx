@@ -220,7 +220,7 @@ function TeamDashboard() {
         if (!teamId) return;
         const [candRes, resRes] = await Promise.all([
           fetch(`${API_URL}/api/candidates/team/${teamId}`),
-          fetch(`${API_URL}/api/results`)
+          fetch(`${API_URL}/api/results/published`)
         ]);
         if (candRes.ok) setCandidates(await candRes.json());
         if (resRes.ok) setResults(await resRes.json());
@@ -232,7 +232,6 @@ function TeamDashboard() {
   }, [teamId]);
 
   const totalPoints = results
-    .filter(r => r.status === 'Published')
     .flatMap(r => r.winners)
     .filter(w => (w.team?._id || w.team?.id || w.team) === teamId)
     .reduce((sum, w) => sum + (w.points || 0), 0);
