@@ -246,6 +246,10 @@ export const shuffleProgramCodes = async (req, res) => {
       return cand.save();
     }));
 
+    // Update program status
+    program.isCodeShuffled = true;
+    await program.save();
+
     res.json({ message: 'Code letters shuffled successfully!' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error: ' + error.message });

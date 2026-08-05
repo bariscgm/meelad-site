@@ -134,6 +134,10 @@ export default function StageDashboard() {
       });
       if (res.ok) {
         Swal.fire('Success', 'Code letters auto-shuffled!', 'success');
+        
+        // Update local state to enable the submit button immediately
+        setPrograms(prev => prev.map(p => p._id === programId ? { ...p, isCodeShuffled: true } : p));
+
         // Reload candidates to see the new codes
         const reloadRes = await fetch(`${API_URL}/api/programs/${programId}/candidates`);
         if (reloadRes.ok) {
@@ -281,9 +285,14 @@ export default function StageDashboard() {
                     {program.status === 'Pending' ? (
                       <button 
                         onClick={() => handleAssignJudgeSubmit(program._id)}
-                        className="mt-2 self-start px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl transition shadow-sm"
+                        disabled={!program.isCodeShuffled}
+                        className={`mt-2 self-start px-4 py-2 font-bold text-sm rounded-xl transition shadow-sm ${
+                          program.isCodeShuffled 
+                            ? 'bg-amber-500 hover:bg-amber-600 text-white' 
+                            : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                        }`}
                       >
-                        Submit Assignment
+                        {program.isCodeShuffled ? 'Submit Assignment' : 'Shuffle Codes First'}
                       </button>
                     ) : (
                       <button 

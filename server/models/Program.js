@@ -42,6 +42,10 @@ const programSchema = new mongoose.Schema({
     enum: ['Pending', 'Assigned', 'Finished'],
     default: 'Pending',
   },
+  isCodeShuffled: {
+    type: Boolean,
+    default: false,
+  },
   assignedJudges: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
