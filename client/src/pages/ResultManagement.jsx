@@ -221,7 +221,31 @@ export default function ResultManagement() {
                     if (pos === 3) return { bg: '#fee2e2', text: '#b91c1c' }; // red
                     return { bg: '#f1f5f9', text: '#64748b' };
                   };
+                  
+                  const calculatePoints = (type, position, grade) => {
+                    let pts = 0;
+                    const pos = Number(position);
+                    if (type === 'Individual') {
+                      if (pos === 1) pts += 5;
+                      else if (pos === 2) pts += 3;
+                      else if (pos === 3) pts += 1;
+                      if (grade === 'A') pts += 5;
+                      else if (grade === 'B') pts += 3;
+                      else if (grade === 'C') pts += 1;
+                    } else if (type === 'Group') {
+                      if (pos === 1) pts += 10;
+                      else if (pos === 2) pts += 5;
+                      else if (pos === 3) pts += 3;
+                      if (grade === 'A') pts += 10;
+                      else if (grade === 'B') pts += 5;
+                      else if (grade === 'C') pts += 3;
+                    }
+                    return pts;
+                  };
+
                   const posColors = getPosColor(w.position);
+                  const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                  
                   return (
                     <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
                       <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
@@ -235,7 +259,7 @@ export default function ResultManagement() {
                           Grade {w.grade}
                         </span>
                         <span className="inline-block bg-slate-200 text-slate-700 text-xs font-bold px-1.5 py-0.5 rounded">
-                          {w.points} pts
+                          {displayPoints} pts
                         </span>
                       </div>
                     </div>
