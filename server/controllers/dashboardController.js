@@ -1,6 +1,7 @@
 import Team from '../models/Team.js';
 import Program from '../models/Program.js';
 import Result from '../models/Result.js';
+import Candidate from '../models/Candidate.js';
 
 // @desc    Get Admin Dashboard Stats
 // @route   GET /api/dashboard/admin
@@ -8,6 +9,7 @@ export const getAdminDashboard = async (req, res) => {
   try {
     const totalTeams = await Team.countDocuments();
     const totalPrograms = await Program.countDocuments();
+    const totalStudents = await Candidate.countDocuments();
     
     const submittedResultsCount = await Result.countDocuments();
     const publishedResultsCount = await Result.countDocuments({ status: 'Published' });
@@ -86,7 +88,7 @@ export const getAdminDashboard = async (req, res) => {
 
     res.json({
       stats: {
-        totalStudents: 0, // Placeholder as there is no Candidate model yet
+        totalStudents,
         totalTeams,
         totalPrograms,
         submittedResults: submittedResultsCount,
