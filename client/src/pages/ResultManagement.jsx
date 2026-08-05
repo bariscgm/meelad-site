@@ -214,14 +214,22 @@ export default function ResultManagement() {
 
               {/* Winners List */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {r.winners?.map((w, idx) => (
-                  <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: w.team?.color ? `${w.team.color}15` : '#f1f5f9', color: w.team?.color || '#64748b' }}>
-                      {w.position}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
-                      <p className="text-xs font-semibold" style={{ color: w.team?.color || '#64748b' }}>{w.team?.name}</p>
+                {r.winners?.map((w, idx) => {
+                  const getPosColor = (pos) => {
+                    if (pos === 1) return { bg: '#dcfce7', text: '#15803d' }; // green
+                    if (pos === 2) return { bg: '#dbeafe', text: '#1d4ed8' }; // blue
+                    if (pos === 3) return { bg: '#fee2e2', text: '#b91c1c' }; // red
+                    return { bg: '#f1f5f9', text: '#64748b' };
+                  };
+                  const posColors = getPosColor(w.position);
+                  return (
+                    <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
+                        {w.position}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                        <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
                       <div className="flex gap-2 mt-1">
                         <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
                           Grade {w.grade}
@@ -232,7 +240,8 @@ export default function ResultManagement() {
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+              })}
               </div>
             </div>
           ))}
