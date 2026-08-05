@@ -161,11 +161,7 @@ export default function HomePage() {
                         </div>
                         <div className="ml-4 flex-1 text-left min-w-0">
                           <h4 className="text-lg font-bold text-white group-hover:text-teal-300 transition truncate">{team.name}</h4>
-                          <div className="flex gap-2 text-xs font-semibold mt-1">
-                            <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">A:{team.aGrades}</span>
-                            <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">B:{team.bGrades}</span>
-                            <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">C:{team.cGrades}</span>
-                          </div>
+
                         </div>
                         <div className="text-2xl font-extrabold text-teal-400 ml-4">
                           {team.totalPoints} <span className="text-sm font-medium text-slate-500">pts</span>
@@ -195,11 +191,7 @@ export default function HomePage() {
                           </div>
                           <div className="ml-3 flex-1 text-left min-w-0">
                             <h4 className="text-base font-bold text-white group-hover:text-teal-300 transition truncate">{team.name}</h4>
-                            <div className="flex gap-2 text-[10px] font-semibold mt-0.5">
-                              <span className="text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">A:{team.aGrades}</span>
-                              <span className="text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">B:{team.bGrades}</span>
-                              <span className="text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded">C:{team.cGrades}</span>
-                            </div>
+
                           </div>
                           <div className="text-lg font-extrabold text-teal-400 ml-4">
                             {team.totalPoints} <span className="text-xs font-medium text-slate-500">pts</span>
