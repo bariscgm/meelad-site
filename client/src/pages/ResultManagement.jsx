@@ -27,6 +27,7 @@ export default function ResultManagement() {
   const [teams, setTeams] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedGender, setSelectedGender] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [loading, setLoading] = useState(true);
   const [editingResult, setEditingResult] = useState(null);
@@ -89,8 +90,9 @@ export default function ResultManagement() {
       r.program?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       r.winners?.some((w) => w.name?.toLowerCase().includes(searchTerm.toLowerCase()) || w.team?.name?.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesCategory = selectedCategory === 'All' || r.program?.category === selectedCategory;
+    const matchesGender = selectedGender === 'All' || r.program?.gender === selectedGender;
     const matchesStatus = selectedStatus === 'All' || r.status === selectedStatus;
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesGender && matchesStatus;
   });
 
   const handleStatusChange = async (id, newStatus) => {
@@ -322,7 +324,7 @@ export default function ResultManagement() {
       </div>
 
       {/* Search and Filters */}
-      <div className="glass p-6 rounded-3xl grid grid-cols-1 md:grid-cols-3 gap-4 print:hidden">
+      <div className="glass p-6 rounded-3xl grid grid-cols-1 md:grid-cols-4 gap-4 print:hidden">
         <div className="relative md:col-span-1">
           <svg className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -344,6 +346,18 @@ export default function ResultManagement() {
             {categoriesList.map((cat) => (
               <option key={cat} value={cat}>{cat}</option>
             ))}
+          </select>
+        </div>
+        <div>
+          <select
+            value={selectedGender}
+            onChange={(e) => setSelectedGender(e.target.value)}
+            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none transition text-sm text-slate-800"
+          >
+            <option value="All">All Genders</option>
+            <option value="Boy">Boy</option>
+            <option value="Girl">Girl</option>
+            <option value="General">General</option>
           </select>
         </div>
         <div>
