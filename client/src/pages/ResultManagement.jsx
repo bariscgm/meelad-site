@@ -8,6 +8,11 @@ export default function ResultManagement() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [loading, setLoading] = useState(true);
+  const [heldCategories, setHeldCategories] = useState([]);
+
+  const toggleHoldCategory = (cat) => {
+    setHeldCategories(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+  };
 
   const fetchResults = async () => {
     try {
@@ -116,64 +121,132 @@ export default function ResultManagement() {
       </div>
 
       {/* Team Points Overview */}
-      <div className="glass p-6 rounded-3xl">
-        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+      <div className="glass p-6 rounded-3xl space-y-6">
+        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <span>🏆</span> Team Points Overview
         </h2>
-        <div className="flex flex-wrap gap-4">
-          {(() => {
-            const teamPoints = {};
-            results.filter(r => r.status === 'Published').forEach(r => {
-              r.winners?.forEach(w => {
-                if (w.team) {
-                  const teamId = w.team._id || w.team;
-                  const teamName = w.team.name || 'Unknown Team';
-                  const teamColor = w.team.color || '#333';
-                  if (!teamPoints[teamId]) {
-                    teamPoints[teamId] = { name: teamName, color: teamColor, points: 0 };
-                  }
-                  
-                  // Calculate points dynamically if not provided directly
-                  const calculatePoints = (type, position, grade) => {
-                    let pts = 0;
-                    const pos = Number(position);
-                    if (type === 'Individual') {
-                      if (pos === 1) pts += 5;
-                      else if (pos === 2) pts += 3;
-                      else if (pos === 3) pts += 1;
-                      if (grade === 'A') pts += 5;
-                      else if (grade === 'B') pts += 3;
-                      else if (grade === 'C') pts += 1;
-                    } else if (type === 'Group') {
-                      if (pos === 1) pts += 10;
-                      else if (pos === 2) pts += 5;
-                      else if (pos === 3) pts += 3;
-                      if (grade === 'A') pts += 10;
-                      else if (grade === 'B') pts += 5;
-                      else if (grade === 'C') pts += 3;
+
+        {/* Category Hold Controls */}
+        <div className="flex flex-wrap gap-4 mb-4">
+          {categoriesList.filter(c => c !== 'All').map(cat => (
+             <div key={cat} className="flex flex-col border border-slate-200 rounded-2xl overflow-hidden bg-white/60 min-w-[120px] shadow-sm">
+               <button
+                 onClick={() => toggleHoldCategory(cat)}
+                 className={`py-2 text-xs font-bold uppercase tracking-wider transition ${heldCategories.includes(cat) ? 'bg-amber-500 text-white shadow-inner' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
+               >
+                 {heldCategories.includes(cat) ? 'Held' : 'Hold'}
+               </button>
+               <div className="py-3 px-4 text-center">
+                 <span className="text-sm font-bold text-slate-700">{cat}</span>
+               </div>
+             </div>
+          ))}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
+                <th className="py-3 px-4 font-semibold">Team</th>
+                <th className="py-3 px-4 font-semibold text-emerald-600">Published</th>
+                <th className="py-3 px-4 font-semibold text-rose-600">Unpublished</th>
+                <th className="py-3 px-4 font-extrabold text-amber-600">Hold Total Bar</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {(() => {
+                const teamStats = {};
+                results.forEach(r => {
+                  const isPub = r.status === 'Published';
+                  const cat = r.program?.category || 'General';
+                  const isHeld = heldCategories.includes(cat);
+
+                  r.winners?.forEach(w => {
+                    if (w.team) {
+                      const tId = w.team._id || w.team;
+                      if (!teamStats[tId]) {
+                        teamStats[tId] = { 
+                          id: tId, 
+                          name: w.team.name || 'Unknown Team', 
+                          color: w.team.color || '#333', 
+                          published: 0, 
+                          unpublished: 0, 
+                          heldPoints: 0 
+                        };
+                      }
+                      
+                      const calculatePoints = (type, position, grade) => {
+                        let pts = 0;
+                        const pos = Number(position);
+                        if (type === 'Individual') {
+                          if (pos === 1) pts += 5;
+                          else if (pos === 2) pts += 3;
+                          else if (pos === 3) pts += 1;
+                          if (grade === 'A') pts += 5;
+                          else if (grade === 'B') pts += 3;
+                          else if (grade === 'C') pts += 1;
+                        } else if (type === 'Group') {
+                          if (pos === 1) pts += 10;
+                          else if (pos === 2) pts += 5;
+                          else if (pos === 3) pts += 3;
+                          if (grade === 'A') pts += 10;
+                          else if (grade === 'B') pts += 5;
+                          else if (grade === 'C') pts += 3;
+                        }
+                        return pts;
+                      };
+                      
+                      const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                      
+                      if (isPub) {
+                        teamStats[tId].published += pts;
+                      } else {
+                        teamStats[tId].unpublished += pts;
+                        if (isHeld) {
+                          teamStats[tId].heldPoints += pts;
+                        }
+                      }
                     }
-                    return pts;
-                  };
-                  
-                  const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
-                  teamPoints[teamId].points += pts;
+                  });
+                });
+                
+                const sortedTeams = Object.values(teamStats).sort((a, b) => {
+                   const aTotal = a.published + a.heldPoints;
+                   const bTotal = b.published + b.heldPoints;
+                   if (bTotal !== aTotal) return bTotal - aTotal;
+                   return b.published - a.published;
+                });
+                
+                if (sortedTeams.length === 0) {
+                  return (
+                    <tr>
+                      <td colSpan="4" className="py-6 text-center text-slate-500 text-sm">
+                        No team data available.
+                      </td>
+                    </tr>
+                  );
                 }
-              });
-            });
-            const sortedTeams = Object.values(teamPoints).sort((a, b) => b.points - a.points);
-            
-            if (sortedTeams.length === 0) {
-              return <span className="text-slate-500 text-sm">No points calculated yet (publish results first).</span>;
-            }
-            
-            return sortedTeams.map(team => (
-              <div key={team.name} className="flex items-center gap-3 px-4 py-2 bg-white/80 border border-slate-200 rounded-2xl shadow-sm">
-                <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: team.color }}></span>
-                <span className="font-bold text-slate-700 text-sm">{team.name}</span>
-                <span className="font-extrabold text-teal-600 text-sm ml-1">{team.points} pts</span>
-              </div>
-            ));
-          })()}
+                
+                return sortedTeams.map(t => (
+                  <tr key={t.id} className="hover:bg-white/40 transition">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: t.color }}></span>
+                        <span className="font-bold text-slate-700">{t.name}</span>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4 font-bold text-emerald-700">{t.published}</td>
+                    <td className="py-3 px-4 font-bold text-rose-700">{t.unpublished}</td>
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-xl font-extrabold text-sm">
+                        {t.published + t.heldPoints}
+                      </span>
+                    </td>
+                  </tr>
+                ));
+              })()}
+            </tbody>
+          </table>
         </div>
       </div>
 
