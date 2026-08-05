@@ -262,10 +262,12 @@ export default function ResultManagement() {
                       </div>
                     </td>
                     <td className="py-3 px-4 font-bold text-emerald-700">{t.published}</td>
-                    <td className="py-3 px-4 font-bold text-rose-700">{t.unpublished}</td>
+                    <td className="py-3 px-4 font-bold text-rose-700">
+                      {showTotalPoints ? (t.published + t.unpublished + t.heldPoints) : '***'}
+                    </td>
                     <td className="py-3 px-4">
                       <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-xl font-extrabold text-sm">
-                        {t.published + t.heldPoints}
+                        {showTotalPoints ? (t.published + t.heldPoints) : '***'}
                       </span>
                     </td>
                   </tr>
