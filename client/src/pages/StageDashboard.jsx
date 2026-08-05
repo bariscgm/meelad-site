@@ -12,6 +12,7 @@ export default function StageDashboard() {
   const [expandedProgramId, setExpandedProgramId] = useState(null);
   const [programCandidates, setProgramCandidates] = useState([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
+  const [showAssigned, setShowAssigned] = useState(false);
 
   // Filters
   const [filterClass, setFilterClass] = useState('All');
@@ -232,17 +233,17 @@ export default function StageDashboard() {
 
         {/* Program List */}
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-800">Filtered Programs ({filteredPrograms.length})</h2>
+          <h2 className="text-lg font-bold text-slate-800">Pending Programs ({filteredPrograms.filter(p => p.status === 'Pending').length})</h2>
           
           {loading ? (
             <p className="text-slate-500 text-center py-8">Loading programs...</p>
-          ) : filteredPrograms.length === 0 ? (
+          ) : filteredPrograms.filter(p => p.status === 'Pending').length === 0 ? (
             <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500">
-              No programs found matching the filters.
+              No pending programs found matching the filters.
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredPrograms.map(program => (
+              {filteredPrograms.filter(p => p.status === 'Pending').map(program => (
                 <div key={program._id} className="p-5 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col gap-4">
                   <div className="flex justify-between items-start">
                     <div>
@@ -364,6 +365,39 @@ export default function StageDashboard() {
             </div>
           )}
         </div>
+
+        {/* Assigned Programs Section */}
+        {filteredPrograms.filter(p => p.status !== 'Pending').length > 0 && (
+          <div className="mt-8 border-t border-slate-200 pt-6">
+            <button 
+              onClick={() => setShowAssigned(!showAssigned)}
+              className="flex items-center justify-between w-full p-4 rounded-2xl bg-slate-100 hover:bg-slate-200 transition text-slate-700 font-semibold"
+            >
+              <span>View Assigned/Completed Programs ({filteredPrograms.filter(p => p.status !== 'Pending').length})</span>
+              <svg className={`w-5 h-5 transition-transform ${showAssigned ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showAssigned && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+                {filteredPrograms.filter(p => p.status !== 'Pending').map(program => (
+                  <div key={program._id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm opacity-80 flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-800 truncate" title={program.name}>{program.name}</h3>
+                      <p className="text-xs text-slate-500">{program.category} • {program.type}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
+                      program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {program.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
