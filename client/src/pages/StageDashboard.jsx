@@ -13,11 +13,13 @@ export default function StageDashboard() {
   const [programCandidates, setProgramCandidates] = useState([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [showAssigned, setShowAssigned] = useState(false);
+  const [expandedDetails, setExpandedDetails] = useState({});
 
   // Filters
   const [filterClass, setFilterClass] = useState('All');
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterGender, setFilterGender] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
 
   // Stats
   const [stats, setStats] = useState({ total: 0, pending: 0, finished: 0 });
@@ -159,7 +161,12 @@ export default function StageDashboard() {
     const classMatch = filterClass === 'All' || p.class === filterClass;
     const categoryMatch = filterCategory === 'All' || p.category === filterCategory;
     const genderMatch = filterGender === 'All' || p.gender === filterGender;
-    return classMatch && categoryMatch && genderMatch;
+    
+    let statusMatch = true;
+    if (filterStatus === 'Pending') statusMatch = p.status === 'Pending';
+    if (filterStatus === 'Assigned/Finished') statusMatch = p.status === 'Assigned' || p.status === 'Finished';
+    
+    return classMatch && categoryMatch && genderMatch && statusMatch;
   });
 
   const uniqueClasses = ['All', ...new Set(programs.map(p => p.class).filter(Boolean))];
@@ -229,6 +236,14 @@ export default function StageDashboard() {
               {uniqueGenders.map(g => <option key={g} value={g}>{g}</option>)}
             </select>
           </div>
+          <div className="flex flex-col gap-1 w-full sm:w-auto">
+            <label className="text-xs font-semibold text-slate-500">Status</label>
+            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              <option value="All">All</option>
+              <option value="Pending">Pending</option>
+              <option value="Assigned/Finished">Assigned/Finished</option>
+            </select>
+          </div>
         </div>
 
         {/* Program List */}
@@ -259,8 +274,19 @@ export default function StageDashboard() {
                       {program.status || 'Pending'}
                     </span>
                   </div>
+
+                  <button 
+                    onClick={() => setExpandedDetails(prev => ({...prev, [program._id]: !prev[program._id]}))}
+                    className="self-start mt-1 text-sm font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition"
+                  >
+                    {expandedDetails[program._id] ? 'Hide Details' : 'View Details'}
+                    <svg className={`w-4 h-4 transform transition-transform ${expandedDetails[program._id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                  </button>
                   
-                  {/* Judge Assignment */}
+                  {/* Additional Details Sections */}
+                  {expandedDetails[program._id] && (
+                    <div className="flex flex-col gap-4 mt-2">
+                      {/* Judge Assignment */}
                   <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
                     <p className="text-sm font-semibold text-slate-700">Assign Judges:</p>
                     <div className="flex flex-wrap gap-2">
@@ -359,6 +385,8 @@ export default function StageDashboard() {
                       </div>
                     )}
                   </div>
+                    </div>
+                  )}
 
                 </div>
               ))}
