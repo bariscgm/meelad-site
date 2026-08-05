@@ -10,13 +10,9 @@ export default function JudgeDashboard() {
   
   const [selectedProgram, setSelectedProgram] = useState(null);
   const [showScoringModal, setShowScoringModal] = useState(false);
-  const [winners, setWinners] = useState([
-    { position: 1, chestNo: '', name: '', team: '', points: 0, grade: '' },
-    { position: 2, chestNo: '', name: '', team: '', points: 0, grade: '' },
-    { position: 3, chestNo: '', name: '', team: '', points: 0, grade: '' },
-    { position: 4, chestNo: '', name: '', team: '', points: 0, grade: '' },
-    { position: 5, chestNo: '', name: '', team: '', points: 0, grade: '' }
-  ]);
+  const [programCandidates, setProgramCandidates] = useState([]);
+  const [candidateScores, setCandidateScores] = useState({});
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -51,32 +47,62 @@ export default function JudgeDashboard() {
     }
   };
 
-  const handleOpenScoring = (program) => {
+  const handleOpenScoring = async (program) => {
     setSelectedProgram(program);
-    setWinners([
-      { position: 1, chestNo: '', name: '', team: '', points: 0, grade: '' },
-      { position: 2, chestNo: '', name: '', team: '', points: 0, grade: '' },
-      { position: 3, chestNo: '', name: '', team: '', points: 0, grade: '' },
-      { position: 4, chestNo: '', name: '', team: '', points: 0, grade: '' },
-      { position: 5, chestNo: '', name: '', team: '', points: 0, grade: '' }
-    ]);
+    setProgramCandidates([]);
+    setCandidateScores({});
     setShowScoringModal(true);
+    setLoadingCandidates(true);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/programs/${program._id}/candidates`);
+      if (res.ok) {
+        const data = await res.json();
+        setProgramCandidates(data);
+        const initialScores = {};
+        data.forEach(c => {
+          initialScores[c._id] = { position: '', grade: '' };
+        });
+        setCandidateScores(initialScores);
+      }
+    } catch (error) {
+      console.error('Failed to load candidates:', error);
+    } finally {
+      setLoadingCandidates(false);
+    }
   };
 
-  const handleWinnerChange = (index, field, value) => {
-    const newWinners = [...winners];
-    newWinners[index][field] = value;
-    setWinners(newWinners);
+  const handleScoreChange = (candidateId, field, value) => {
+    setCandidateScores(prev => ({
+      ...prev,
+      [candidateId]: {
+        ...prev[candidateId],
+        [field]: value
+      }
+    }));
   };
 
   const handleSubmitScore = async (e) => {
     e.preventDefault();
     
-    // Filter out rows that are completely empty
-    const validWinners = winners.filter(w => w.team && (w.chestNo || w.name));
+    // Filter out candidates that have a position or grade
+    const validWinners = [];
+    for (const cand of programCandidates) {
+      const score = candidateScores[cand._id];
+      if (score && (score.position || score.grade)) {
+        validWinners.push({
+          position: score.position ? parseInt(score.position) : null,
+          chestNo: cand.programCodes?.[selectedProgram._id] || 'N/A',
+          name: cand.name,
+          team: cand.team?._id || cand.team,
+          points: 0, // points can be calculated later by controller
+          grade: score.grade || ''
+        });
+      }
+    }
     
     if (validWinners.length === 0) {
-      Swal.fire('Error', 'Please fill in at least one winner', 'error');
+      Swal.fire('Error', 'Please assign at least one position or grade', 'error');
       return;
     }
 
@@ -196,48 +222,62 @@ export default function JudgeDashboard() {
 
             <form onSubmit={handleSubmitScore} className="space-y-6">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="bg-slate-50 border-y border-slate-200">
-                      <th className="p-3 text-sm font-semibold text-slate-700">Position</th>
-                      <th className="p-3 text-sm font-semibold text-slate-700">Chest No</th>
-                      <th className="p-3 text-sm font-semibold text-slate-700">Candidate Name</th>
-                      <th className="p-3 text-sm font-semibold text-slate-700">Team</th>
-                      <th className="p-3 text-sm font-semibold text-slate-700 w-24">Points</th>
-                      <th className="p-3 text-sm font-semibold text-slate-700 w-32">Grade</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {winners.map((winner, index) => (
-                      <tr key={index} className="hover:bg-slate-50/50">
-                        <td className="p-3 font-bold text-slate-700">{winner.position}{['st','nd','rd','th','th'][index]}</td>
-                        <td className="p-3">
-                          <input type="text" value={winner.chestNo} onChange={(e) => handleWinnerChange(index, 'chestNo', e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="e.g. 101" />
-                        </td>
-                        <td className="p-3">
-                          <input type="text" value={winner.name} onChange={(e) => handleWinnerChange(index, 'name', e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500" placeholder="Candidate name" />
-                        </td>
-                        <td className="p-3">
-                          <select value={winner.team} onChange={(e) => handleWinnerChange(index, 'team', e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500">
-                            <option value="">Select Team</option>
-                            {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
-                          </select>
-                        </td>
-                        <td className="p-3">
-                          <input type="number" value={winner.points} onChange={(e) => handleWinnerChange(index, 'points', e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500" min="0" />
-                        </td>
-                        <td className="p-3">
-                          <select value={winner.grade} onChange={(e) => handleWinnerChange(index, 'grade', e.target.value)} className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500">
-                            <option value="">None</option>
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                          </select>
-                        </td>
+                {loadingCandidates ? (
+                  <p className="text-center py-8 text-slate-500">Loading candidates...</p>
+                ) : programCandidates.length === 0 ? (
+                  <p className="text-center py-8 text-slate-500">No candidates found for this program.</p>
+                ) : (
+                  <table className="w-full text-left border-collapse min-w-[500px]">
+                    <thead>
+                      <tr className="bg-slate-50 border-y border-slate-200">
+                        <th className="p-3 text-sm font-semibold text-slate-700 w-1/3">Code Letter</th>
+                        <th className="p-3 text-sm font-semibold text-slate-700 w-1/3">Position</th>
+                        <th className="p-3 text-sm font-semibold text-slate-700 w-1/3">Grade</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {programCandidates.map((cand) => {
+                        const score = candidateScores[cand._id] || { position: '', grade: '' };
+                        const code = cand.programCodes?.[selectedProgram._id];
+                        return (
+                          <tr key={cand._id} className="hover:bg-slate-50/50">
+                            <td className="p-3 font-bold text-slate-700">
+                              {code ? (
+                                <span className="px-3 py-1.5 bg-purple-100 text-purple-800 rounded-lg text-lg">{code}</span>
+                              ) : (
+                                <span className="text-xs text-slate-400">Not assigned</span>
+                              )}
+                            </td>
+                            <td className="p-3">
+                              <select 
+                                value={score.position} 
+                                onChange={(e) => handleScoreChange(cand._id, 'position', e.target.value)} 
+                                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                              >
+                                <option value="">None</option>
+                                <option value="1">1st</option>
+                                <option value="2">2nd</option>
+                                <option value="3">3rd</option>
+                              </select>
+                            </td>
+                            <td className="p-3">
+                              <select 
+                                value={score.grade} 
+                                onChange={(e) => handleScoreChange(cand._id, 'grade', e.target.value)} 
+                                className="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500"
+                              >
+                                <option value="">None</option>
+                                <option value="A">A Grade</option>
+                                <option value="B">B Grade</option>
+                                <option value="C">C Grade</option>
+                              </select>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
                 <button type="button" onClick={() => setShowScoringModal(false)} className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition">
