@@ -115,6 +115,68 @@ export default function ResultManagement() {
         </div>
       </div>
 
+      {/* Team Points Overview */}
+      <div className="glass p-6 rounded-3xl">
+        <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+          <span>🏆</span> Team Points Overview
+        </h2>
+        <div className="flex flex-wrap gap-4">
+          {(() => {
+            const teamPoints = {};
+            results.filter(r => r.status === 'Published').forEach(r => {
+              r.winners?.forEach(w => {
+                if (w.team) {
+                  const teamId = w.team._id || w.team;
+                  const teamName = w.team.name || 'Unknown Team';
+                  const teamColor = w.team.color || '#333';
+                  if (!teamPoints[teamId]) {
+                    teamPoints[teamId] = { name: teamName, color: teamColor, points: 0 };
+                  }
+                  
+                  // Calculate points dynamically if not provided directly
+                  const calculatePoints = (type, position, grade) => {
+                    let pts = 0;
+                    const pos = Number(position);
+                    if (type === 'Individual') {
+                      if (pos === 1) pts += 5;
+                      else if (pos === 2) pts += 3;
+                      else if (pos === 3) pts += 1;
+                      if (grade === 'A') pts += 5;
+                      else if (grade === 'B') pts += 3;
+                      else if (grade === 'C') pts += 1;
+                    } else if (type === 'Group') {
+                      if (pos === 1) pts += 10;
+                      else if (pos === 2) pts += 5;
+                      else if (pos === 3) pts += 3;
+                      if (grade === 'A') pts += 10;
+                      else if (grade === 'B') pts += 5;
+                      else if (grade === 'C') pts += 3;
+                    }
+                    return pts;
+                  };
+                  
+                  const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                  teamPoints[teamId].points += pts;
+                }
+              });
+            });
+            const sortedTeams = Object.values(teamPoints).sort((a, b) => b.points - a.points);
+            
+            if (sortedTeams.length === 0) {
+              return <span className="text-slate-500 text-sm">No points calculated yet (publish results first).</span>;
+            }
+            
+            return sortedTeams.map(team => (
+              <div key={team.name} className="flex items-center gap-3 px-4 py-2 bg-white/80 border border-slate-200 rounded-2xl shadow-sm">
+                <span className="w-3 h-3 rounded-full shadow-inner" style={{ backgroundColor: team.color }}></span>
+                <span className="font-bold text-slate-700 text-sm">{team.name}</span>
+                <span className="font-extrabold text-teal-600 text-sm ml-1">{team.points} pts</span>
+              </div>
+            ));
+          })()}
+        </div>
+      </div>
+
       {/* Search and Filters */}
       <div className="glass p-6 rounded-3xl grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="relative md:col-span-1">
