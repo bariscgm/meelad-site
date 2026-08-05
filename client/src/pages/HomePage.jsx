@@ -5,6 +5,7 @@ import { API_URL } from '../config/api.js';
 export default function HomePage() {
   const [teams, setTeams] = useState([]);
   const [latestResults, setLatestResults] = useState([]);
+  const [categorizedTeams, setCategorizedTeams] = useState({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -37,7 +38,7 @@ export default function HomePage() {
               });
             }
 
-            r.winners.forEach(w => {
+            r.winners?.forEach(w => {
               if (w.team && w.team._id) {
                 const tId = w.team._id;
                 const pts = Number(w.points) || 0;
