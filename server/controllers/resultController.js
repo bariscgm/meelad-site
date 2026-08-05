@@ -40,14 +40,46 @@ export const getResultById = async (req, res) => {
   }
 };
 
+// Helper function to calculate points
+const calculatePoints = (type, position, grade) => {
+  let points = 0;
+  if (type === 'Individual') {
+    if (position === 1) points += 5;
+    else if (position === 2) points += 3;
+    else if (position === 3) points += 1;
+
+    if (grade === 'A') points += 5;
+    else if (grade === 'B') points += 3;
+    else if (grade === 'C') points += 1;
+  } else if (type === 'Group') {
+    if (position === 1) points += 10;
+    else if (position === 2) points += 5;
+    else if (position === 3) points += 3;
+
+    if (grade === 'A') points += 10;
+    else if (grade === 'B') points += 5;
+    else if (grade === 'C') points += 3;
+  }
+  return points;
+};
+
 // Create a result (Judge submission)
 export const createResult = async (req, res) => {
   try {
     const { program, judge, winners } = req.body;
+    
+    const programDoc = await Program.findById(program);
+    if (!programDoc) return res.status(404).json({ message: 'Program not found' });
+
+    const calculatedWinners = winners.map(w => ({
+      ...w,
+      points: calculatePoints(programDoc.type, w.position, w.grade)
+    }));
+
     const newResult = new Result({
       program,
       judge,
-      winners,
+      winners: calculatedWinners,
       status: 'Draft', // Defaults to Draft, waiting for Controller to publish
     });
     const savedResult = await newResult.save();
@@ -78,7 +110,14 @@ export const updateResult = async (req, res) => {
     if (!result) return res.status(404).json({ message: 'Result not found' });
 
     if (status) result.status = status;
-    if (winners) result.winners = winners;
+    if (winners) {
+      const programDoc = await Program.findById(result.program);
+      const calculatedWinners = winners.map(w => ({
+        ...w,
+        points: programDoc ? calculatePoints(programDoc.type, w.position, w.grade) : (w.points || 0)
+      }));
+      result.winners = calculatedWinners;
+    }
     
     const updatedResult = await result.save();
 
