@@ -136,7 +136,7 @@ export default function ResultManagement() {
       </div>
 
       {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 print:hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 print:hidden">
         <div className="glass p-6 rounded-2xl border border-emerald-100 bg-emerald-50/20">
           <p className="text-xs uppercase font-bold text-emerald-600">Published Results</p>
           <p className="text-3xl font-extrabold text-emerald-800 mt-1">
@@ -147,6 +147,12 @@ export default function ResultManagement() {
           <p className="text-xs uppercase font-bold text-amber-600">Draft Results</p>
           <p className="text-3xl font-extrabold text-amber-800 mt-1">
             {results.filter((r) => r.status === 'Draft').length}
+          </p>
+        </div>
+        <div className="glass p-6 rounded-2xl border border-rose-100 bg-rose-50/20">
+          <p className="text-xs uppercase font-bold text-rose-600">Hold Results</p>
+          <p className="text-3xl font-extrabold text-rose-800 mt-1">
+            {results.filter((r) => r.status === 'Hold').length}
           </p>
         </div>
         <div className="glass p-6 rounded-2xl border border-blue-100 bg-blue-50/20">
@@ -267,7 +273,7 @@ export default function ResultManagement() {
                     </td>
                     <td className="py-3 px-4">
                       <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-xl font-extrabold text-sm">
-                        {showTotalPoints ? (t.published + t.heldPoints) : '***'}
+                        {t.published + t.heldPoints}
                       </span>
                     </td>
                   </tr>
