@@ -91,7 +91,7 @@ export default function AdminLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#121124] text-white hidden md:flex flex-col border-r border-slate-800">
+      <aside className="w-64 bg-[#121124] text-white hidden md:flex flex-col border-r border-slate-800 print:hidden">
         {/* Brand Header */}
         <Link to="/" className="p-6 flex items-center gap-3 transition hover:opacity-80">
           <div className="w-10 h-10 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-xl">
@@ -156,9 +156,9 @@ export default function AdminLayout() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col min-h-screen overflow-hidden">
+      <main className="flex-1 flex flex-col min-h-screen overflow-hidden print:overflow-visible">
         {/* Header */}
-        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-8 z-10 sticky top-0">
+        <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200/80 flex items-center justify-between px-8 z-10 sticky top-0 print:hidden">
           <div className="md:hidden font-bold text-purple-700 flex flex-col items-start justify-center gap-0.5">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 flex items-center justify-center bg-teal-500/10 border border-teal-500/20 rounded-lg">
@@ -185,7 +185,7 @@ export default function AdminLayout() {
         </header>
 
         {/* Content Outlet */}
-        <div className="flex-1 overflow-auto p-6 md:p-8">
+        <div className="flex-1 overflow-auto p-6 md:p-8 print:overflow-visible print:p-0">
           <div className="max-w-7xl mx-auto space-y-6">
             <Outlet />
           </div>
