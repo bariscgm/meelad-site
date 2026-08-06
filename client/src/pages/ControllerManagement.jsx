@@ -9,12 +9,7 @@ export default function ControllerManagement() {
   // DB Sync State
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [categoryLimits, setCategoryLimits] = useState([]);
-  const [generalLimits, setGeneralLimits] = useState({
-    stageIndividual: 3,
-    stageGroup: 2,
-    offstageIndividual: 4,
-    offstageGroup: 3,
-  });
+  const [generalLimits, setGeneralLimits] = useState({});
 
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -81,7 +76,6 @@ export default function ControllerManagement() {
     if (limits) {
       setRegistrationOpen(limits.registrationOpen ?? true);
       setCategoryLimits(limits.categoryLimits || []);
-      if (limits.generalLimits) setGeneralLimits(limits.generalLimits);
     }
 
     setAnnouncements(controllerDB.getAnnouncements());
@@ -347,7 +341,6 @@ export default function ControllerManagement() {
                           const limitsData = {
                             registrationOpen,
                             categoryLimits,
-                            generalLimits,
                           };
                           controllerDB.saveLimits(limitsData);
                           showNotification('Student programme limit confirmed and saved!');
@@ -359,49 +352,6 @@ export default function ControllerManagement() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-
-            {/* General Limits */}
-            <div className="pt-4 border-t border-slate-100">
-              <h2 className="text-lg font-bold text-slate-800 mb-4">General programme limits</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Stage individual</label>
-                  <input
-                    type="number"
-                    value={generalLimits.stageIndividual}
-                    onChange={(e) => setGeneralLimits({ ...generalLimits, stageIndividual: Number(e.target.value) })}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Stage group</label>
-                  <input
-                    type="number"
-                    value={generalLimits.stageGroup}
-                    onChange={(e) => setGeneralLimits({ ...generalLimits, stageGroup: Number(e.target.value) })}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Off-stage individual</label>
-                  <input
-                    type="number"
-                    value={generalLimits.offstageIndividual}
-                    onChange={(e) => setGeneralLimits({ ...generalLimits, offstageIndividual: Number(e.target.value) })}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Off-stage group</label>
-                  <input
-                    type="number"
-                    value={generalLimits.offstageGroup}
-                    onChange={(e) => setGeneralLimits({ ...generalLimits, offstageGroup: Number(e.target.value) })}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 font-bold"
-                  />
-                </div>
               </div>
             </div>
 

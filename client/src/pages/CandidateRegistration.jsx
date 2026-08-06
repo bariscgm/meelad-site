@@ -16,12 +16,7 @@ export default function CandidateRegistration() {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [maxLimit, setMaxLimit] = useState(4);
-  const [generalLimits, setGeneralLimits] = useState({
-    stageIndividual: 3,
-    stageGroup: 2,
-    offstageIndividual: 4,
-    offstageGroup: 3
-  });
+  const [generalLimit, setGeneralLimit] = useState(0);
 
   // Fetch programs, categories, and candidates from API
   useEffect(() => {
@@ -51,13 +46,12 @@ export default function CandidateRegistration() {
         }
         if (limitRes.ok) {
           const limitData = await limitRes.json();
-          if (limitData.data) {
-            if (limitData.data.categoryLimits && limitData.data.categoryLimits.length > 0) {
-              setMaxLimit(limitData.data.categoryLimits[0].count || 4);
-            }
-            if (limitData.data.generalLimits) {
-              setGeneralLimits(limitData.data.generalLimits);
-            }
+          if (limitData.data && limitData.data.categoryLimits) {
+            const personLimit = limitData.data.categoryLimits.find(c => c.category === 'For person');
+            if (personLimit) setMaxLimit(personLimit.count);
+            
+            const genLimit = limitData.data.categoryLimits.find(c => c.category === 'General' || c.category === 'General category');
+            if (genLimit) setGeneralLimit(genLimit.count);
           }
         }
       } catch (error) {
@@ -104,50 +98,35 @@ export default function CandidateRegistration() {
       if (currentPrograms.includes(program)) {
         return { ...prev, programs: currentPrograms.filter(p => p !== program) };
       } else {
-        if (currentPrograms.length >= maxLimit) {
-          Swal.fire({
-            title: 'Limit Exceeded',
-            text: `A candidate can only attend a maximum of ${maxLimit} programs.`,
-            icon: 'warning',
-            confirmButtonColor: '#0f766e'
-          });
-          return prev;
-        }
-
         const progDetails = allPrograms.find(p => p.name === program);
-        if (progDetails) {
-          const isStage = progDetails.venueType?.toUpperCase() === 'STAGE';
-          const isIndividual = progDetails.type === 'Individual';
-          
-          let limitName = '';
-          let limitValue = 0;
+        const isGeneral = progDetails && progDetails.category.toLowerCase() === 'general';
 
-          if (isStage && isIndividual) {
-            limitName = 'Stage Individual';
-            limitValue = generalLimits.stageIndividual;
-          } else if (isStage && !isIndividual) {
-            limitName = 'Stage Group';
-            limitValue = generalLimits.stageGroup;
-          } else if (!isStage && isIndividual) {
-            limitName = 'Off-Stage Individual';
-            limitValue = generalLimits.offstageIndividual;
-          } else if (!isStage && !isIndividual) {
-            limitName = 'Off-Stage Group';
-            limitValue = generalLimits.offstageGroup;
-          }
-
-          const currentCount = currentPrograms.filter(p => {
+        // Check limits based on program category
+        if (isGeneral) {
+          const currentGeneralCount = currentPrograms.filter(p => {
             const pd = allPrograms.find(prog => prog.name === p);
-            if (!pd) return false;
-            const pdIsStage = pd.venueType?.toUpperCase() === 'STAGE';
-            const pdIsIndividual = pd.type === 'Individual';
-            return (isStage === pdIsStage) && (isIndividual === pdIsIndividual);
+            return pd && pd.category.toLowerCase() === 'general';
           }).length;
 
-          if (currentCount >= limitValue) {
-             Swal.fire({
-              title: 'Category Limit Exceeded',
-              text: `A candidate can only attend a maximum of ${limitValue} ${limitName} programs.`,
+          if (generalLimit > 0 && currentGeneralCount >= generalLimit) {
+            Swal.fire({
+              title: 'Limit Exceeded',
+              text: `A candidate can only attend a maximum of ${generalLimit} General programs.`,
+              icon: 'warning',
+              confirmButtonColor: '#0f766e'
+            });
+            return prev;
+          }
+        } else {
+          const currentCategoryCount = currentPrograms.filter(p => {
+            const pd = allPrograms.find(prog => prog.name === p);
+            return pd && pd.category.toLowerCase() !== 'general';
+          }).length;
+
+          if (currentCategoryCount >= maxLimit) {
+            Swal.fire({
+              title: 'Limit Exceeded',
+              text: `A candidate can only attend a maximum of ${maxLimit} Category programs.`,
               icon: 'warning',
               confirmButtonColor: '#0f766e'
             });

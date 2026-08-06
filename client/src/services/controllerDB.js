@@ -16,13 +16,8 @@ const DEFAULT_LIMITS = {
   registrationOpen: true,
   categoryLimits: [
     { category: 'For person', count: 3 },
+    { category: 'General', count: 2 },
   ],
-  generalLimits: {
-    stageIndividual: 3,
-    stageGroup: 2,
-    offstageIndividual: 4,
-    offstageGroup: 3,
-  },
 };
 
 const DEFAULT_USERS = [
