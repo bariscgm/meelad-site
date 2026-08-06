@@ -165,56 +165,56 @@ export default function RegistrationControl() {
             .print-container {
               display: grid;
               grid-template-columns: repeat(2, 1fr);
-              gap: 20px;
-              padding: 20px;
+              gap: 8px;
+              padding: 10px;
             }
             .card {
-              border: 2px solid #1e293b;
-              border-radius: 12px;
-              padding: 20px;
+              border: 1px solid #1e293b;
+              border-radius: 6px;
+              padding: 8px;
               page-break-inside: avoid;
               background: #fff;
             }
             .card-header {
               text-align: center;
-              border-bottom: 2px solid #e2e8f0;
-              padding-bottom: 10px;
-              margin-bottom: 15px;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 4px;
+              margin-bottom: 4px;
             }
-            .card-header h2 { margin: 0; font-size: 24px; color: #0f172a; text-transform: uppercase; }
-            .card-header h3 { margin: 5px 0 0 0; font-size: 18px; color: #475569; }
+            .card-header h2 { margin: 0; font-size: 14px; color: #0f172a; text-transform: uppercase; font-weight: bold; }
+            .card-header h3 { margin: 2px 0 0 0; font-size: 11px; color: #475569; }
             .chest-no {
-              font-size: 28px;
+              font-size: 18px;
               font-weight: bold;
               text-align: center;
               color: #4f46e5;
-              margin: 10px 0;
-              padding: 10px;
+              margin: 4px 0;
+              padding: 2px;
               background: #f8fafc;
-              border: 2px dashed #cbd5e1;
-              border-radius: 8px;
+              border: 1px dashed #cbd5e1;
+              border-radius: 4px;
             }
-            .programs { margin-top: 15px; }
-            .program-section { margin-bottom: 15px; }
+            .programs { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; }
+            .program-section { margin-bottom: 2px; flex: 1; min-width: 30%; }
             .program-section h4 {
-              margin: 0 0 5px 0;
-              font-size: 14px;
+              margin: 0 0 2px 0;
+              font-size: 10px;
               color: #334155;
               border-bottom: 1px solid #cbd5e1;
-              padding-bottom: 3px;
+              padding-bottom: 1px;
             }
             .program-section ul {
               margin: 0;
-              padding-left: 20px;
-              font-size: 13px;
+              padding-left: 12px;
+              font-size: 9px;
               color: #1e293b;
             }
-            .program-section li { margin-bottom: 3px; }
+            .program-section li { margin-bottom: 1px; line-height: 1.1; }
             
             @media print {
-              @page { size: A4; margin: 15mm; }
+              @page { size: A4; margin: 8mm; }
               body { padding: 0; }
-              .print-container { gap: 15px; padding: 0; }
+              .print-container { gap: 8px; padding: 0; }
             }
           </style>
         </head>
