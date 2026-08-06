@@ -15,8 +15,13 @@ export default function CandidateRegistration() {
   const [allPrograms, setAllPrograms] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [maxLimit, setMaxLimit] = useState(4);
-  const [generalLimit, setGeneralLimit] = useState(0);
+  const [limits, setLimits] = useState({
+    general: 2,
+    stageIndividual: 3,
+    stageGroup: 2,
+    offstageIndividual: 4,
+    offstageGroup: 3
+  });
 
   // Fetch programs, categories, and candidates from API
   useEffect(() => {
@@ -47,11 +52,18 @@ export default function CandidateRegistration() {
         if (limitRes.ok) {
           const limitData = await limitRes.json();
           if (limitData.data && limitData.data.categoryLimits) {
-            const personLimit = limitData.data.categoryLimits.find(c => c.category === 'For person');
-            if (personLimit) setMaxLimit(personLimit.count);
+            const getLimit = (catName, defaultVal) => {
+              const l = limitData.data.categoryLimits.find(c => c.category.toLowerCase() === catName.toLowerCase());
+              return l ? l.count : defaultVal;
+            };
             
-            const genLimit = limitData.data.categoryLimits.find(c => c.category === 'General' || c.category === 'General category');
-            if (genLimit) setGeneralLimit(genLimit.count);
+            setLimits({
+              general: getLimit('general', 2),
+              stageIndividual: getLimit('stage individual', 3),
+              stageGroup: getLimit('stage group', 2),
+              offstageIndividual: getLimit('off-stage individual', 4),
+              offstageGroup: getLimit('off-stage group', 3)
+            });
           }
         }
       } catch (error) {
@@ -101,32 +113,57 @@ export default function CandidateRegistration() {
         const progDetails = allPrograms.find(p => p.name === program);
         const isGeneral = progDetails && progDetails.category.toLowerCase() === 'general';
 
-        // Check limits based on program category
         if (isGeneral) {
           const currentGeneralCount = currentPrograms.filter(p => {
             const pd = allPrograms.find(prog => prog.name === p);
             return pd && pd.category.toLowerCase() === 'general';
           }).length;
 
-          if (generalLimit > 0 && currentGeneralCount >= generalLimit) {
+          if (currentGeneralCount >= limits.general) {
             Swal.fire({
               title: 'Limit Exceeded',
-              text: `A candidate can only attend a maximum of ${generalLimit} General programs.`,
+              text: `A candidate can only attend a maximum of ${limits.general} General programs.`,
               icon: 'warning',
               confirmButtonColor: '#0f766e'
             });
             return prev;
           }
-        } else {
-          const currentCategoryCount = currentPrograms.filter(p => {
+        } else if (progDetails) {
+          // Regular category program limits
+          const isStage = progDetails.venueType?.toUpperCase() === 'STAGE';
+          const isIndividual = progDetails.type === 'Individual';
+          
+          let limitName = '';
+          let limitValue = 0;
+
+          if (isStage && isIndividual) {
+            limitName = 'Stage Individual';
+            limitValue = limits.stageIndividual;
+          } else if (isStage && !isIndividual) {
+            limitName = 'Stage Group';
+            limitValue = limits.stageGroup;
+          } else if (!isStage && isIndividual) {
+            limitName = 'Off-Stage Individual';
+            limitValue = limits.offstageIndividual;
+          } else if (!isStage && !isIndividual) {
+            limitName = 'Off-Stage Group';
+            limitValue = limits.offstageGroup;
+          }
+
+          const currentCount = currentPrograms.filter(p => {
             const pd = allPrograms.find(prog => prog.name === p);
-            return pd && pd.category.toLowerCase() !== 'general';
+            if (!pd) return false;
+            if (pd.category.toLowerCase() === 'general') return false; // Ignore General programs
+            
+            const pdIsStage = pd.venueType?.toUpperCase() === 'STAGE';
+            const pdIsIndividual = pd.type === 'Individual';
+            return (isStage === pdIsStage) && (isIndividual === pdIsIndividual);
           }).length;
 
-          if (currentCategoryCount >= maxLimit) {
+          if (currentCount >= limitValue) {
             Swal.fire({
               title: 'Limit Exceeded',
-              text: `A candidate can only attend a maximum of ${maxLimit} Category programs.`,
+              text: `A candidate can only attend a maximum of ${limitValue} ${limitName} programs.`,
               icon: 'warning',
               confirmButtonColor: '#0f766e'
             });

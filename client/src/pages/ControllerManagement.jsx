@@ -76,12 +76,24 @@ export default function ControllerManagement() {
       setRegistrationOpen(limits.registrationOpen ?? true);
       
       let catLimits = limits.categoryLimits ? [...limits.categoryLimits] : [];
-      if (!catLimits.find(c => c.category === 'For person')) {
-        catLimits.push({ category: 'For person', count: 3 });
-      }
-      if (!catLimits.find(c => c.category === 'General')) {
-        catLimits.push({ category: 'General', count: 2 });
-      }
+      
+      const defaultLimits = [
+        { category: 'General', count: 2 },
+        { category: 'Stage Individual', count: 3 },
+        { category: 'Stage Group', count: 2 },
+        { category: 'Off-Stage Individual', count: 4 },
+        { category: 'Off-Stage Group', count: 3 }
+      ];
+
+      defaultLimits.forEach(dl => {
+        if (!catLimits.find(c => c.category === dl.category)) {
+          catLimits.push(dl);
+        }
+      });
+      
+      // Remove 'For person' as it is no longer used
+      catLimits = catLimits.filter(c => c.category !== 'For person');
+      
       setCategoryLimits(catLimits);
     }
 
