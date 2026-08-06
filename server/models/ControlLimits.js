@@ -2,8 +2,7 @@ import mongoose from 'mongoose';
 
 const categoryLimitSchema = new mongoose.Schema({
   category: String,
-  stage: Number,
-  offstage: Number,
+  count: Number,
 });
 
 const controlLimitsSchema = new mongoose.Schema({

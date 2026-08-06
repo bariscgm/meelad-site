@@ -15,7 +15,7 @@ const STORAGE_KEYS = {
 const DEFAULT_LIMITS = {
   registrationOpen: true,
   categoryLimits: [
-    { category: 'For a student in Junior', stage: 3, offstage: 4 },
+    { category: 'For person', count: 3 },
   ],
   generalLimits: {
     stageIndividual: 3,

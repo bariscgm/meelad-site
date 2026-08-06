@@ -329,26 +329,13 @@ export default function ControllerManagement() {
                     <span className="font-bold text-slate-700 text-sm">{cat.category}</span>
                     <div className="flex items-center gap-6">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500">Stage:</span>
+                        <span className="text-xs text-slate-500">Count:</span>
                         <input
                           type="number"
-                          value={cat.stage}
+                          value={cat.count || 0}
                           onChange={(e) => {
                             const updated = [...categoryLimits];
-                            updated[idx].stage = Number(e.target.value);
-                            setCategoryLimits(updated);
-                          }}
-                          className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-500">Off-stage:</span>
-                        <input
-                          type="number"
-                          value={cat.offstage}
-                          onChange={(e) => {
-                            const updated = [...categoryLimits];
-                            updated[idx].offstage = Number(e.target.value);
+                            updated[idx].count = Number(e.target.value);
                             setCategoryLimits(updated);
                           }}
                           className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"

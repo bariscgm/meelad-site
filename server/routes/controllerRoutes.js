@@ -15,11 +15,7 @@ router.get('/limits', async (req, res) => {
       limits = await ControlLimits.create({
         registrationOpen: true,
         categoryLimits: [
-          { category: 'Kiddies', stage: 3, offstage: 5 },
-          { category: 'Sub Junior', stage: 3, offstage: 4 },
-          { category: 'Junior', stage: 3, offstage: 4 },
-          { category: 'Senior', stage: 3, offstage: 3 },
-          { category: 'Super Senior', stage: 3, offstage: 3 },
+          { category: 'For person', count: 3 },
         ],
         generalLimits: { stageIndividual: 3, stageGroup: 2, offstageIndividual: 4, offstageGroup: 3 },
       });

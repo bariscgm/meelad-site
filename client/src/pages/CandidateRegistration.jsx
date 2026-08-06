@@ -15,6 +15,7 @@ export default function CandidateRegistration() {
   const [allPrograms, setAllPrograms] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [maxLimit, setMaxLimit] = useState(4);
 
   // Fetch programs, categories, and candidates from API
   useEffect(() => {
@@ -23,10 +24,11 @@ export default function CandidateRegistration() {
         const user = JSON.parse(localStorage.getItem('user') || '{}');
         const teamId = user.teamId || user.id || user._id;
 
-        const [progRes, catRes, candRes] = await Promise.all([
+        const [progRes, catRes, candRes, limitRes] = await Promise.all([
           fetch(`${API_URL}/api/programs`),
           fetch(`${API_URL}/api/categories`),
-          teamId ? fetch(`${API_URL}/api/candidates/team/${teamId}`) : Promise.resolve({ ok: false })
+          teamId ? fetch(`${API_URL}/api/candidates/team/${teamId}`) : Promise.resolve({ ok: false }),
+          fetch(`${API_URL}/api/controller/limits`)
         ]);
 
         if (progRes.ok) {
@@ -40,6 +42,12 @@ export default function CandidateRegistration() {
         if (candRes.ok) {
           const candData = await candRes.json();
           setCandidates(candData);
+        }
+        if (limitRes.ok) {
+          const limitData = await limitRes.json();
+          if (limitData.data && limitData.data.categoryLimits && limitData.data.categoryLimits.length > 0) {
+            setMaxLimit(limitData.data.categoryLimits[0].count || 4);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -81,10 +89,10 @@ export default function CandidateRegistration() {
       if (currentPrograms.includes(program)) {
         return { ...prev, programs: currentPrograms.filter(p => p !== program) };
       } else {
-        if (currentPrograms.length >= 4) {
+        if (currentPrograms.length >= maxLimit) {
           Swal.fire({
             title: 'Limit Exceeded',
-            text: 'A candidate can only attend a maximum of 4 programs.',
+            text: `A candidate can only attend a maximum of ${maxLimit} programs.`,
             icon: 'warning',
             confirmButtonColor: '#0f766e'
           });
