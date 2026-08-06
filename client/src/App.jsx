@@ -263,28 +263,28 @@ function TeamDashboard() {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="glass p-6 rounded-3xl">
+        <div className="glass p-6 rounded-3xl md:col-span-2">
            <h3 className="text-lg font-bold text-slate-800 mb-4">Quick Stats</h3>
-           <div className="space-y-4">
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-                <span className="text-slate-500">Registered Students</span>
-                <span className="font-bold text-slate-700">{candidates.length}</span>
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="flex flex-col items-center justify-center p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                <span className="text-slate-500 font-medium mb-2">Registered Students</span>
+                <span className="text-6xl font-extrabold text-indigo-600">{candidates.length}</span>
               </div>
-              <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-                <span className="text-slate-500">Total Points</span>
-                <span className="font-bold text-teal-600 text-lg">{totalPoints}</span>
+              <div className="flex flex-col items-center justify-center p-6 bg-teal-50/50 rounded-2xl border border-teal-100">
+                <span className="text-slate-500 font-medium mb-2">Total Points</span>
+                <span className="text-6xl font-extrabold text-teal-600">{totalPoints}</span>
               </div>
-              <div className="flex justify-between items-center pb-2">
-                <span className="text-slate-500">Grades Earned</span>
-                <span className="font-bold text-slate-700 flex gap-3">
-                  <span className="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">A: {aGrades}</span>
-                  <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded">B: {bGrades}</span>
-                  <span className="text-amber-600 bg-amber-50 px-2 py-0.5 rounded">C: {cGrades}</span>
-                </span>
+              <div className="flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
+                <span className="text-slate-500 font-medium mb-4">Grades Earned</span>
+                <div className="flex gap-3">
+                  <span className="text-emerald-700 bg-emerald-100 px-3 py-1 rounded-lg font-bold text-lg">A: {aGrades}</span>
+                  <span className="text-blue-700 bg-blue-100 px-3 py-1 rounded-lg font-bold text-lg">B: {bGrades}</span>
+                  <span className="text-amber-700 bg-amber-100 px-3 py-1 rounded-lg font-bold text-lg">C: {cGrades}</span>
+                </div>
               </div>
            </div>
         </div>
-        <div className="glass p-6 rounded-3xl">
+        <div className="hidden">
            <h3 className="text-lg font-bold text-slate-800 mb-4">Your Candidates' Programs</h3>
            {upcomingPrograms.length > 0 ? (
              <div className="flex flex-wrap gap-2">
