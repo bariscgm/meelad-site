@@ -322,7 +322,7 @@ export default function ControllerManagement() {
 
             {/* Category Limits */}
             <div>
-              <h2 className="text-lg font-bold text-slate-800 mb-4">Category-wise programme limits</h2>
+              <h2 className="text-lg font-bold text-slate-800 mb-4">Student programme limits</h2>
               <div className="space-y-3">
                 {categoryLimits.map((cat, idx) => (
                   <div key={cat.category} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">

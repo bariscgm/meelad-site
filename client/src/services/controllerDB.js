@@ -15,11 +15,7 @@ const STORAGE_KEYS = {
 const DEFAULT_LIMITS = {
   registrationOpen: true,
   categoryLimits: [
-    { category: 'Kiddies', stage: 3, offstage: 5 },
-    { category: 'Sub Junior', stage: 3, offstage: 4 },
-    { category: 'Junior', stage: 3, offstage: 4 },
-    { category: 'Senior', stage: 3, offstage: 3 },
-    { category: 'Super Senior', stage: 3, offstage: 3 },
+    { category: 'For a student in Junior', stage: 3, offstage: 4 },
   ],
   generalLimits: {
     stageIndividual: 3,
