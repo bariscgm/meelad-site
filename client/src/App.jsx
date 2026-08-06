@@ -316,6 +316,9 @@ function TeamDashboard() {
                      <p className="font-medium text-slate-600 text-sm">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
                    </div>
                    <div className="flex items-center gap-2 sm:justify-end">
+                     {w.position && (
+                        <span className="px-2.5 py-1 bg-teal-100 text-teal-800 rounded-lg text-xs font-bold">{w.position}</span>
+                     )}
                      <span className="font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-lg text-sm">{w.points} pts</span>
                    </div>
                  </div>
