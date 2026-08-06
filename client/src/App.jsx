@@ -272,7 +272,7 @@ function TeamDashboard() {
               </div>
               <div className="flex flex-col items-center justify-center p-6 bg-teal-50/50 rounded-2xl border border-teal-100">
                 <span className="text-slate-500 font-medium mb-2">Total Points</span>
-                <span className="text-6xl font-extrabold text-teal-600">{totalPoints}</span>
+                <span className="text-8xl font-extrabold text-teal-600">{totalPoints}</span>
               </div>
               <div className="flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-2xl border border-slate-100">
                 <span className="text-slate-500 font-medium mb-4">Grades Earned</span>
@@ -316,12 +316,6 @@ function TeamDashboard() {
                      <p className="font-medium text-slate-600 text-sm">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
                    </div>
                    <div className="flex items-center gap-2 sm:justify-end">
-                     {w.position && (
-                        <span className="px-2.5 py-1 bg-teal-100 text-teal-800 rounded-lg text-xs font-bold">{w.position} Position</span>
-                     )}
-                     {w.grade && (
-                        <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-xs font-bold">{w.grade} Grade</span>
-                     )}
                      <span className="font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-lg text-sm">{w.points} pts</span>
                    </div>
                  </div>
