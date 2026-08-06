@@ -78,6 +78,7 @@ export default function ControllerManagement() {
       let catLimits = limits.categoryLimits ? [...limits.categoryLimits] : [];
       
       const defaultLimits = [
+        { category: 'For person', count: 4 },
         { category: 'General', count: 2 },
         { category: 'Stage Individual', count: 3 },
         { category: 'Stage Group', count: 2 },
@@ -90,9 +91,6 @@ export default function ControllerManagement() {
           catLimits.push(dl);
         }
       });
-      
-      // Remove 'For person' as it is no longer used
-      catLimits = catLimits.filter(c => c.category !== 'For person');
       
       setCategoryLimits(catLimits);
     }

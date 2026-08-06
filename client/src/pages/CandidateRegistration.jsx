@@ -16,6 +16,7 @@ export default function CandidateRegistration() {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [limits, setLimits] = useState({
+    forPerson: 4,
     general: 2,
     stageIndividual: 3,
     stageGroup: 2,
@@ -58,6 +59,7 @@ export default function CandidateRegistration() {
             };
             
             setLimits({
+              forPerson: getLimit('for person', 4),
               general: getLimit('general', 2),
               stageIndividual: getLimit('stage individual', 3),
               stageGroup: getLimit('stage group', 2),
@@ -130,6 +132,24 @@ export default function CandidateRegistration() {
           }
         } else if (progDetails) {
           // Regular category program limits
+          
+          // First check total "For person" limit
+          const currentCategoryCount = currentPrograms.filter(p => {
+            const pd = allPrograms.find(prog => prog.name === p);
+            return pd && pd.category.toLowerCase() !== 'general';
+          }).length;
+          
+          if (currentCategoryCount >= limits.forPerson) {
+            Swal.fire({
+              title: 'Limit Exceeded',
+              text: `A candidate can only attend a maximum of ${limits.forPerson} programs in their category.`,
+              icon: 'warning',
+              confirmButtonColor: '#0f766e'
+            });
+            return prev;
+          }
+
+          // Then check granular limits
           const isStage = progDetails.venueType?.toUpperCase() === 'STAGE';
           const isIndividual = progDetails.type === 'Individual';
           
