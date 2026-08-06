@@ -14,7 +14,7 @@ export default function TeamLayout() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top Navigation */}
-      <header className="glass sticky top-0 z-50">
+      <header className="glass sticky top-0 z-50 print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
             <Link to="/" className="flex-shrink-0 flex items-center gap-3 transition hover:opacity-80">
