@@ -16,6 +16,12 @@ export default function CandidateRegistration() {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [maxLimit, setMaxLimit] = useState(4);
+  const [generalLimits, setGeneralLimits] = useState({
+    stageIndividual: 3,
+    stageGroup: 2,
+    offstageIndividual: 4,
+    offstageGroup: 3
+  });
 
   // Fetch programs, categories, and candidates from API
   useEffect(() => {
@@ -45,8 +51,13 @@ export default function CandidateRegistration() {
         }
         if (limitRes.ok) {
           const limitData = await limitRes.json();
-          if (limitData.data && limitData.data.categoryLimits && limitData.data.categoryLimits.length > 0) {
-            setMaxLimit(limitData.data.categoryLimits[0].count || 4);
+          if (limitData.data) {
+            if (limitData.data.categoryLimits && limitData.data.categoryLimits.length > 0) {
+              setMaxLimit(limitData.data.categoryLimits[0].count || 4);
+            }
+            if (limitData.data.generalLimits) {
+              setGeneralLimits(limitData.data.generalLimits);
+            }
           }
         }
       } catch (error) {
@@ -79,6 +90,10 @@ export default function CandidateRegistration() {
         updated.programs = []; // Reset programs when class/category changes
       }
 
+      if (name === 'gender') {
+        updated.programs = []; // Reset programs when gender changes
+      }
+
       return updated;
     });
   };
@@ -98,6 +113,48 @@ export default function CandidateRegistration() {
           });
           return prev;
         }
+
+        const progDetails = allPrograms.find(p => p.name === program);
+        if (progDetails) {
+          const isStage = progDetails.venueType?.toUpperCase() === 'STAGE';
+          const isIndividual = progDetails.type === 'Individual';
+          
+          let limitName = '';
+          let limitValue = 0;
+
+          if (isStage && isIndividual) {
+            limitName = 'Stage Individual';
+            limitValue = generalLimits.stageIndividual;
+          } else if (isStage && !isIndividual) {
+            limitName = 'Stage Group';
+            limitValue = generalLimits.stageGroup;
+          } else if (!isStage && isIndividual) {
+            limitName = 'Off-Stage Individual';
+            limitValue = generalLimits.offstageIndividual;
+          } else if (!isStage && !isIndividual) {
+            limitName = 'Off-Stage Group';
+            limitValue = generalLimits.offstageGroup;
+          }
+
+          const currentCount = currentPrograms.filter(p => {
+            const pd = allPrograms.find(prog => prog.name === p);
+            if (!pd) return false;
+            const pdIsStage = pd.venueType?.toUpperCase() === 'STAGE';
+            const pdIsIndividual = pd.type === 'Individual';
+            return (isStage === pdIsStage) && (isIndividual === pdIsIndividual);
+          }).length;
+
+          if (currentCount >= limitValue) {
+             Swal.fire({
+              title: 'Category Limit Exceeded',
+              text: `A candidate can only attend a maximum of ${limitValue} ${limitName} programs.`,
+              icon: 'warning',
+              confirmButtonColor: '#0f766e'
+            });
+            return prev;
+          }
+        }
+
         return { ...prev, programs: [...currentPrograms, program] };
       }
     });
