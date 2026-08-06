@@ -153,6 +153,8 @@ export default function RegistrationControl() {
       // Optional: close the window after print dialog is closed
       // printWindow.close();
     }, 250);
+  };
+
   const handlePrintCard = () => {
     const printContent = `
       <html>
