@@ -341,6 +341,21 @@ export default function ControllerManagement() {
                           className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
                         />
                       </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const limitsData = {
+                            registrationOpen,
+                            categoryLimits,
+                            generalLimits,
+                          };
+                          controllerDB.saveLimits(limitsData);
+                          showNotification('Student programme limit confirmed and saved!');
+                        }}
+                        className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold rounded-lg text-xs transition"
+                      >
+                        Confirm
+                      </button>
                     </div>
                   </div>
                 ))}
