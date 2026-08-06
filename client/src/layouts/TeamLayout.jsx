@@ -31,9 +31,9 @@ export default function TeamLayout() {
               </div>
             </Link>
             <nav className="hidden md:flex space-x-8">
-              <a href="/team" className="text-teal-600 font-medium border-b-2 border-teal-500 px-1 py-5">Dashboard</a>
-              <a href="/team/students" className="text-slate-500 hover:text-slate-700 font-medium px-1 py-5 transition">Students</a>
-              <a href="/team/results" className="text-slate-500 hover:text-slate-700 font-medium px-1 py-5 transition">Results</a>
+              <Link to="/team" className="text-teal-600 font-medium border-b-2 border-teal-500 px-1 py-5">Dashboard</Link>
+              <Link to="/team/students" className="text-slate-500 hover:text-slate-700 font-medium px-1 py-5 transition">Students</Link>
+              <Link to="/team/results" className="text-slate-500 hover:text-slate-700 font-medium px-1 py-5 transition">Results</Link>
             </nav>
             <div className="flex items-center gap-3">
               <Link to="/" className="text-xs font-semibold text-teal-600 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg hover:bg-teal-100 transition">

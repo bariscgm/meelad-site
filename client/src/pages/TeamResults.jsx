@@ -1,0 +1,131 @@
+import React, { useState, useEffect } from 'react';
+import { API_URL } from '../config/api';
+
+export default function TeamResults() {
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const teamId = user.teamId || user.id || user._id;
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        if (!teamId) return;
+        const res = await fetch(`${API_URL}/api/results/published`);
+        if (res.ok) {
+          const data = await res.json();
+          setResults(data);
+        }
+      } catch (error) {
+        console.error('Error fetching results:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, [teamId]);
+
+  const teamWins = [];
+  results.forEach(r => {
+    r.winners.forEach(w => {
+      if ((w.team?._id || w.team?.id || w.team) === teamId) {
+        teamWins.push({
+          programName: r.program?.name,
+          programCategory: r.program?.category,
+          programGender: r.program?.gender,
+          ...w
+        });
+      }
+    });
+  });
+
+  const categories = [...new Set(teamWins.map(w => w.programCategory).filter(Boolean))];
+  const genders = [...new Set(teamWins.map(w => w.programGender).filter(Boolean))];
+
+  const filteredWins = teamWins.filter(w => {
+    const matchCategory = categoryFilter ? w.programCategory === categoryFilter : true;
+    const matchGender = genderFilter ? w.programGender === genderFilter : true;
+    return matchCategory && matchGender;
+  });
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="glass p-8 rounded-3xl">
+        <h1 className="text-3xl font-bold text-slate-800 mb-2">Team Results</h1>
+        <p className="text-slate-500">View all your published results and filter them by category or gender.</p>
+      </div>
+
+      <div className="glass p-6 rounded-3xl">
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <select 
+            value={categoryFilter} 
+            onChange={e => setCategoryFilter(e.target.value)}
+            className="p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-slate-700 bg-white"
+          >
+            <option value="">All Categories</option>
+            {categories.map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          <select 
+            value={genderFilter} 
+            onChange={e => setGenderFilter(e.target.value)}
+            className="p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-teal-500 outline-none text-slate-700 bg-white"
+          >
+            <option value="">All Genders</option>
+            {genders.map(g => (
+              <option key={g} value={g}>{g}</option>
+            ))}
+          </select>
+        </div>
+
+        {filteredWins.length > 0 ? (
+          <div className="space-y-3">
+            {filteredWins.map((w, idx) => (
+              <div key={idx} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-xl bg-slate-50 border border-slate-100 gap-3">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-bold text-slate-800">{w.programName}</h4>
+                    {w.programCategory && (
+                      <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">{w.programCategory}</span>
+                    )}
+                    {w.programGender && (
+                      <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">{w.programGender}</span>
+                    )}
+                  </div>
+                  <p className="font-medium text-slate-600 text-sm">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                </div>
+                <div className="flex items-center gap-2 sm:justify-end">
+                  {w.position && (
+                    <span className="px-2.5 py-1 bg-teal-100 text-teal-800 rounded-lg text-xs font-bold">{w.position}</span>
+                  )}
+                  {w.grade && (
+                    <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-xs font-bold">{w.grade} Grade</span>
+                  )}
+                  <span className="font-bold text-slate-700 bg-slate-200 px-3 py-1 rounded-lg text-sm">{w.points} pts</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-32 border-2 border-dashed border-slate-200 rounded-xl">
+            <span className="text-slate-400">No results found for the selected filters.</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
