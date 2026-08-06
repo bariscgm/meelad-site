@@ -9,7 +9,6 @@ export default function ControllerManagement() {
   // DB Sync State
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [categoryLimits, setCategoryLimits] = useState([]);
-  const [generalLimits, setGeneralLimits] = useState({});
 
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -75,7 +74,15 @@ export default function ControllerManagement() {
     const limits = controllerDB.getLimits();
     if (limits) {
       setRegistrationOpen(limits.registrationOpen ?? true);
-      setCategoryLimits(limits.categoryLimits || []);
+      
+      let catLimits = limits.categoryLimits ? [...limits.categoryLimits] : [];
+      if (!catLimits.find(c => c.category === 'For person')) {
+        catLimits.push({ category: 'For person', count: 3 });
+      }
+      if (!catLimits.find(c => c.category === 'General')) {
+        catLimits.push({ category: 'General', count: 2 });
+      }
+      setCategoryLimits(catLimits);
     }
 
     setAnnouncements(controllerDB.getAnnouncements());
@@ -93,7 +100,6 @@ export default function ControllerManagement() {
     const limitsData = {
       registrationOpen,
       categoryLimits,
-      generalLimits,
     };
     controllerDB.saveLimits(limitsData);
     showNotification('System control limits saved successfully to database!');
