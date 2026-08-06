@@ -95,6 +95,66 @@ export default function RegistrationControl() {
     });
   }, [candidates, search, filterTeam, filterCategory, filterProgram, filterGender]);
 
+  const handlePrint = () => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Student Registrations</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            h1 { text-align: center; color: #1e293b; margin-bottom: 20px; }
+            .filters { text-align: center; margin-bottom: 20px; font-size: 14px; color: #64748b; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+            th { background-color: #f1f5f9; color: #475569; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            @media print {
+              @page { margin: 1cm; }
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Student Registrations</h1>
+          <div class="filters">
+            Total Students: ${filteredCandidates.length}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Reg. No.</th>
+                <th>Student Name</th>
+                <th>Team</th>
+                <th>Programmes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredCandidates.map(c => `
+                <tr>
+                  <td>${c._id.slice(-4).toUpperCase()}</td>
+                  <td>${c.name}</td>
+                  <td>${c.team?.name || 'Unknown'}</td>
+                  <td>${c.programs.join(', ')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    // Wait for content to load before printing
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      // Optional: close the window after print dialog is closed
+      // printWindow.close();
+    }, 250);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -165,7 +225,10 @@ export default function RegistrationControl() {
           <option value="General">General</option>
         </select>
         
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition hidden sm:flex">
+        <button 
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition hidden sm:flex"
+        >
           <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
           </svg>
