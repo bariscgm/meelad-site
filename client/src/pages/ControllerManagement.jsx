@@ -353,11 +353,12 @@ export default function ControllerManagement() {
                         <span className="text-xs text-slate-500">Count:</span>
                         <input
                           type="number"
-                          value={cat.count || 0}
+                          value={cat.count === '' ? '' : (cat.count ?? 0)}
                           onChange={(e) => {
-                            const updated = [...categoryLimits];
-                            updated[idx].count = Number(e.target.value);
-                            setCategoryLimits(updated);
+                            const val = e.target.value;
+                            setCategoryLimits(prev => prev.map((item, i) => 
+                              i === idx ? { ...item, count: val === '' ? '' : Number(val) } : item
+                            ));
                           }}
                           className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
                         />
