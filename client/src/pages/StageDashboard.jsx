@@ -364,14 +364,18 @@ export default function StageDashboard() {
                     {program.status === 'Pending' ? (
                       <button 
                         onClick={() => handleAssignJudgeSubmit(program._id)}
-                        disabled={!program.isCodeShuffled}
+                        disabled={!program.isCodeShuffled || !(pendingJudges[program._id] || []).length}
                         className={`mt-2 self-start px-4 py-2 font-bold text-sm rounded-xl transition shadow-sm ${
-                          program.isCodeShuffled 
+                          program.isCodeShuffled && (pendingJudges[program._id] || []).length > 0
                             ? 'bg-amber-500 hover:bg-amber-600 text-white' 
                             : 'bg-slate-200 text-slate-500 cursor-not-allowed'
                         }`}
                       >
-                        {program.isCodeShuffled ? 'Submit Assignment' : 'Shuffle Codes First'}
+                        {!program.isCodeShuffled 
+                          ? 'Shuffle Codes First' 
+                          : !(pendingJudges[program._id] || []).length
+                            ? 'Select a Judge'
+                            : 'Submit Assignment'}
                       </button>
                     ) : (
                       <button 

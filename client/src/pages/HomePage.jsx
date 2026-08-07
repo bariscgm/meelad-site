@@ -6,6 +6,7 @@ export default function HomePage() {
   const [teams, setTeams] = useState([]);
   const [latestResults, setLatestResults] = useState([]);
   const [categorizedTeams, setCategorizedTeams] = useState({});
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -104,7 +105,46 @@ export default function HomePage() {
             <a href="#scoreboard" className="text-sm font-medium hover:text-teal-400 transition">Live Scoreboard</a>
             <a href="#portals" className="text-sm font-medium hover:text-emerald-400 transition">Login Portals</a>
           </div>
+
+          {/* Mobile Menu Button */}
+          <button 
+            className="md:hidden text-slate-300 hover:text-white focus:outline-none p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              {isMobileMenuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
         </div>
+
+        {/* Mobile Menu Dropdown */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-slate-900 border-b border-white/5 absolute w-full left-0 top-full shadow-2xl">
+            <div className="flex flex-col px-6 py-5 space-y-4">
+              <a href="#scoreboard" onClick={() => setIsMobileMenuOpen(false)} className="text-base font-semibold text-slate-200 hover:text-teal-400 transition flex items-center gap-2">
+                📊 Live Scoreboard
+              </a>
+              <div className="h-px bg-white/10 w-full my-2"></div>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Login Portals</p>
+              <Link to="/login" state={{ portal: 'Admin' }} onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-blue-400 hover:text-blue-300 transition pl-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Admin Control
+              </Link>
+              <Link to="/login" state={{ portal: 'Team Leader' }} onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-teal-400 hover:text-teal-300 transition pl-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-400"></span> Team Leaders
+              </Link>
+              <Link to="/login" state={{ portal: 'Stage Manager' }} onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-amber-400 hover:text-amber-300 transition pl-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Stage Manager
+              </Link>
+              <Link to="/login" state={{ portal: 'Judge' }} onClick={() => setIsMobileMenuOpen(false)} className="text-base font-medium text-purple-400 hover:text-purple-300 transition pl-2 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span> Judge Access
+              </Link>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
