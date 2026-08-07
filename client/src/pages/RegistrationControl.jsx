@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { API_URL } from '../config/api.js';
 import Swal from 'sweetalert2';
+import { controllerDB } from '../services/controllerDB';
 
 export default function RegistrationControl() {
   const [candidates, setCandidates] = useState([]);
@@ -9,6 +10,17 @@ export default function RegistrationControl() {
   const [programs, setPrograms] = useState([]);
   
   const [loading, setLoading] = useState(true);
+  const [registrationOpen, setRegistrationOpen] = useState(true);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    name: '',
+    gender: '',
+    className: '',
+    category: '',
+    teamId: '',
+    programs: []
+  });
 
   // Filters
   const [search, setSearch] = useState('');
@@ -24,6 +36,9 @@ export default function RegistrationControl() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      const limits = controllerDB.getLimits();
+      if (limits) setRegistrationOpen(limits.registrationOpen ?? true);
+
       const [candRes, teamRes, catRes, progRes] = await Promise.all([
         fetch(`${API_URL}/api/candidates`),
         fetch(`${API_URL}/api/teams`),
@@ -43,6 +58,144 @@ export default function RegistrationControl() {
       setLoading(false);
     }
   };
+
+  const handleToggleRegistration = () => {
+    const limits = controllerDB.getLimits() || {};
+    const newStatus = !registrationOpen;
+    limits.registrationOpen = newStatus;
+    controllerDB.saveLimits(limits);
+    setRegistrationOpen(newStatus);
+    Swal.fire('Success', newStatus ? 'Registration Opened' : 'Registration Closed', 'success');
+  };
+
+  const getClassNumber = (classNameStr) => {
+    const match = classNameStr.match(/\d+/);
+    return match ? parseInt(match[0], 10) : 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'className') {
+        const classNum = getClassNumber(value);
+        const matchedCategory = categories.find(cat => 
+          cat.name.toLowerCase() !== 'general' && 
+          classNum >= cat.classFrom && 
+          classNum <= cat.classTo
+        );
+        updated.category = matchedCategory ? matchedCategory.name : '';
+        updated.programs = [];
+      }
+      if (name === 'gender') {
+        updated.programs = [];
+      }
+      return updated;
+    });
+  };
+
+  const handleCheckboxChange = (program) => {
+    setFormData(prev => {
+      const currentPrograms = prev.programs;
+      if (currentPrograms.includes(program)) {
+        return { ...prev, programs: currentPrograms.filter(p => p !== program) };
+      } else {
+        return { ...prev, programs: [...currentPrograms, program] };
+      }
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name || !formData.gender || !formData.className || !formData.category || !formData.teamId) return;
+
+    try {
+      const payload = { ...formData, team: formData.teamId };
+      const res = await fetch(`${API_URL}/api/candidates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        Swal.fire('Success', 'Candidate registered successfully', 'success');
+        setFormData(prev => ({ ...prev, name: '', programs: [] }));
+        fetchData();
+      } else {
+        const err = await res.json();
+        Swal.fire('Error', err.message || 'Failed to register candidate', 'error');
+      }
+    } catch (error) {
+      console.error('Submit error:', error);
+      Swal.fire('Error', 'Server connection failed', 'error');
+    }
+  };
+
+  const { categoryPrograms, generalPrograms } = useMemo(() => {
+    if (!formData.category || !formData.gender) return { 
+      categoryPrograms: { stage: [], offStage: [] }, 
+      generalPrograms: { stage: [], offStage: [] } 
+    };
+    
+    const filterPrograms = (progs, categoryName) => {
+      return progs.filter(p => 
+        p.category.toLowerCase() === categoryName.toLowerCase() && 
+        (p.gender === formData.gender || p.gender.toLowerCase() === 'general')
+      );
+    };
+
+    let catProgs = filterPrograms(programs, formData.category);
+    let genProgs = filterPrograms(programs, 'general');
+    
+    if (formData.category.toLowerCase() === 'general') {
+      genProgs = [];
+    }
+      
+    const groupAndMap = (programsList) => {
+      const stage = programsList.filter(p => p.venueType?.toUpperCase() === 'STAGE').map(p => p.name);
+      const offStage = programsList.filter(p => p.venueType?.toUpperCase() === 'OFF-STAGE' || p.venueType?.toUpperCase() === 'OFFSTAGE').map(p => p.name);
+      return {
+        stage: Array.from(new Set(stage)),
+        offStage: Array.from(new Set(offStage))
+      };
+    };
+
+    return {
+      categoryPrograms: groupAndMap(catProgs),
+      generalPrograms: groupAndMap(genProgs)
+    };
+  }, [formData.category, formData.gender, programs]);
+
+  const renderProgramCheckboxes = (programsList) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      {programsList.map(program => (
+        <label
+          key={program}
+          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${formData.programs.includes(program)
+              ? 'border-purple-500 bg-purple-50/50 shadow-sm'
+              : 'border-slate-100 bg-white/50 hover:border-purple-200 hover:bg-white'
+            }`}
+        >
+          <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${formData.programs.includes(program) ? 'bg-purple-500 border-purple-500 text-white' : 'border-slate-300'
+            }`}>
+            {formData.programs.includes(program) && (
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
+              </svg>
+            )}
+          </div>
+          <input
+            type="checkbox"
+            className="hidden"
+            checked={formData.programs.includes(program)}
+            onChange={() => handleCheckboxChange(program)}
+          />
+          <span className={`font-medium text-sm ${formData.programs.includes(program) ? 'text-purple-800' : 'text-slate-600'}`}>
+            {program}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
 
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -291,11 +444,131 @@ export default function RegistrationControl() {
         <div className="flex justify-between items-center mt-1">
           <h1 className="text-3xl font-bold text-slate-800">Student registrations</h1>
           <div className="flex items-center gap-3">
+            <button
+              onClick={handleToggleRegistration}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                registrationOpen ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
+              }`}
+            >
+              <span className={`w-2.5 h-2.5 rounded-full ${registrationOpen ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+              {registrationOpen ? 'REGISTRATION OPEN' : 'REGISTRATION CLOSED'}
+            </button>
             <span className="text-sm text-purple-600 bg-purple-100 px-3 py-1 rounded-lg font-medium">
               {filteredCandidates.length} of {candidates.length}
             </span>
           </div>
         </div>
+      </div>
+
+      {/* Admin Registration Form */}
+      <div className="glass p-8 rounded-3xl space-y-6 relative overflow-hidden">
+        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 relative z-10">
+          <span className="w-3 h-3 rounded-full bg-purple-500"></span>
+          Register Student (Admin)
+        </h2>
+
+        <form onSubmit={handleSubmit} className="relative z-10 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="lg:col-span-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Candidate Name</label>
+              <input type="text" name="name" value={formData.name} onChange={handleInputChange} required className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-800" placeholder="e.g. Muhammed Ali" />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Team</label>
+              <select name="teamId" value={formData.teamId} onChange={handleInputChange} required className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-800">
+                <option value="" disabled>Select Team</option>
+                {teams.map(t => <option key={t._id} value={t._id}>{t.name}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Class</label>
+              <select name="className" value={formData.className} onChange={handleInputChange} required className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white/80 focus:ring-2 focus:ring-purple-500 outline-none transition text-slate-800">
+                <option value="" disabled>Select Class</option>
+                {[...Array(12)].map((_, i) => <option key={i} value={`Class ${i+1}`}>Class {i+1}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Category</label>
+              <select name="category" value={formData.category} disabled className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-800 cursor-not-allowed">
+                <option value="">Auto-assigned</option>
+                {categories.map(cat => <option key={cat._id} value={cat.name}>{cat.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-3">Gender</label>
+            <div className="flex items-center gap-6">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${formData.gender === 'Boy' ? 'border-purple-500' : 'border-slate-300 group-hover:border-purple-400'}`}>
+                  {formData.gender === 'Boy' && <div className="w-3 h-3 rounded-full bg-purple-500" />}
+                </div>
+                <input type="radio" name="gender" value="Boy" checked={formData.gender === 'Boy'} onChange={handleInputChange} className="hidden" />
+                <span className="text-slate-700 font-medium group-hover:text-purple-600 transition">Boy</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors ${formData.gender === 'Girl' ? 'border-purple-500' : 'border-slate-300 group-hover:border-purple-400'}`}>
+                  {formData.gender === 'Girl' && <div className="w-3 h-3 rounded-full bg-purple-500" />}
+                </div>
+                <input type="radio" name="gender" value="Girl" checked={formData.gender === 'Girl'} onChange={handleInputChange} className="hidden" />
+                <span className="text-slate-700 font-medium group-hover:text-purple-600 transition">Girl</span>
+              </label>
+            </div>
+          </div>
+
+          {/* Programs Checkboxes */}
+          {formData.category && formData.gender && (
+            <div className="space-y-6">
+              {(categoryPrograms.stage.length > 0 || categoryPrograms.offStage.length > 0) && (
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-700 mb-4">Available Programs for {formData.category}</label>
+                  {categoryPrograms.stage.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-3">Stage Programs</h4>
+                      {renderProgramCheckboxes(categoryPrograms.stage)}
+                    </div>
+                  )}
+                  {categoryPrograms.offStage.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-3">Off-Stage Programs</h4>
+                      {renderProgramCheckboxes(categoryPrograms.offStage)}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(generalPrograms.stage.length > 0 || generalPrograms.offStage.length > 0) && (
+                <div className="pt-4 border-t border-slate-100">
+                  <label className="block text-sm font-semibold text-slate-700 mb-4">General Programs</label>
+                  {generalPrograms.stage.length > 0 && (
+                    <div className="mb-6">
+                      <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-3">Stage Programs</h4>
+                      {renderProgramCheckboxes(generalPrograms.stage)}
+                    </div>
+                  )}
+                  {generalPrograms.offStage.length > 0 && (
+                    <div>
+                      <h4 className="text-xs font-bold text-purple-600 uppercase tracking-wider mb-3">Off-Stage Programs</h4>
+                      {renderProgramCheckboxes(generalPrograms.offStage)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="pt-6 flex justify-end">
+            <button type="submit" className="px-8 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Register Candidate
+            </button>
+          </div>
+        </form>
       </div>
 
       {/* Filters */}
