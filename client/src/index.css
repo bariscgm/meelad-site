@@ -18,4 +18,14 @@
   .glass-dark {
     @apply bg-slate-900/70 backdrop-blur-md border border-slate-700/50 shadow-2xl;
   }
+  
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+  100% { transform: translateY(0px); }
 }

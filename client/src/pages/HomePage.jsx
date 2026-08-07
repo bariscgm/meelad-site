@@ -160,10 +160,10 @@ export default function HomePage() {
               Live Competition
             </div>
 
-            {/* Blended SVG Logo */}
+            {/* Animated PNG Logo */}
             <div className="py-2 inline-flex flex-col items-center justify-center transition hover:scale-[1.02] gap-4 mb-4">
-              <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center rounded-3xl overflow-hidden drop-shadow-[0_20px_50px_rgba(20,184,166,0.15)]">
-                <img src="/hero-logo.jpg" alt="Meelad Fest Logo" className="w-full h-full object-cover" />
+              <div className="w-48 h-48 md:w-64 md:h-64 flex items-center justify-center drop-shadow-[0_20px_50px_rgba(20,184,166,0.3)] animate-float">
+                <img src="/hero-logo.png" alt="Meelad Fest Logo" className="w-full h-full object-contain" />
               </div>
               <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-white mt-4">
                 Meelad Fest
