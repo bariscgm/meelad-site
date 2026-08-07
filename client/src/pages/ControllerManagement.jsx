@@ -9,6 +9,7 @@ export default function ControllerManagement() {
   // DB Sync State
   const [registrationOpen, setRegistrationOpen] = useState(true);
   const [categoryLimits, setCategoryLimits] = useState([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
@@ -77,24 +78,16 @@ export default function ControllerManagement() {
       
       let catLimits = limits.categoryLimits ? [...limits.categoryLimits] : [];
       
-      // Migrate 'For person' to 'Total Programs' if it exists
-      const forPersonIndex = catLimits.findIndex(c => c.category === 'For person');
-      if (forPersonIndex !== -1) {
-        const hasTotal = catLimits.some(c => c.category === 'Total Programs');
-        if (!hasTotal) {
-          catLimits[forPersonIndex].category = 'Total Programs';
-        } else {
-          catLimits.splice(forPersonIndex, 1);
-        }
-      }
+      const oldCategories = ['Total Programs', 'For person', 'Stage Individual', 'Stage Group', 'Off-Stage Individual', 'Off-Stage Group'];
+      catLimits = catLimits.filter(c => !oldCategories.includes(c.category));
       
       const defaultLimits = [
-        { category: 'Total Programs', count: 4 },
-        { category: 'General', count: 2 },
-        { category: 'Stage Individual', count: 3 },
-        { category: 'Stage Group', count: 2 },
-        { category: 'Off-Stage Individual', count: 4 },
-        { category: 'Off-Stage Group', count: 3 }
+        { category: 'Kiddies', count: 4 },
+        { category: 'Sub Junior', count: 4 },
+        { category: 'Junior', count: 4 },
+        { category: 'Senior', count: 4 },
+        { category: 'Super Senior', count: 4 },
+        { category: 'General', count: 2 }
       ];
 
       defaultLimits.forEach(dl => {
@@ -103,7 +96,15 @@ export default function ControllerManagement() {
         }
       });
       
+      // Sort to match defaultLimits order
+      catLimits.sort((a, b) => {
+        const idxA = defaultLimits.findIndex(dl => dl.category === a.category);
+        const idxB = defaultLimits.findIndex(dl => dl.category === b.category);
+        return (idxA !== -1 ? idxA : 99) - (idxB !== -1 ? idxB : 99);
+      });
+      
       setCategoryLimits(catLimits);
+      setHasUnsavedChanges(false);
     }
 
     setAnnouncements(controllerDB.getAnnouncements());
@@ -123,6 +124,7 @@ export default function ControllerManagement() {
       categoryLimits,
     };
     controllerDB.saveLimits(limitsData);
+    setHasUnsavedChanges(false);
     showNotification('System control limits saved successfully to database!');
   };
 
@@ -331,7 +333,10 @@ export default function ControllerManagement() {
               </div>
               <button
                 type="button"
-                onClick={() => setRegistrationOpen(!registrationOpen)}
+                onClick={() => {
+                  setRegistrationOpen(!registrationOpen);
+                  setHasUnsavedChanges(true);
+                }}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
                   registrationOpen ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
                 }`}
@@ -359,24 +364,11 @@ export default function ControllerManagement() {
                             setCategoryLimits(prev => prev.map((item, i) => 
                               i === idx ? { ...item, count: val === '' ? '' : Number(val) } : item
                             ));
+                            setHasUnsavedChanges(true);
                           }}
                           className="w-16 px-2.5 py-1 rounded-xl border border-slate-200 text-center font-bold text-slate-800"
                         />
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const limitsData = {
-                            registrationOpen,
-                            categoryLimits,
-                          };
-                          controllerDB.saveLimits(limitsData);
-                          showNotification('Student programme limit confirmed and saved!');
-                        }}
-                        className="px-3 py-1.5 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-bold rounded-lg text-xs transition"
-                      >
-                        Confirm
-                      </button>
                     </div>
                   </div>
                 ))}
@@ -385,7 +377,12 @@ export default function ControllerManagement() {
 
             <button
               type="submit"
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/25 transition flex items-center gap-2"
+              disabled={!hasUnsavedChanges}
+              className={`px-6 py-3 font-semibold rounded-xl transition flex items-center gap-2 ${
+                hasUnsavedChanges 
+                  ? 'bg-purple-600 hover:bg-purple-700 text-white shadow-lg shadow-purple-500/25' 
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
             >
               💾 Save controls to Database
             </button>
