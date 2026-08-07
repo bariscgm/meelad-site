@@ -23,13 +23,8 @@ export default function CandidateRegistration() {
   const [filterGender, setFilterGender] = useState('All genders');
   const [limits, setLimits] = useState({
     registrationOpen: true,
-    totalPrograms: 4,
-    general: 2,
-    stageIndividual: 3,
-    stageGroup: 2,
-    offstageIndividual: 4,
-    offstageGroup: 3
   });
+  const [categoryLimits, setCategoryLimits] = useState([]);
 
   // Fetch programs, categories, and candidates from API
   useEffect(() => {
@@ -60,19 +55,9 @@ export default function CandidateRegistration() {
         if (limitRes.ok) {
           const limitData = await limitRes.json();
           if (limitData.data && limitData.data.categoryLimits) {
-            const getLimit = (catName, defaultVal) => {
-              const l = limitData.data.categoryLimits.find(c => c.category.toLowerCase() === catName.toLowerCase());
-              return l ? l.count : defaultVal;
-            };
-            
+            setCategoryLimits(limitData.data.categoryLimits);
             setLimits({
               registrationOpen: limitData.data.registrationOpen ?? true,
-              totalPrograms: getLimit('total programs', getLimit('for person', 4)),
-              general: getLimit('general', 2),
-              stageIndividual: getLimit('stage individual', 3),
-              stageGroup: getLimit('stage group', 2),
-              offstageIndividual: getLimit('off-stage individual', 4),
-              offstageGroup: getLimit('off-stage group', 3)
             });
           }
         }
@@ -120,6 +105,14 @@ export default function CandidateRegistration() {
       if (currentPrograms.includes(program)) {
         return { ...prev, programs: currentPrograms.filter(p => p !== program) };
       } else {
+        const catLimitObj = categoryLimits.find(c => c.category.toLowerCase() === prev.category.toLowerCase());
+        const limit = catLimitObj ? catLimitObj.count : 4; // Default limit fallback
+        
+        if (currentPrograms.length >= limit) {
+          Swal.fire('Limit Exceeded', `You can only select up to ${limit} programs for the ${prev.category} category.`, 'warning');
+          return prev;
+        }
+
         return { ...prev, programs: [...currentPrograms, program] };
       }
     });

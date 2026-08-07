@@ -1,4 +1,18 @@
 import Candidate from '../models/Candidate.js';
+import ControlLimits from '../models/ControlLimits.js';
+
+// Helper to check limits
+const checkProgramLimit = async (category, programsLength) => {
+  const controlLimits = await ControlLimits.findOne();
+  if (controlLimits && controlLimits.categoryLimits) {
+    const catLimit = controlLimits.categoryLimits.find(c => c.category.toLowerCase() === category.toLowerCase());
+    if (catLimit && catLimit.count !== null && catLimit.count !== undefined) {
+      if (programsLength > catLimit.count) {
+        throw new Error(`Maximum ${catLimit.count} programs allowed for category ${category}`);
+      }
+    }
+  }
+};
 
 // @desc    Get all candidates (Admin only)
 // @route   GET /api/candidates
@@ -28,6 +42,10 @@ export const createCandidate = async (req, res) => {
   try {
     const { name, gender, className, category, programs, team, status } = req.body;
     
+    if (programs && programs.length > 0) {
+      await checkProgramLimit(category, programs.length);
+    }
+    
     const candidate = await Candidate.create({
       name,
       gender,
@@ -48,15 +66,23 @@ export const createCandidate = async (req, res) => {
 // @route   PUT /api/candidates/:id
 export const updateCandidate = async (req, res) => {
   try {
+    const candidateToUpdate = await Candidate.findById(req.params.id);
+    if (!candidateToUpdate) {
+      return res.status(404).json({ message: 'Candidate not found' });
+    }
+
+    const category = req.body.category || candidateToUpdate.category;
+    const programs = req.body.programs || candidateToUpdate.programs;
+
+    if (req.body.programs) {
+      await checkProgramLimit(category, programs.length);
+    }
+
     const candidate = await Candidate.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true, runValidators: true }
     );
-
-    if (!candidate) {
-      return res.status(404).json({ message: 'Candidate not found' });
-    }
 
     res.json(candidate);
   } catch (error) {
