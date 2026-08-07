@@ -15,6 +15,12 @@ export default function CandidateRegistration() {
   const [allPrograms, setAllPrograms] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All categories');
+  const [filterProgram, setFilterProgram] = useState('All programmes');
+  const [filterGender, setFilterGender] = useState('All genders');
   const [limits, setLimits] = useState({
     registrationOpen: true,
     totalPrograms: 4,
@@ -298,6 +304,202 @@ export default function CandidateRegistration() {
   const isAdmin = user.role === 'Admin' || user.role === 'admin';
   const isRegistrationClosed = !limits.registrationOpen && !isAdmin;
 
+  const filteredCandidates = useMemo(() => {
+    return candidates.filter(c => {
+      const searchMatch = !search || 
+        c.name.toLowerCase().includes(search.toLowerCase()) || 
+        c._id.slice(-4).includes(search);
+      
+      const categoryMatch = filterCategory === 'All categories' || c.category === filterCategory;
+      const programMatch = filterProgram === 'All programmes' || c.programs.includes(filterProgram);
+      const genderMatch = filterGender === 'All genders' || c.gender === filterGender;
+
+      return searchMatch && categoryMatch && programMatch && genderMatch;
+    });
+  }, [candidates, search, filterCategory, filterProgram, filterGender]);
+
+  const handlePrint = () => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Student Registrations</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+            h1 { text-align: center; color: #1e293b; margin-bottom: 20px; }
+            .filters { text-align: center; margin-bottom: 20px; font-size: 14px; color: #64748b; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; }
+            th { background-color: #f1f5f9; color: #475569; font-weight: bold; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            @media print {
+              @page { margin: 1cm; }
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Team Candidates List</h1>
+          <div class="filters">
+            Total Students: ${filteredCandidates.length}
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Reg. No.</th>
+                <th>Student Name</th>
+                <th>Programmes</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${filteredCandidates.map(c => `
+                <tr>
+                  <td>${c._id.slice(-4).toUpperCase()}</td>
+                  <td>${c.name}</td>
+                  <td>${c.programs.join(', ')}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 250);
+  };
+
+  const handlePrintCard = () => {
+    const printContent = `
+      <html>
+        <head>
+          <title>Print Cards</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #fff; }
+            .print-container {
+              display: grid;
+              grid-template-columns: repeat(2, 1fr);
+              gap: 8px;
+              padding: 10px;
+            }
+            .card {
+              border: 1px solid #1e293b;
+              border-radius: 6px;
+              padding: 8px;
+              page-break-inside: avoid;
+              background: #fff;
+            }
+            .card-header {
+              text-align: center;
+              border-bottom: 1px solid #e2e8f0;
+              padding-bottom: 4px;
+              margin-bottom: 4px;
+            }
+            .card-header h2 { margin: 0; font-size: 14px; color: #0f172a; text-transform: uppercase; font-weight: bold; }
+            .card-header h3 { margin: 2px 0 0 0; font-size: 11px; color: #475569; }
+            .chest-no {
+              font-size: 18px;
+              font-weight: bold;
+              text-align: center;
+              color: #4f46e5;
+              margin: 4px 0;
+              padding: 2px;
+              background: #f8fafc;
+              border: 1px dashed #cbd5e1;
+              border-radius: 4px;
+            }
+            .programs { margin-top: 4px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: space-between; }
+            .program-section { margin-bottom: 2px; flex: 1; min-width: 30%; }
+            .program-section h4 {
+              margin: 0 0 2px 0;
+              font-size: 10px;
+              color: #334155;
+              border-bottom: 1px solid #cbd5e1;
+              padding-bottom: 1px;
+            }
+            .program-section ul {
+              margin: 0;
+              padding-left: 12px;
+              font-size: 9px;
+              color: #1e293b;
+            }
+            .program-section li { margin-bottom: 1px; line-height: 1.1; }
+            
+            @media print {
+              @page { size: A4; margin: 8mm; }
+              body { padding: 0; }
+              .print-container { gap: 8px; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="print-container">
+            ${filteredCandidates.map(c => {
+              const studentPrograms = c.programs.map(pName => {
+                return allPrograms.find(p => p.name === pName) || { name: pName, venueType: '', category: '' };
+              });
+              
+              const isGeneral = (p) => p.category?.toLowerCase() === 'general' || p.gender?.toLowerCase() === 'general';
+              
+              const stagePrograms = studentPrograms.filter(p => !isGeneral(p) && p.venueType === 'STAGE');
+              const offStagePrograms = studentPrograms.filter(p => !isGeneral(p) && p.venueType === 'OFF-STAGE');
+              const generalPrograms = studentPrograms.filter(p => isGeneral(p));
+              
+              const unknownPrograms = studentPrograms.filter(p => !isGeneral(p) && p.venueType !== 'STAGE' && p.venueType !== 'OFF-STAGE');
+              if (unknownPrograms.length > 0) {
+                generalPrograms.push(...unknownPrograms);
+              }
+
+              return `
+                <div class="card">
+                  <div class="card-header">
+                    <h2>${c.name}</h2>
+                    <h3>${user.team || 'Unknown Team'}</h3>
+                  </div>
+                  <div class="chest-no">
+                    ${c._id.slice(-4).toUpperCase()}
+                  </div>
+                  <div class="programs">
+                    ${stagePrograms.length > 0 ? `
+                      <div class="program-section">
+                        <h4>Stage Programs</h4>
+                        <ul>${stagePrograms.map(p => `<li>${p.name}</li>`).join('')}</ul>
+                      </div>
+                    ` : ''}
+                    ${offStagePrograms.length > 0 ? `
+                      <div class="program-section">
+                        <h4>Non-Stage Programs</h4>
+                        <ul>${offStagePrograms.map(p => `<li>${p.name}</li>`).join('')}</ul>
+                      </div>
+                    ` : ''}
+                    ${generalPrograms.length > 0 ? `
+                      <div class="program-section">
+                        <h4>General Programs</h4>
+                        <ul>${generalPrograms.map(p => `<li>${p.name}</li>`).join('')}</ul>
+                      </div>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+    }, 250);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -479,16 +681,85 @@ export default function CandidateRegistration() {
       <div className="glass p-8 rounded-3xl space-y-6">
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-          Recently Registered ({candidates.length})
+          Recently Registered ({filteredCandidates.length})
         </h2>
 
-        {candidates.length === 0 ? (
+        {/* Filters */}
+        <div className="flex flex-wrap gap-4 items-center mb-6">
+          <div className="relative flex-1 min-w-[200px]">
+            <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Name or registration num..."
+              className="w-full pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-teal-500 outline-none"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          
+          <select 
+            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500 min-w-[150px]"
+            value={filterCategory}
+            onChange={(e) => setFilterCategory(e.target.value)}
+          >
+            <option>All categories</option>
+            {categories.map(c => <option key={c._id} value={c.name}>{c.name}</option>)}
+          </select>
+
+          <select 
+            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500 min-w-[150px]"
+            value={filterProgram}
+            onChange={(e) => setFilterProgram(e.target.value)}
+          >
+            <option>All programmes</option>
+            {allPrograms.map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
+          </select>
+
+          <select 
+            className="bg-white border border-slate-200 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-teal-500 min-w-[150px]"
+            value={filterGender}
+            onChange={(e) => setFilterGender(e.target.value)}
+          >
+            <option>All genders</option>
+            <option value="Boy">Boy</option>
+            <option value="Girl">Girl</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="General">General</option>
+          </select>
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={handlePrint}
+              className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium hover:bg-slate-50 transition"
+            >
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print list
+            </button>
+            
+            <button 
+              onClick={handlePrintCard}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white border border-teal-700 rounded-xl text-sm font-medium hover:bg-teal-700 transition"
+            >
+              <svg className="w-4 h-4 text-teal-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+              </svg>
+              Print Card
+            </button>
+          </div>
+        </div>
+
+        {filteredCandidates.length === 0 ? (
           <div className="text-center py-12 border-2 border-dashed border-slate-200 rounded-2xl">
-            <p className="text-slate-400 font-medium">No candidates registered yet.</p>
+            <p className="text-slate-400 font-medium">No candidates found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {candidates.map(candidate => (
+            {filteredCandidates.map(candidate => (
               <div key={candidate._id} className={`bg-white/60 border ${candidate.status === 'Hold' ? 'border-amber-400 bg-amber-50/30' : 'border-slate-100'} p-5 rounded-2xl shadow-sm hover:shadow-md transition flex flex-col h-full`}>
                 <div className="flex justify-between items-start mb-3">
                   <div>
