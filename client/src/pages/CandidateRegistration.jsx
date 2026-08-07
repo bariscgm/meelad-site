@@ -16,6 +16,7 @@ export default function CandidateRegistration() {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [limits, setLimits] = useState({
+    registrationOpen: true,
     totalPrograms: 4,
     general: 2,
     stageIndividual: 3,
@@ -59,6 +60,7 @@ export default function CandidateRegistration() {
             };
             
             setLimits({
+              registrationOpen: limitData.data.registrationOpen ?? true,
               totalPrograms: getLimit('total programs', getLimit('for person', 4)),
               general: getLimit('general', 2),
               stageIndividual: getLimit('stage individual', 3),
@@ -292,6 +294,10 @@ export default function CandidateRegistration() {
     </div>
   );
 
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = user.role === 'Admin' || user.role === 'admin';
+  const isRegistrationClosed = !limits.registrationOpen && !isAdmin;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -302,7 +308,8 @@ export default function CandidateRegistration() {
       </div>
 
       {/* Registration Form */}
-      <div className="glass p-8 rounded-3xl space-y-6 relative overflow-hidden">
+      {!isRegistrationClosed ? (
+        <div className="glass p-8 rounded-3xl space-y-6 relative overflow-hidden">
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 blur-[80px] rounded-full pointer-events-none" />
 
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2 relative z-10">
@@ -456,6 +463,17 @@ export default function CandidateRegistration() {
           </div>
         </form>
       </div>
+      ) : (
+        <div className="glass p-8 rounded-3xl text-center space-y-4">
+          <div className="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mt-4">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800">Registration is Closed</h2>
+          <p className="text-slate-500 mb-4">You can no longer register or edit candidates. Please contact the administrator for any changes.</p>
+        </div>
+      )}
 
       {/* Registered Candidates Preview */}
       <div className="glass p-8 rounded-3xl space-y-6">
@@ -502,11 +520,13 @@ export default function CandidateRegistration() {
                   </div>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-slate-100 flex justify-end gap-2">
-                  <button type="button" onClick={() => handleEdit(candidate)} className="px-3 py-1.5 text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">Edit</button>
-                  <button type="button" onClick={() => handleHold(candidate._id, candidate.status)} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition ${candidate.status === 'Hold' ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-amber-100 hover:bg-amber-200 text-amber-700'}`}>{candidate.status === 'Hold' ? 'Unhold' : 'Hold'}</button>
-                  <button type="button" onClick={() => handleDelete(candidate._id)} className="px-3 py-1.5 text-sm font-semibold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg transition">Delete</button>
-                </div>
+                {!isRegistrationClosed && (
+                  <div className="mt-5 pt-4 border-t border-slate-100 flex justify-end gap-2">
+                    <button type="button" onClick={() => handleEdit(candidate)} className="px-3 py-1.5 text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg transition">Edit</button>
+                    <button type="button" onClick={() => handleHold(candidate._id, candidate.status)} className={`px-3 py-1.5 text-sm font-semibold rounded-lg transition ${candidate.status === 'Hold' ? 'bg-emerald-100 hover:bg-emerald-200 text-emerald-700' : 'bg-amber-100 hover:bg-amber-200 text-amber-700'}`}>{candidate.status === 'Hold' ? 'Unhold' : 'Hold'}</button>
+                    <button type="button" onClick={() => handleDelete(candidate._id)} className="px-3 py-1.5 text-sm font-semibold bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-lg transition">Delete</button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
