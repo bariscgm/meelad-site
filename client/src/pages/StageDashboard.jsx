@@ -9,11 +9,9 @@ export default function StageDashboard() {
   const [loading, setLoading] = useState(true);
   const [pendingJudges, setPendingJudges] = useState({});
 
-  const [expandedProgramId, setExpandedProgramId] = useState(null);
-  const [programCandidates, setProgramCandidates] = useState([]);
-  const [loadingCandidates, setLoadingCandidates] = useState(false);
-  const [showAssigned, setShowAssigned] = useState(false);
   const [expandedDetails, setExpandedDetails] = useState({});
+  const [candidatesByProgram, setCandidatesByProgram] = useState({});
+  const [loadingCandidates, setLoadingCandidates] = useState({});
 
   // Filters
   const [filterClass, setFilterClass] = useState('All');
@@ -152,25 +150,26 @@ export default function StageDashboard() {
     });
   };
 
-  const handleToggleCandidates = async (programId) => {
-    if (expandedProgramId === programId) {
-      setExpandedProgramId(null);
-      setProgramCandidates([]);
-      return;
-    }
+  const handleToggleDetails = async (programId) => {
+    const isCurrentlyExpanded = expandedDetails[programId];
     
-    setExpandedProgramId(programId);
-    setLoadingCandidates(true);
-    try {
-      const res = await fetch(`${API_URL}/api/programs/${programId}/candidates`);
-      if (res.ok) {
-        const data = await res.json();
-        setProgramCandidates(data);
+    // Toggle state
+    setExpandedDetails(prev => ({...prev, [programId]: !isCurrentlyExpanded}));
+
+    // If we are expanding and we haven't loaded candidates for this program yet
+    if (!isCurrentlyExpanded && !candidatesByProgram[programId]) {
+      setLoadingCandidates(prev => ({...prev, [programId]: true}));
+      try {
+        const res = await fetch(`${API_URL}/api/programs/${programId}/candidates`);
+        if (res.ok) {
+          const data = await res.json();
+          setCandidatesByProgram(prev => ({...prev, [programId]: data}));
+        }
+      } catch (error) {
+        console.error('Failed to load candidates:', error);
+      } finally {
+        setLoadingCandidates(prev => ({...prev, [programId]: false}));
       }
-    } catch (error) {
-      console.error('Failed to load candidates:', error);
-    } finally {
-      setLoadingCandidates(false);
     }
   };
 
@@ -189,7 +188,7 @@ export default function StageDashboard() {
         const reloadRes = await fetch(`${API_URL}/api/programs/${programId}/candidates`);
         if (reloadRes.ok) {
           const data = await reloadRes.json();
-          setProgramCandidates(data);
+          setCandidatesByProgram(prev => ({...prev, [programId]: data}));
         }
       } else {
         const err = await res.json();
@@ -319,13 +318,20 @@ export default function StageDashboard() {
                     </span>
                   </div>
 
-                  <button 
-                    onClick={() => setExpandedDetails(prev => ({...prev, [program._id]: !prev[program._id]}))}
-                    className="self-start mt-1 text-sm font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition"
-                  >
-                    {expandedDetails[program._id] ? 'Hide Details' : 'View Details'}
-                    <svg className={`w-4 h-4 transform transition-transform ${expandedDetails[program._id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                  </button>
+                  <div className="flex items-center gap-3 mt-1 self-start">
+                    <button 
+                      onClick={() => handleToggleDetails(program._id)}
+                      className="text-sm font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition"
+                    >
+                      {expandedDetails[program._id] ? 'Hide Details' : 'View Details'}
+                      <svg className={`w-4 h-4 transform transition-transform ${expandedDetails[program._id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    {program.candidateCount !== undefined && (
+                      <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2 py-1 rounded-md">
+                        {program.candidateCount} Candidates
+                      </span>
+                    )}
+                  </div>
                   
                   {/* Additional Details Sections */}
                   {expandedDetails[program._id] && (
@@ -377,19 +383,10 @@ export default function StageDashboard() {
 
                   {/* Candidates Management Section */}
                   <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
-                    <button
-                      onClick={() => handleToggleCandidates(program._id)}
-                      className="text-sm font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1 w-fit"
-                    >
-                      {expandedProgramId === program._id ? 'Hide Candidates' : 'View Candidates'} 
-                      <svg className={`w-4 h-4 transform transition-transform ${expandedProgramId === program._id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                    </button>
-
-                    {expandedProgramId === program._id && (
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mt-2">
                         <div className="flex justify-between items-center mb-3">
-                          <h4 className="text-sm font-bold text-slate-800">Candidates ({programCandidates.length})</h4>
-                          {programCandidates.length > 0 && (
+                          <h4 className="text-sm font-bold text-slate-800">Candidates ({(candidatesByProgram[program._id] || []).length})</h4>
+                          {(candidatesByProgram[program._id] || []).length > 0 && (
                             <button
                               onClick={() => handleShuffleCodes(program._id)}
                               className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200 transition"
@@ -399,13 +396,13 @@ export default function StageDashboard() {
                           )}
                         </div>
                         
-                        {loadingCandidates ? (
+                        {loadingCandidates[program._id] ? (
                           <p className="text-xs text-slate-500">Loading...</p>
-                        ) : programCandidates.length === 0 ? (
+                        ) : (candidatesByProgram[program._id] || []).length === 0 ? (
                           <p className="text-xs text-slate-500">No active candidates found for this program.</p>
                         ) : (
                           <ul className="space-y-2">
-                            {programCandidates.map((cand, idx) => (
+                            {(candidatesByProgram[program._id] || []).map((cand, idx) => (
                               <li key={cand._id} className="flex justify-between items-center text-sm p-2 bg-white rounded border border-slate-100 shadow-sm">
                                 <div className="flex flex-col">
                                   <span className="font-semibold text-slate-700">{idx + 1}. {cand.name}</span>
@@ -427,7 +424,6 @@ export default function StageDashboard() {
                           </ul>
                         )}
                       </div>
-                    )}
                   </div>
                     </div>
                   )}

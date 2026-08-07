@@ -8,8 +8,21 @@ export const getPrograms = async (req, res) => {
   try {
     const programs = await Program.find({})
       .populate('assignedJudges', 'name username role')
-      .sort({ createdAt: -1 });
-    res.json(programs);
+      .sort({ createdAt: -1 })
+      .lean();
+      
+    const candidates = await Candidate.find({ status: 'Active' }).lean();
+
+    const programsWithCount = programs.map(p => {
+      const match = candidates.filter(c => 
+        c.programs && c.programs.includes(p.name) &&
+        c.category === p.category &&
+        (p.gender === 'General' || c.gender === p.gender)
+      );
+      return { ...p, candidateCount: match.length };
+    });
+
+    res.json(programsWithCount);
   } catch (error) {
     res.status(500).json({ message: 'Server Error: ' + error.message });
   }
