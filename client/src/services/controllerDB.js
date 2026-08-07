@@ -15,7 +15,7 @@ const STORAGE_KEYS = {
 const DEFAULT_LIMITS = {
   registrationOpen: true,
   categoryLimits: [
-    { category: 'For person', count: 3 },
+    { category: 'Total Programs', count: 4 },
     { category: 'General', count: 2 },
   ],
 };

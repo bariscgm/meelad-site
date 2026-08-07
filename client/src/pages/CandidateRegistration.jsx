@@ -16,7 +16,7 @@ export default function CandidateRegistration() {
   const [categories, setCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [limits, setLimits] = useState({
-    forPerson: 4,
+    totalPrograms: 4,
     general: 2,
     stageIndividual: 3,
     stageGroup: 2,
@@ -59,7 +59,7 @@ export default function CandidateRegistration() {
             };
             
             setLimits({
-              forPerson: getLimit('for person', 4),
+              totalPrograms: getLimit('total programs', getLimit('for person', 4)),
               general: getLimit('general', 2),
               stageIndividual: getLimit('stage individual', 3),
               stageGroup: getLimit('stage group', 2),
@@ -112,6 +112,16 @@ export default function CandidateRegistration() {
       if (currentPrograms.includes(program)) {
         return { ...prev, programs: currentPrograms.filter(p => p !== program) };
       } else {
+        if (currentPrograms.length >= limits.totalPrograms) {
+          Swal.fire({
+            title: 'Limit Exceeded',
+            text: `A candidate can only attend a maximum of ${limits.totalPrograms} programs in total.`,
+            icon: 'warning',
+            confirmButtonColor: '#0f766e'
+          });
+          return prev;
+        }
+
         const progDetails = allPrograms.find(p => p.name === program);
         const isGeneral = progDetails && progDetails.category.toLowerCase() === 'general';
 
@@ -132,22 +142,6 @@ export default function CandidateRegistration() {
           }
         } else if (progDetails) {
           // Regular category program limits
-          
-          // First check total "For person" limit
-          const currentCategoryCount = currentPrograms.filter(p => {
-            const pd = allPrograms.find(prog => prog.name === p);
-            return pd && pd.category.toLowerCase() !== 'general';
-          }).length;
-          
-          if (currentCategoryCount >= limits.forPerson) {
-            Swal.fire({
-              title: 'Limit Exceeded',
-              text: `A candidate can only attend a maximum of ${limits.forPerson} programs in their category.`,
-              icon: 'warning',
-              confirmButtonColor: '#0f766e'
-            });
-            return prev;
-          }
 
           // Then check granular limits
           const isStage = progDetails.venueType?.toUpperCase() === 'STAGE';

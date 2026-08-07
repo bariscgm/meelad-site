@@ -77,8 +77,19 @@ export default function ControllerManagement() {
       
       let catLimits = limits.categoryLimits ? [...limits.categoryLimits] : [];
       
+      // Migrate 'For person' to 'Total Programs' if it exists
+      const forPersonIndex = catLimits.findIndex(c => c.category === 'For person');
+      if (forPersonIndex !== -1) {
+        const hasTotal = catLimits.some(c => c.category === 'Total Programs');
+        if (!hasTotal) {
+          catLimits[forPersonIndex].category = 'Total Programs';
+        } else {
+          catLimits.splice(forPersonIndex, 1);
+        }
+      }
+      
       const defaultLimits = [
-        { category: 'For person', count: 4 },
+        { category: 'Total Programs', count: 4 },
         { category: 'General', count: 2 },
         { category: 'Stage Individual', count: 3 },
         { category: 'Stage Group', count: 2 },
