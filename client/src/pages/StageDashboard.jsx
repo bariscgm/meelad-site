@@ -12,6 +12,7 @@ export default function StageDashboard() {
   const [expandedDetails, setExpandedDetails] = useState({});
   const [candidatesByProgram, setCandidatesByProgram] = useState({});
   const [loadingCandidates, setLoadingCandidates] = useState({});
+  const [showAssigned, setShowAssigned] = useState(false);
 
   // Filters
   const [filterClass, setFilterClass] = useState('All');
