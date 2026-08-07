@@ -72,9 +72,9 @@ export default function StageDashboard() {
     setPendingJudges(prev => {
       const current = prev[programId] || [];
       if (current.includes(judgeId)) {
-        return { ...prev, [programId]: current.filter(id => id !== judgeId) };
+        return { ...prev, [programId]: [] }; // Deselect if already selected
       } else {
-        return { ...prev, [programId]: [...current, judgeId] };
+        return { ...prev, [programId]: [judgeId] }; // Only allow one judge
       }
     });
   };
@@ -349,11 +349,12 @@ export default function StageDashboard() {
                             isAssigned ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-slate-50 border-slate-200 text-slate-600'
                           } ${isLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-slate-100'}`}>
                             <input 
-                              type="checkbox" 
+                              type="radio" 
+                              name={`judge-${program._id}`}
                               checked={isAssigned} 
                               disabled={isLocked}
                               onChange={() => handleCheckboxChange(program._id, judge._id)}
-                              className="w-4 h-4 text-amber-600 rounded border-slate-300 focus:ring-amber-500 disabled:opacity-50"
+                              className="w-4 h-4 text-amber-600 border-slate-300 focus:ring-amber-500 disabled:opacity-50"
                             />
                             <span className="text-sm font-medium">{judge.name}</span>
                           </label>
