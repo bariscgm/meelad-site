@@ -108,6 +108,50 @@ export default function StageDashboard() {
     }
   };
 
+  const handleReassign = (programId) => {
+    Swal.fire({
+      title: 'Enter Password',
+      input: 'password',
+      inputLabel: 'Password required to re-assign program',
+      inputPlaceholder: 'Enter password',
+      showCancelButton: true,
+      confirmButtonText: 'Verify & Re-assign',
+      confirmButtonColor: '#14b8a6',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Password is required!';
+        }
+        if (value !== '1234') {
+          return 'Incorrect Password!';
+        }
+      }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          const res = await fetch(`${API_URL}/api/programs/${programId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assignedJudges: [], status: 'Pending' })
+          });
+
+          if (res.ok) {
+            Swal.fire(
+              'Re-assigned!',
+              'The program has been moved back to Pending status.',
+              'success'
+            );
+            fetchData();
+          } else {
+            Swal.fire('Error', 'Failed to re-assign program', 'error');
+          }
+        } catch (error) {
+          console.error('Error re-assigning:', error);
+          Swal.fire('Error', 'Network error occurred', 'error');
+        }
+      }
+    });
+  };
+
   const handleToggleCandidates = async (programId) => {
     if (expandedProgramId === programId) {
       setExpandedProgramId(null);
@@ -410,16 +454,24 @@ export default function StageDashboard() {
             {showAssigned && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
                 {filteredPrograms.filter(p => p.status !== 'Pending').map(program => (
-                  <div key={program._id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm opacity-80 flex items-center justify-between">
-                    <div>
+                  <div key={program._id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm opacity-80 flex items-center justify-between group">
+                    <div className="flex-1 min-w-0 pr-4">
                       <h3 className="text-sm font-bold text-slate-800 truncate" title={program.name}>{program.name}</h3>
                       <p className="text-xs text-slate-500">{program.category} • {program.type}</p>
                     </div>
-                    <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md ${
-                      program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                    }`}>
-                      {program.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md whitespace-nowrap ${
+                        program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {program.status}
+                      </span>
+                      <button 
+                        onClick={() => handleReassign(program._id)}
+                        className="px-2 py-1 text-[10px] font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition whitespace-nowrap"
+                      >
+                        Re-assign
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
