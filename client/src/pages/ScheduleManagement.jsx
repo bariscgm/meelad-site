@@ -200,6 +200,54 @@ export default function ScheduleManagement() {
     });
   }, [programs, selectedCategories, genderFilter, programmeType]);
 
+  // Cascading logic for Gender and Programme Type dropdowns
+  const dynamicGenders = useMemo(() => {
+    const genders = new Set(programs.filter(p => {
+      if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) return false;
+      if (programmeType !== 'Stage + Off-stage') {
+        const pType = (p.venueType || '').toLowerCase();
+        if (programmeType === 'Stage' && pType !== 'stage') return false;
+        if (programmeType === 'Off-stage' && pType !== 'off-stage') return false;
+      }
+      return true;
+    }).map(p => {
+      const g = (p.gender || '').toLowerCase();
+      if (g === 'boy' || g === 'male') return 'Boys only';
+      if (g === 'girl' || g === 'female') return 'Girls only';
+      if (g === 'general' || g === 'common') return 'General';
+      return null;
+    }));
+    return [...genders].filter(Boolean).sort();
+  }, [programs, selectedCategories, programmeType]);
+
+  const dynamicVenues = useMemo(() => {
+    const venues = new Set(programs.filter(p => {
+      if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) return false;
+      if (genderFilter !== 'All') {
+        const fGender = genderFilter.toLowerCase();
+        const pGender = (p.gender || '').toLowerCase();
+        if (fGender === 'boys only' && pGender !== 'boy' && pGender !== 'male') return false;
+        if (fGender === 'girls only' && pGender !== 'girl' && pGender !== 'female') return false;
+        if (fGender === 'general' && pGender !== 'general' && pGender !== 'common') return false;
+        if (fGender === 'common' && pGender !== 'common' && pGender !== 'general') return false;
+      }
+      return true;
+    }).map(p => {
+      const v = (p.venueType || '').toLowerCase();
+      if (v === 'stage') return 'Stage';
+      if (v === 'off-stage') return 'Off-stage';
+      return null;
+    }));
+    return [...venues].filter(Boolean).sort();
+  }, [programs, selectedCategories, genderFilter]);
+
+  // Reset invalid selections
+  useEffect(() => {
+    if (genderFilter !== 'All' && genderFilter !== 'Common' && !dynamicGenders.includes(genderFilter)) setGenderFilter('All');
+    if (programmeType !== 'Stage + Off-stage' && !dynamicVenues.includes(programmeType)) setProgrammeType('Stage + Off-stage');
+  }, [genderFilter, programmeType, dynamicGenders, dynamicVenues]);
+
+
   // Sync selected programs when filter changes
   useEffect(() => {
     setSelectedPrograms(filteredPrograms.map(p => p._id));
@@ -268,16 +316,13 @@ export default function ScheduleManagement() {
 
             <div className="space-y-1 text-left">
               <label className="text-xs font-semibold text-slate-500">Who will compete?</label>
-              <select 
+              <select
                 value={genderFilter}
                 onChange={(e) => setGenderFilter(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm text-slate-700 appearance-none"
+                className="w-full pl-3 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm text-slate-700"
               >
-                <option value="Boys only">Boys only</option>
-                <option value="Girls only">Girls only</option>
-                <option value="Common">Common</option>
-                <option value="General">General</option>
-                <option value="All">All</option>
+                <option>All</option>
+                {dynamicGenders.map(g => <option key={g}>{g}</option>)}
               </select>
             </div>
 
