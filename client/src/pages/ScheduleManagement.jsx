@@ -20,7 +20,16 @@ export default function ScheduleManagement() {
 
   const [candidates, setCandidates] = useState([]);
   const [scheduleReport, setScheduleReport] = useState(null);
+  const [actualSchedule, setActualSchedule] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+
+  const formatMinutes = (totalMins) => {
+    const h = Math.floor(totalMins / 60) % 24;
+    const m = totalMins % 60;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${ampm}`;
+  };
 
   useEffect(() => {
     fetchData();
@@ -109,6 +118,37 @@ export default function ScheduleManagement() {
         timeNeeded
       });
     });
+    
+    // Generate Actual Timetable
+    const stageSchedules = Array.from({ length: stages }, (_, i) => ({
+      stageName: `Stage ${i + 1}`,
+      items: [],
+      currentMinutes: startH * 60 + startM
+    }));
+
+    const sortedBreakdown = [...breakdown].filter(b => b.timeNeeded > 0).sort((a, b) => b.timeNeeded - a.timeNeeded);
+    
+    sortedBreakdown.forEach(item => {
+      let earliestStage = stageSchedules[0];
+      for (let i = 1; i < stageSchedules.length; i++) {
+        if (stageSchedules[i].currentMinutes < earliestStage.currentMinutes) {
+          earliestStage = stageSchedules[i];
+        }
+      }
+      
+      const startMin = earliestStage.currentMinutes;
+      const endMin = startMin + item.timeNeeded;
+      
+      earliestStage.items.push({
+        ...item,
+        startTimeFormatted: formatMinutes(startMin),
+        endTimeFormatted: formatMinutes(endMin)
+      });
+      
+      earliestStage.currentMinutes = endMin;
+    });
+
+    setActualSchedule(stageSchedules);
     
     setScheduleReport({
       totalMinutesAvailable,
@@ -482,6 +522,47 @@ export default function ScheduleManagement() {
                    </table>
                 </div>
              </div>
+          </div>
+        )}
+
+        {/* Actual Timetable Section */}
+        {actualSchedule && (
+          <div className="glass p-6 md:p-8 rounded-3xl relative animate-fade-in mt-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Generated Timetable</h2>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+              {actualSchedule.map((stage, idx) => (
+                <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                  <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+                    <h3 className="text-lg font-bold text-indigo-900">{stage.stageName}</h3>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {stage.items.length > 0 ? (
+                      stage.items.map((item, i) => (
+                        <div key={i} className="p-4 hover:bg-slate-50 transition flex items-start gap-4">
+                          <div className="flex-shrink-0 text-center w-24">
+                            <p className="text-xs font-bold text-slate-800">{item.startTimeFormatted}</p>
+                            <p className="text-[10px] text-slate-400 font-medium">to</p>
+                            <p className="text-xs font-bold text-slate-500">{item.endTimeFormatted}</p>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-bold text-slate-800 truncate">{item.name}</h4>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{item.category}</span>
+                              <span className="text-xs text-slate-500">{item.studentCount} students</span>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0 text-right">
+                            <span className="text-xs font-bold text-slate-400">{item.timeNeeded}m</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-8 text-center text-slate-400 text-sm">No programs assigned</div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
