@@ -64,9 +64,12 @@ export default function TeamFormation() {
 
   const eligibleCandidates = selectedProgram
     ? candidates.filter(c => {
-        if (!c.programs.includes(selectedProgram.name)) return false;
+        const progName = selectedProgram.name.trim().toLowerCase();
+        const hasProgram = c.programs.some(p => typeof p === 'string' && p.trim().toLowerCase() === progName);
+        if (!hasProgram) return false;
         
-        if (selectedProgram.category !== 'General' && c.category !== selectedProgram.category) {
+        const pCat = selectedProgram.category ? selectedProgram.category.toLowerCase() : '';
+        if (pCat !== 'general' && pCat !== 'common' && pCat !== 'all' && c.category !== selectedProgram.category) {
           return false;
         }
 
