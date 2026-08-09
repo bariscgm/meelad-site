@@ -9,6 +9,7 @@ export default function ProgramManagement() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedType, setSelectedType] = useState('All');
+  const [selectedVenue, setSelectedVenue] = useState('All');
   const [selectedGender, setSelectedGender] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -69,6 +70,7 @@ export default function ProgramManagement() {
   // Unique lists for dropdown options
   const typesList = ['Individual', 'Group'];
   const gendersList = ['Boy', 'Girl', 'General'];
+  const venuesList = ['STAGE', 'OFF-STAGE'];
 
   // Filter logic
   const filteredPrograms = programs.filter((p) => {
@@ -76,8 +78,9 @@ export default function ProgramManagement() {
                           p.category.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || p.category === selectedCategory;
     const matchesType = selectedType === 'All' || p.type === selectedType;
+    const matchesVenue = selectedVenue === 'All' || p.venueType === selectedVenue;
     const matchesGender = selectedGender === 'All' || p.gender === selectedGender;
-    return matchesSearch && matchesCategory && matchesType && matchesGender;
+    return matchesSearch && matchesCategory && matchesType && matchesVenue && matchesGender;
   });
 
   // Handle modal submit (Add / Edit)
@@ -501,7 +504,7 @@ export default function ProgramManagement() {
 
       {/* Filters Bar */}
       <div className="glass p-6 rounded-3xl space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* Search Input */}
           <div className="relative">
             <svg className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -543,6 +546,22 @@ export default function ProgramManagement() {
               {typesList.map((t) => (
                 <option key={t} value={t}>
                   {t}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Venue Type Filter */}
+          <div>
+            <select
+              value={selectedVenue}
+              onChange={(e) => setSelectedVenue(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition text-sm text-slate-800"
+            >
+              <option value="All">All venues</option>
+              {venuesList.map((v) => (
+                <option key={v} value={v}>
+                  {v}
                 </option>
               ))}
             </select>
