@@ -63,7 +63,26 @@ export default function TeamFormation() {
     : programs.filter(p => p.category === selectedCategory);
 
   const eligibleCandidates = selectedProgram
-    ? candidates.filter(c => c.programs.includes(selectedProgram.name))
+    ? candidates.filter(c => {
+        if (!c.programs.includes(selectedProgram.name)) return false;
+        
+        if (selectedProgram.category !== 'General' && c.category !== selectedProgram.category) {
+          return false;
+        }
+
+        const pGender = selectedProgram.gender;
+        if (pGender !== 'General' && pGender !== 'All' && pGender !== 'Common') {
+          const isProgramMale = pGender === 'Boy' || pGender === 'Male';
+          const isCandidateMale = c.gender === 'Boy' || c.gender === 'Male';
+          if (isProgramMale && !isCandidateMale) return false;
+          
+          const isProgramFemale = pGender === 'Girl' || pGender === 'Female';
+          const isCandidateFemale = c.gender === 'Girl' || c.gender === 'Female';
+          if (isProgramFemale && !isCandidateFemale) return false;
+        }
+
+        return true;
+      })
     : [];
 
   const handleGroupAssignment = async (candidateId, groupName) => {
