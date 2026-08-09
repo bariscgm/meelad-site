@@ -21,6 +21,7 @@ export default function RegistrationControl() {
     teamId: '',
     programs: []
   });
+  const [editingId, setEditingId] = useState(null);
 
   // Filters
   const [search, setSearch] = useState('');
@@ -111,23 +112,46 @@ export default function RegistrationControl() {
 
     try {
       const payload = { ...formData, team: formData.teamId };
-      const res = await fetch(`${API_URL}/api/candidates`, {
-        method: 'POST',
+      const url = editingId ? `${API_URL}/api/candidates/${editingId}` : `${API_URL}/api/candidates`;
+      const method = editingId ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      
       if (res.ok) {
-        Swal.fire('Success', 'Candidate registered successfully', 'success');
-        setFormData(prev => ({ ...prev, name: '', programs: [] }));
+        Swal.fire('Success', `Candidate ${editingId ? 'updated' : 'registered'} successfully`, 'success');
+        handleCancelEdit();
         fetchData();
       } else {
         const err = await res.json();
-        Swal.fire('Error', err.message || 'Failed to register candidate', 'error');
+        Swal.fire('Error', err.message || `Failed to ${editingId ? 'update' : 'register'} candidate`, 'error');
       }
     } catch (error) {
       console.error('Submit error:', error);
       Swal.fire('Error', 'Server connection failed', 'error');
     }
+  };
+
+  const handleEdit = (candidate) => {
+    setEditingId(candidate._id);
+    setFormData({
+      name: candidate.name,
+      gender: candidate.gender,
+      className: candidate.className,
+      category: candidate.category,
+      teamId: candidate.team?._id || candidate.team,
+      programs: candidate.programs || []
+    });
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setFormData({ name: '', gender: '', className: '', category: '', teamId: '', programs: [] });
   };
 
   const { categoryPrograms, generalPrograms } = useMemo(() => {
@@ -560,12 +584,32 @@ export default function RegistrationControl() {
             </div>
           )}
 
-          <div className="pt-6 flex justify-end">
+          <div className="pt-6 flex justify-end gap-3">
+            {editingId && (
+              <button 
+                type="button" 
+                onClick={handleCancelEdit}
+                className="px-6 py-3.5 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-xl transition flex items-center gap-2"
+              >
+                Cancel Edit
+              </button>
+            )}
             <button type="submit" className="px-8 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 transition flex items-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
-              Register Candidate
+              {editingId ? (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Update Candidate
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Register Candidate
+                </>
+              )}
             </button>
           </div>
         </form>
@@ -692,6 +736,15 @@ export default function RegistrationControl() {
                     </td>
                     <td className="px-6 py-4 align-top pt-5">
                       <div className="flex items-center justify-end gap-2">
+                        <button 
+                          onClick={() => handleEdit(c)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-teal-600 bg-teal-50 border border-teal-200 rounded-lg hover:bg-teal-100 transition"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                          </svg>
+                          Edit
+                        </button>
                         <button 
                           onClick={() => handleDelete(c._id)}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition"
