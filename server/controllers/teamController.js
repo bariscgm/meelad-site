@@ -1,9 +1,29 @@
 import Team from '../models/Team.js';
 
+import Candidate from '../models/Candidate.js';
+
 export const getTeams = async (req, res) => {
   try {
     const teams = await Team.find({}).sort({ createdAt: -1 });
-    res.json(teams);
+    const candidates = await Candidate.find({});
+
+    const teamsWithStats = teams.map(team => {
+      const teamCandidates = candidates.filter(c => c.team.toString() === team._id.toString());
+      const totalStudents = teamCandidates.length;
+      const boysCount = teamCandidates.filter(c => c.gender === 'Boy' || c.gender === 'Male').length;
+      const girlsCount = teamCandidates.filter(c => c.gender === 'Girl' || c.gender === 'Female').length;
+      
+      return {
+        ...team.toObject(),
+        stats: {
+          totalStudents,
+          boysCount,
+          girlsCount
+        }
+      };
+    });
+
+    res.json(teamsWithStats);
   } catch (error) {
     res.status(500).json({ message: 'Server Error: ' + error.message });
   }

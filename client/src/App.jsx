@@ -36,6 +36,7 @@ function AdminDashboard() {
     {
       title: 'Total Registered Students',
       value: dashboardData.stats.totalStudents,
+      subValue: `Boys: ${dashboardData.stats.totalBoys || 0} | Girls: ${dashboardData.stats.totalGirls || 0}`,
       change: 'Total registrations',
       icon: (
         <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +129,10 @@ function AdminDashboard() {
                 <span className="p-2.5 rounded-xl bg-white/80 shadow-sm">{stat.icon}</span>
               </div>
               <p className="text-sm font-semibold text-slate-600">{stat.title}</p>
-              <p className={`text-4xl font-extrabold ${stat.textColor} mt-2`}>{stat.value}</p>
+              <div className="flex items-baseline gap-2 mt-2">
+                <p className={`text-4xl font-extrabold ${stat.textColor}`}>{stat.value}</p>
+                {stat.subValue && <span className="text-sm font-medium text-slate-500 bg-white/60 px-2 py-1 rounded-md">({stat.subValue})</span>}
+              </div>
             </div>
             <p className="text-xs text-slate-500 font-medium mt-4 pt-3 border-t border-slate-200/40">{stat.change}</p>
           </div>
@@ -269,6 +273,11 @@ function TeamDashboard() {
               <div className="flex flex-col items-center justify-center p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100">
                 <span className="text-slate-500 font-medium mb-2">Registered Students</span>
                 <span className="text-6xl font-extrabold text-indigo-600">{candidates.length}</span>
+                <div className="mt-2 text-sm font-medium text-slate-500 flex gap-2 bg-white/60 px-2 py-1 rounded-md">
+                  <span>Boys: {candidates.filter(c => c.gender === 'Boy' || c.gender === 'Male').length}</span>
+                  <span>|</span>
+                  <span>Girls: {candidates.filter(c => c.gender === 'Girl' || c.gender === 'Female').length}</span>
+                </div>
               </div>
               <div className="flex flex-col items-center justify-center p-6 bg-teal-50/50 rounded-2xl border border-teal-100">
                 <span className="text-slate-500 font-medium mb-2">Total Points</span>

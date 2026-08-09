@@ -226,6 +226,7 @@ export default function TeamManagement() {
                   <th className="py-4 px-4 font-semibold">Team Name</th>
                   <th className="py-4 px-4 font-semibold">Team Code</th>
                   <th className="py-4 px-4 font-semibold">Color Badge</th>
+                  <th className="py-4 px-4 font-semibold">Students</th>
                   <th className="py-4 px-4 font-semibold">Status</th>
                   <th className="py-4 px-4 font-semibold text-right">Actions</th>
                 </tr>
@@ -247,6 +248,18 @@ export default function TeamManagement() {
                         ></span>
                         <span className="text-xs text-slate-600 font-mono">{team.color}</span>
                       </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      {team.stats ? (
+                        <div className="flex flex-col">
+                          <span className="font-bold text-slate-700 text-sm">{team.stats.totalStudents}</span>
+                          <span className="text-[10px] text-slate-500 mt-0.5 font-medium">
+                            B: {team.stats.boysCount} | G: {team.stats.girlsCount}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-slate-400">0</span>
+                      )}
                     </td>
                     <td className="py-4 px-4">
                       <span

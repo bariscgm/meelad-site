@@ -10,6 +10,8 @@ export const getAdminDashboard = async (req, res) => {
     const totalTeams = await Team.countDocuments();
     const totalPrograms = await Program.countDocuments();
     const totalStudents = await Candidate.countDocuments();
+    const totalBoys = await Candidate.countDocuments({ gender: { $in: ['Boy', 'Male'] } });
+    const totalGirls = await Candidate.countDocuments({ gender: { $in: ['Girl', 'Female'] } });
     
     const submittedResultsCount = await Result.countDocuments();
     const publishedResultsCount = await Result.countDocuments({ status: 'Published' });
@@ -89,6 +91,8 @@ export const getAdminDashboard = async (req, res) => {
     res.json({
       stats: {
         totalStudents,
+        totalBoys,
+        totalGirls,
         totalTeams,
         totalPrograms,
         submittedResults: submittedResultsCount,
