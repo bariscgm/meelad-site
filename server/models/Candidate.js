@@ -32,6 +32,11 @@ const candidateSchema = new mongoose.Schema({
     of: String,
     default: {}
   },
+  groupAssignments: {
+    type: Map,
+    of: String,
+    default: {}
+  },
   status: {
     type: String,
     enum: ['Active', 'Hold'],
