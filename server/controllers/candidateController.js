@@ -42,6 +42,16 @@ export const createCandidate = async (req, res) => {
   try {
     const { name, gender, className, category, programs, team, status } = req.body;
     
+    // Check for duplicate candidate
+    const existingCandidate = await Candidate.findOne({ 
+      name: { $regex: new RegExp(`^${name}$`, 'i') }, 
+      team, 
+      category 
+    });
+    if (existingCandidate) {
+      return res.status(400).json({ message: 'A candidate with the same name and category already exists in your team.' });
+    }
+
     if (programs && programs.length > 0) {
       await checkProgramLimit(category, programs.length);
     }
