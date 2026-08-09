@@ -8,6 +8,35 @@ export default function HomePage() {
   const [categorizedTeams, setCategorizedTeams] = useState({});
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [chestNoSearch, setChestNoSearch] = useState('');
+  const [studentResult, setStudentResult] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState('');
+
+  const handleStudentSearch = async (e) => {
+    e.preventDefault();
+    if (!chestNoSearch.trim()) return;
+    
+    setIsSearching(true);
+    setSearchError('');
+    setStudentResult(null);
+    
+    try {
+      const res = await fetch(`${API_URL}/api/candidates/result/${chestNoSearch.trim()}`);
+      const data = await res.json();
+      
+      if (res.ok) {
+        setStudentResult(data);
+      } else {
+        setSearchError(data.message || 'Student not found');
+      }
+    } catch (error) {
+      setSearchError('Error searching student');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -246,6 +275,68 @@ export default function HomePage() {
               <Link to="/score" className="block text-center w-full mt-6 py-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-medium transition border border-teal-500/20">
                 View Full Scoreboard
               </Link>
+              
+              {/* Student Result Search */}
+              <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-6">
+                <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                  🔍 Search Results
+                </h3>
+                <form onSubmit={handleStudentSearch} className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Enter Chest No..."
+                    className="flex-1 bg-white/10 border border-white/20 text-white placeholder-slate-400 px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    value={chestNoSearch}
+                    onChange={(e) => setChestNoSearch(e.target.value)}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isSearching}
+                    className="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-xl font-medium transition disabled:opacity-50"
+                  >
+                    {isSearching ? 'Searching...' : 'Search'}
+                  </button>
+                </form>
+
+                {searchError && (
+                  <p className="mt-3 text-rose-400 text-sm font-medium">{searchError}</p>
+                )}
+
+                {studentResult && (
+                  <div className="mt-4 space-y-4">
+                    <div className="bg-teal-500/10 border border-teal-500/20 p-4 rounded-xl">
+                      <p className="text-teal-400 text-xs font-bold uppercase tracking-wider mb-1">{studentResult.candidate.team?.name}</p>
+                      <h4 className="text-lg font-bold text-white">{studentResult.candidate.name}</h4>
+                      <p className="text-slate-300 text-sm">Chest No: {studentResult.candidate.chestNo} | {studentResult.candidate.category}</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Published Results</h5>
+                      {studentResult.results.length === 0 ? (
+                        <p className="text-slate-400 text-sm">No published results found.</p>
+                      ) : (
+                        studentResult.results.map((res, idx) => (
+                          <div key={idx} className="flex flex-col gap-1 bg-white/5 p-3 rounded-lg border border-white/5">
+                            <span className="text-sm font-bold text-white">{res.program?.name}</span>
+                            <div className="flex items-center gap-3 mt-1 text-xs">
+                              {res.position ? (
+                                <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
+                                  Position: {res.position}
+                                </span>
+                              ) : null}
+                              {res.grade ? (
+                                <span className="font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
+                                  Grade: {res.grade}
+                                </span>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
             {/* Latest Published Results */}

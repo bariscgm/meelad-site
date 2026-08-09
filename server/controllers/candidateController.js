@@ -155,3 +155,40 @@ export const deleteCandidate = async (req, res) => {
     res.status(500).json({ message: 'Failed to delete candidate' });
   }
 };
+
+// @desc    Get candidate and their published results by chest no
+// @route   GET /api/candidates/result/:chestNo
+export const getStudentResultByChestNo = async (req, res) => {
+  try {
+    const { chestNo } = req.params;
+    const candidate = await Candidate.findOne({ chestNo }).populate('team');
+    
+    if (!candidate) {
+      return res.status(404).json({ message: 'Student not found with this chest number' });
+    }
+
+    const Result = (await import('../models/Result.js')).default;
+    const publishedResults = await Result.find({ status: 'Published' }).populate('program');
+
+    const studentResults = [];
+
+    publishedResults.forEach(result => {
+      const winnerRecord = result.winners.find(w => w.chestNo === chestNo);
+      if (winnerRecord) {
+        studentResults.push({
+          program: result.program,
+          position: winnerRecord.position,
+          grade: winnerRecord.grade,
+          points: winnerRecord.points
+        });
+      }
+    });
+
+    res.json({
+      candidate,
+      results: studentResults
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch student results' });
+  }
+};
