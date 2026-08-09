@@ -228,9 +228,9 @@ export default function RegistrationControl() {
   const filteredCandidates = useMemo(() => {
     return candidates.filter(c => {
       // Search
-      const searchMatch = !search || 
-        c.name.toLowerCase().includes(search.toLowerCase()) || 
-        c._id.slice(-4).includes(search);
+      const searchMatch = !search || c.name.toLowerCase().includes(search.toLowerCase()) || 
+        (c.chestNo && c.chestNo.toString().includes(search)) ||
+        (!c.chestNo && c._id.slice(-4).includes(search));
       
       // Team
       const teamMatch = filterTeam === 'All teams' || (c.team?.name === filterTeam);
@@ -284,7 +284,7 @@ export default function RegistrationControl() {
             <tbody>
               ${filteredCandidates.map(c => `
                 <tr>
-                  <td>${c._id.slice(-4).toUpperCase()}</td>
+                  <td>${c.chestNo || '-'}</td>
                   <td>${c.name}</td>
                   <td>${c.team?.name || 'Unknown'}</td>
                   <td>${c.programs.join(', ')}</td>
@@ -397,7 +397,7 @@ export default function RegistrationControl() {
                     <h3>${c.team?.name || 'Unknown Team'}</h3>
                   </div>
                   <div class="chest-no">
-                    ${c._id.slice(-4).toUpperCase()}
+                    ${c.chestNo || '-'}
                   </div>
                   <div class="programs">
                     ${stagePrograms.length > 0 ? `
@@ -675,7 +675,7 @@ export default function RegistrationControl() {
                 {filteredCandidates.map((c) => (
                   <tr key={c._id} className="hover:bg-slate-50/50 transition">
                     <td className="px-6 py-4 align-top pt-5">
-                      <span className="font-bold text-blue-600">{c._id.slice(-4).toUpperCase()}</span>
+                      <span className="font-bold text-blue-600">{c.chestNo || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="font-bold text-slate-800 text-base">{c.name}</div>

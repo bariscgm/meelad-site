@@ -247,7 +247,7 @@ export default function TeamFormation() {
                               <tr key={candidate._id} className="hover:bg-slate-50/50 transition">
                                 <td className="px-6 py-4">
                                   <span className="text-sm font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-md">
-                                    {candidate._id.slice(-4).toUpperCase()}
+                                    {candidate.chestNo || '-'}
                                   </span>
                                 </td>
                                 <td className="px-6 py-4">

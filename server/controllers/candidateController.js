@@ -46,46 +46,50 @@ export const createCandidate = async (req, res) => {
       await checkProgramLimit(category, programs.length);
     }
 
-    let baseChestNo = 501; // default fallback
+    let chestNoStr = null;
     const catLower = category.toLowerCase();
-    if (catLower.includes('sub junior') || catLower.includes('sub-junior')) baseChestNo = 101;
-    else if (catLower.includes('super senior') || catLower.includes('super-senior')) baseChestNo = 401;
-    else if (catLower.includes('junior')) baseChestNo = 201;
-    else if (catLower.includes('senior')) baseChestNo = 301;
+    
+    if (!catLower.includes('kids') && !catLower.includes('kiddies')) {
+      let baseChestNo = 501; // default fallback
+      if (catLower.includes('sub junior') || catLower.includes('sub-junior')) baseChestNo = 101;
+      else if (catLower.includes('super senior') || catLower.includes('super-senior')) baseChestNo = 401;
+      else if (catLower.includes('junior')) baseChestNo = 201;
+      else if (catLower.includes('senior')) baseChestNo = 301;
 
-    // Find the max chestNo in this category by fetching and parsing
-    const candidatesInCategory = await Candidate.find({ category }).select('chestNo').lean();
-    let maxNum = baseChestNo - 1;
-    for (const c of candidatesInCategory) {
-      if (c.chestNo) {
-        const num = parseInt(c.chestNo, 10);
-        if (!isNaN(num) && num > maxNum) {
-          maxNum = num;
+      // Find the max chestNo in this category by fetching and parsing
+      const candidatesInCategory = await Candidate.find({ category }).select('chestNo').lean();
+      let maxNum = baseChestNo - 1;
+      for (const c of candidatesInCategory) {
+        if (c.chestNo) {
+          const num = parseInt(c.chestNo, 10);
+          if (!isNaN(num) && num > maxNum) {
+            maxNum = num;
+          }
         }
       }
-    }
-    let nextChestNo = maxNum + 1;
+      let nextChestNo = maxNum + 1;
 
-    // Ensure uniqueness
-    let isUnique = false;
-    let attempts = 0;
-    while (!isUnique && attempts < 100) {
-      const existing = await Candidate.findOne({ chestNo: nextChestNo.toString() }).lean();
-      if (existing) {
-        nextChestNo++;
-        attempts++;
-      } else {
-        isUnique = true;
+      // Ensure uniqueness
+      let isUnique = false;
+      let attempts = 0;
+      while (!isUnique && attempts < 100) {
+        const existing = await Candidate.findOne({ chestNo: nextChestNo.toString() }).lean();
+        if (existing) {
+          nextChestNo++;
+          attempts++;
+        } else {
+          isUnique = true;
+        }
       }
+      chestNoStr = nextChestNo.toString();
     }
-    const chestNoStr = nextChestNo.toString();
     
     const candidate = await Candidate.create({
       name,
       gender,
       className,
       category,
-      chestNo: chestNoStr,
+      ...(chestNoStr && { chestNo: chestNoStr }),
       programs,
       team,
       status: status || 'Active'

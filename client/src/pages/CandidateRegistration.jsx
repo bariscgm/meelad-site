@@ -346,7 +346,7 @@ export default function CandidateRegistration() {
             <tbody>
               ${filteredCandidates.map(c => `
                 <tr>
-                  <td>${c._id.slice(-4).toUpperCase()}</td>
+                  <td>${c.chestNo || '-'}</td>
                   <td>${c.name}</td>
                   <td>${c.programs.join(', ')}</td>
                 </tr>
@@ -454,7 +454,7 @@ export default function CandidateRegistration() {
                     <h3>${user.team || 'Unknown Team'}</h3>
                   </div>
                   <div class="chest-no">
-                    ${c._id.slice(-4).toUpperCase()}
+                    ${c.chestNo || '-'}
                   </div>
                   <div class="programs">
                     ${stagePrograms.length > 0 ? `
