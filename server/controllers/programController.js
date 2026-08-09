@@ -218,7 +218,8 @@ export const getProgramCandidates = async (req, res) => {
       const groupMap = {};
       candidates.forEach(cand => {
         const programIdStr = program._id.toString();
-        const groupName = cand.groupAssignments?.get(programIdStr);
+        // Check both ID and Name to support older data formats
+        const groupName = cand.groupAssignments?.get(programIdStr) || cand.groupAssignments?.get(program.name);
         if (!groupName) return; // Skip if not assigned to a group
 
         const key = `${cand.team._id.toString()}_${groupName}`;
@@ -232,10 +233,10 @@ export const getProgramCandidates = async (req, res) => {
             programCodes: cand.programCodes || {},
             absentPrograms: cand.absentPrograms || [],
             isGroup: true,
-            memberIds: [cand._id]
+            members: [{ _id: cand._id, name: cand.name, chestNo: cand.chestNo }]
           };
         } else {
-          groupMap[key].memberIds.push(cand._id);
+          groupMap[key].members.push({ _id: cand._id, name: cand.name, chestNo: cand.chestNo });
         }
       });
       return res.json(Object.values(groupMap));

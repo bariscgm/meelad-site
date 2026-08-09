@@ -176,7 +176,7 @@ export const getStudentResultByChestNo = async (req, res) => {
       if (!result.program) continue;
 
       if (result.program.type === 'Group') {
-        const groupName = candidate.groupAssignments?.get(result.program._id.toString());
+        const groupName = candidate.groupAssignments?.get(result.program._id.toString()) || candidate.groupAssignments?.get(result.program.name);
         if (groupName) {
            const winnerRecord = result.winners.find(w => 
              w.team && w.team.toString() === candidate.team._id.toString() && w.name === groupName
@@ -185,7 +185,10 @@ export const getStudentResultByChestNo = async (req, res) => {
            if (winnerRecord) {
              const membersCount = await Candidate.countDocuments({
                team: candidate.team._id,
-               [`groupAssignments.${result.program._id.toString()}`]: groupName,
+               $or: [
+                 { [`groupAssignments.${result.program._id.toString()}`]: groupName },
+                 { [`groupAssignments.${result.program.name}`]: groupName }
+               ],
                status: 'Active'
              });
              

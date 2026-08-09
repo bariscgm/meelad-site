@@ -442,6 +442,11 @@ export default function StageDashboard() {
                                 <div className="flex flex-col">
                                   <span className="font-semibold text-slate-700">{idx + 1}. {cand.name}</span>
                                   <span className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'} • {cand.className}</span>
+                                  {cand.isGroup && cand.members && (
+                                    <div className="mt-1 text-xs text-slate-400">
+                                      Members: {cand.members.map(m => m.name).join(', ')}
+                                    </div>
+                                  )}
                                 </div>
                                 <div className="flex flex-col items-end gap-2">
                                   {cand.programCodes && cand.programCodes[program._id] ? (
