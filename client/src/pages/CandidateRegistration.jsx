@@ -707,7 +707,10 @@ export default function CandidateRegistration() {
             onChange={(e) => setFilterProgram(e.target.value)}
           >
             <option>All programmes</option>
-            {allPrograms.map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
+            {allPrograms
+              .filter(p => filterCategory === 'All categories' || p.category === filterCategory)
+              .filter(p => filterGender === 'All genders' || p.gender === filterGender)
+              .map(p => <option key={p._id} value={p.name}>{p.name}</option>)}
           </select>
 
           <select 
