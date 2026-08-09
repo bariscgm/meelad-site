@@ -85,7 +85,19 @@ export default function ScheduleManagement() {
       const durMatch = (p.duration || '5').toString().match(/\d+/);
       const duration = durMatch ? parseInt(durMatch[0]) : 5;
       
-      const timeNeeded = count * duration;
+      let timeNeeded = 0;
+      
+      if (p.venueType === 'OFF-STAGE') {
+        // All participants perform simultaneously
+        timeNeeded = count > 0 ? duration : 0;
+      } else if (p.type === 'Group') {
+        // 3 people per group, each group takes `duration` time
+        timeNeeded = Math.ceil(count / 3) * duration;
+      } else {
+        // Individual stage items
+        timeNeeded = count * duration;
+      }
+      
       totalRequired += timeNeeded;
       
       breakdown.push({
