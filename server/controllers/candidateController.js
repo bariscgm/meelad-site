@@ -49,7 +49,8 @@ export const createCandidate = async (req, res) => {
       category 
     });
     if (existingCandidate) {
-      return res.status(400).json({ message: 'A candidate with the same name and category already exists in your team.' });
+      const chestNoText = existingCandidate.chestNo ? ` Their chest number is ${existingCandidate.chestNo}.` : '';
+      return res.status(400).json({ message: `A candidate with the name "${name}" in the "${category}" category already exists in your team.${chestNoText}` });
     }
 
     if (programs && programs.length > 0) {
