@@ -361,6 +361,7 @@ import CandidateRegistration from './pages/CandidateRegistration';
 import RegistrationControl from './pages/RegistrationControl';
 import TeamResults from './pages/TeamResults';
 import TeamFormation from './pages/TeamFormation';
+import ScheduleManagement from './pages/ScheduleManagement';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -387,6 +388,7 @@ function App() {
             <Route path="controller" element={<ControllerManagement />} />
             <Route path="controls" element={<ControllerManagement />} />
             <Route path="registrations" element={<RegistrationControl />} />
+            <Route path="schedule" element={<ScheduleManagement />} />
           </Route>
         </Route>
 
