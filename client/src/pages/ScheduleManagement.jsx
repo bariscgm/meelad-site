@@ -357,11 +357,10 @@ export default function ScheduleManagement() {
               <select 
                 value={programmeType}
                 onChange={(e) => setProgrammeType(e.target.value)}
-                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm text-slate-700 appearance-none"
+                className="w-full pl-3 pr-10 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition shadow-sm text-slate-700"
               >
                 <option value="Stage + Off-stage">Stage + Off-stage</option>
-                <option value="Stage">Stage</option>
-                <option value="Off-stage">Off-stage</option>
+                {dynamicVenues.map(v => <option key={v} value={v}>{v}</option>)}
               </select>
             </div>
           </div>
