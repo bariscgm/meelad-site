@@ -5,7 +5,8 @@ import {
   getAllCandidates,
   updateCandidate, 
   deleteCandidate,
-  getStudentResultByChestNo
+  getStudentResultByChestNo,
+  toggleAbsentStatus
 } from '../controllers/candidateController.js';
 
 const router = express.Router();
@@ -15,6 +16,7 @@ router.get('/', getAllCandidates);
 router.get('/result/:chestNo', getStudentResultByChestNo);
 router.get('/team/:teamId', getCandidatesByTeam);
 router.put('/:id', updateCandidate);
+router.put('/:id/absent', toggleAbsentStatus);
 router.delete('/:id', deleteCandidate);
 
 export default router;

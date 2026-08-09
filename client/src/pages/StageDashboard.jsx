@@ -201,6 +201,31 @@ export default function StageDashboard() {
     }
   };
 
+  const handleToggleAbsent = async (candidateId, programId) => {
+    try {
+      const res = await fetch(`${API_URL}/api/candidates/${candidateId}/absent`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ programId })
+      });
+      if (res.ok) {
+        const updatedCandidate = await res.json();
+        setCandidatesByProgram(prev => {
+          const programCandidates = prev[programId] || [];
+          const newCandidates = programCandidates.map(c => 
+            c._id === candidateId ? { ...c, absentPrograms: updatedCandidate.absentPrograms } : c
+          );
+          return { ...prev, [programId]: newCandidates };
+        });
+      } else {
+        Swal.fire('Error', 'Failed to update absent status', 'error');
+      }
+    } catch (error) {
+      console.error('Failed to toggle absent status:', error);
+      Swal.fire('Error', 'Network error occurred', 'error');
+    }
+  };
+
   const filteredPrograms = programs.filter(p => {
     const classMatch = filterClass === 'All' || p.class === filterClass;
     const categoryMatch = filterCategory === 'All' || p.category === filterCategory;
@@ -414,7 +439,7 @@ export default function StageDashboard() {
                                   <span className="font-semibold text-slate-700">{idx + 1}. {cand.name}</span>
                                   <span className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'} • {cand.className}</span>
                                 </div>
-                                <div className="flex flex-col items-end">
+                                <div className="flex flex-col items-end gap-2">
                                   {cand.programCodes && cand.programCodes[program._id] ? (
                                     <span className="px-2 py-1 bg-amber-100 text-amber-800 font-bold text-xs rounded">
                                       Code: {cand.programCodes[program._id]}
@@ -424,6 +449,16 @@ export default function StageDashboard() {
                                       No Code
                                     </span>
                                   )}
+                                  <button
+                                    onClick={() => handleToggleAbsent(cand._id, program._id)}
+                                    className={`px-2 py-1 text-xs font-bold rounded border transition ${
+                                      cand.absentPrograms && cand.absentPrograms.includes(program._id)
+                                        ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                                        : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100'
+                                    }`}
+                                  >
+                                    {cand.absentPrograms && cand.absentPrograms.includes(program._id) ? 'Marked Absent' : 'Mark Absent'}
+                                  </button>
                                 </div>
                               </li>
                             ))}

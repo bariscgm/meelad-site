@@ -192,3 +192,27 @@ export const getStudentResultByChestNo = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch student results' });
   }
 };
+
+// @desc    Toggle candidate absent status for a program
+// @route   PUT /api/candidates/:id/absent
+export const toggleAbsentStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { programId } = req.body;
+    
+    const candidate = await Candidate.findById(id);
+    if (!candidate) return res.status(404).json({ message: 'Candidate not found' });
+    
+    const index = candidate.absentPrograms.indexOf(programId);
+    if (index === -1) {
+      candidate.absentPrograms.push(programId);
+    } else {
+      candidate.absentPrograms.splice(index, 1);
+    }
+    
+    await candidate.save();
+    res.json(candidate);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to toggle absent status' });
+  }
+};

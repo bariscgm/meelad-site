@@ -42,6 +42,10 @@ const candidateSchema = new mongoose.Schema({
     of: String,
     default: {}
   },
+  absentPrograms: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Program'
+  }],
   status: {
     type: String,
     enum: ['Active', 'Hold'],
