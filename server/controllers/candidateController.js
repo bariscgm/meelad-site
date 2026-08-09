@@ -172,17 +172,43 @@ export const getStudentResultByChestNo = async (req, res) => {
 
     const studentResults = [];
 
-    publishedResults.forEach(result => {
-      const winnerRecord = result.winners.find(w => w.chestNo === chestNo);
-      if (winnerRecord) {
-        studentResults.push({
-          program: result.program,
-          position: winnerRecord.position,
-          grade: winnerRecord.grade,
-          points: winnerRecord.points
-        });
+    for (const result of publishedResults) {
+      if (!result.program) continue;
+
+      if (result.program.type === 'Group') {
+        const groupName = candidate.groupAssignments?.get(result.program._id.toString());
+        if (groupName) {
+           const winnerRecord = result.winners.find(w => 
+             w.team && w.team.toString() === candidate.team._id.toString() && w.name === groupName
+           );
+           
+           if (winnerRecord) {
+             const membersCount = await Candidate.countDocuments({
+               team: candidate.team._id,
+               [`groupAssignments.${result.program._id.toString()}`]: groupName,
+               status: 'Active'
+             });
+             
+             studentResults.push({
+               program: result.program,
+               position: winnerRecord.position,
+               grade: winnerRecord.grade,
+               points: membersCount > 0 ? (winnerRecord.points / membersCount) : winnerRecord.points
+             });
+           }
+        }
+      } else {
+        const winnerRecord = result.winners.find(w => w.chestNo === chestNo);
+        if (winnerRecord) {
+          studentResults.push({
+            program: result.program,
+            position: winnerRecord.position,
+            grade: winnerRecord.grade,
+            points: winnerRecord.points
+          });
+        }
       }
-    });
+    }
 
     res.json({
       candidate,

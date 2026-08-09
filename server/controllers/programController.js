@@ -213,6 +213,34 @@ export const getProgramCandidates = async (req, res) => {
     }
 
     const candidates = await Candidate.find(query).populate('team', 'name code').sort({ createdAt: 1 });
+
+    if (program.type === 'Group') {
+      const groupMap = {};
+      candidates.forEach(cand => {
+        const programIdStr = program._id.toString();
+        const groupName = cand.groupAssignments?.get(programIdStr);
+        if (!groupName) return; // Skip if not assigned to a group
+
+        const key = `${cand.team._id.toString()}_${groupName}`;
+        
+        if (!groupMap[key]) {
+          groupMap[key] = {
+            _id: key,
+            name: groupName,
+            team: cand.team,
+            className: 'Group',
+            programCodes: cand.programCodes || {},
+            absentPrograms: cand.absentPrograms || [],
+            isGroup: true,
+            memberIds: [cand._id]
+          };
+        } else {
+          groupMap[key].memberIds.push(cand._id);
+        }
+      });
+      return res.json(Object.values(groupMap));
+    }
+
     res.json(candidates);
   } catch (error) {
     res.status(500).json({ message: 'Server Error: ' + error.message });
@@ -237,13 +265,32 @@ export const shuffleProgramCodes = async (req, res) => {
     }
 
     const candidates = await Candidate.find(query);
-    if (candidates.length === 0) {
-      return res.status(400).json({ message: 'No active candidates found in this program' });
+    let targetEntities = [];
+    let isGroup = program.type === 'Group';
+
+    if (isGroup) {
+      const groupMap = {};
+      candidates.forEach(cand => {
+        const groupName = cand.groupAssignments?.get(program._id.toString());
+        if (!groupName) return;
+        const key = `${cand.team._id.toString()}_${groupName}`;
+        if (!groupMap[key]) {
+          groupMap[key] = [];
+        }
+        groupMap[key].push(cand);
+      });
+      targetEntities = Object.values(groupMap);
+    } else {
+      targetEntities = candidates.map(cand => [cand]); // Array of arrays of 1 element
     }
 
-    // Generate letters (A, B, C...)
+    if (targetEntities.length === 0) {
+      return res.status(400).json({ message: 'No active entities found in this program' });
+    }
+
+    // Generate letters (A, B, C...) based on target entities count
     const letters = [];
-    for (let i = 0; i < candidates.length; i++) {
+    for (let i = 0; i < targetEntities.length; i++) {
       letters.push(String.fromCharCode(65 + i));
     }
 
@@ -254,10 +301,16 @@ export const shuffleProgramCodes = async (req, res) => {
     }
 
     // Save to candidates
-    await Promise.all(candidates.map((cand, idx) => {
-      cand.set(`programCodes.${program._id.toString()}`, letters[idx]);
-      return cand.save();
-    }));
+    const savePromises = [];
+    targetEntities.forEach((groupOrCand, idx) => {
+      const letter = letters[idx];
+      groupOrCand.forEach(cand => {
+        cand.set(`programCodes.${program._id.toString()}`, letter);
+        savePromises.push(cand.save());
+      });
+    });
+
+    await Promise.all(savePromises);
 
     // Update program status
     program.isCodeShuffled = true;

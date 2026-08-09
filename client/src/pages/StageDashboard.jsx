@@ -201,28 +201,32 @@ export default function StageDashboard() {
     }
   };
 
-  const handleToggleAbsent = async (candidateId, programId) => {
+  const handleToggleAbsent = async (cand, programId) => {
     try {
-      const res = await fetch(`${API_URL}/api/candidates/${candidateId}/absent`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ programId })
+      const candidateIds = cand.isGroup ? cand.memberIds : [cand._id];
+      const promises = candidateIds.map(id => 
+        fetch(`${API_URL}/api/candidates/${id}/absent`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ programId })
+        }).then(res => {
+          if (!res.ok) throw new Error('Failed to update');
+          return res.json();
+        })
+      );
+      
+      const updatedCandidates = await Promise.all(promises);
+      
+      setCandidatesByProgram(prev => {
+        const programCandidates = prev[programId] || [];
+        const newCandidates = programCandidates.map(c => 
+          (c._id === cand._id) ? { ...c, absentPrograms: updatedCandidates[0].absentPrograms } : c
+        );
+        return { ...prev, [programId]: newCandidates };
       });
-      if (res.ok) {
-        const updatedCandidate = await res.json();
-        setCandidatesByProgram(prev => {
-          const programCandidates = prev[programId] || [];
-          const newCandidates = programCandidates.map(c => 
-            c._id === candidateId ? { ...c, absentPrograms: updatedCandidate.absentPrograms } : c
-          );
-          return { ...prev, [programId]: newCandidates };
-        });
-      } else {
-        Swal.fire('Error', 'Failed to update absent status', 'error');
-      }
     } catch (error) {
       console.error('Failed to toggle absent status:', error);
-      Swal.fire('Error', 'Network error occurred', 'error');
+      Swal.fire('Error', 'Failed to update absent status', 'error');
     }
   };
 
@@ -450,7 +454,7 @@ export default function StageDashboard() {
                                     </span>
                                   )}
                                   <button
-                                    onClick={() => handleToggleAbsent(cand._id, program._id)}
+                                    onClick={() => handleToggleAbsent(cand, program._id)}
                                     className={`px-2 py-1 text-xs font-bold rounded border transition ${
                                       cand.absentPrograms && cand.absentPrograms.includes(program._id)
                                         ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
