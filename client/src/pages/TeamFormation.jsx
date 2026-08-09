@@ -37,7 +37,7 @@ export default function TeamFormation() {
         setCategories(uniqueCategories);
 
         if (uniqueCategories.length > 0) {
-          setSelectedCategory(uniqueCategories[0]);
+          setSelectedCategory('All Categories');
         }
       }
 
@@ -58,7 +58,9 @@ export default function TeamFormation() {
     setSelectedProgram(null);
   };
 
-  const filteredPrograms = programs.filter(p => p.category === selectedCategory);
+  const filteredPrograms = selectedCategory === 'All Categories' 
+    ? programs 
+    : programs.filter(p => p.category === selectedCategory);
 
   const eligibleCandidates = selectedProgram
     ? candidates.filter(c => c.programs.includes(selectedProgram.name))
@@ -100,7 +102,7 @@ export default function TeamFormation() {
   };
 
   // Group names available
-  const availableGroups = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E'];
+  const availableGroups = ['Group 1', 'Group 2', 'Group 3', 'Group 4', 'Group 5'];
 
   // Count candidates assigned to each group for the selected program
   const getGroupCounts = () => {
@@ -144,9 +146,12 @@ export default function TeamFormation() {
                   className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition"
                 >
                   {categories.length > 0 ? (
-                    categories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))
+                    <>
+                      <option value="All Categories">All Categories</option>
+                      {categories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </>
                   ) : (
                     <option value="">No categories found</option>
                   )}
