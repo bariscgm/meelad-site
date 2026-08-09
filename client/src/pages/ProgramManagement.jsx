@@ -67,12 +67,31 @@ export default function ProgramManagement() {
     duration: '10 min',
   });
 
-  // Unique lists for dropdown options
-  const typesList = ['Individual', 'Group'];
-  const gendersList = ['Boy', 'Girl', 'General'];
-  const venuesList = ['STAGE', 'OFF-STAGE'];
+  // Cascading Filter Logic
+  const getAvailableOptions = (field) => {
+    return [...new Set(programs.filter(p => {
+      if (field !== 'category' && selectedCategory !== 'All' && p.category !== selectedCategory) return false;
+      if (field !== 'gender' && selectedGender !== 'All' && p.gender !== selectedGender) return false;
+      if (field !== 'type' && selectedType !== 'All' && p.type !== selectedType) return false;
+      if (field !== 'venueType' && selectedVenue !== 'All' && p.venueType !== selectedVenue) return false;
+      return true;
+    }).map(p => p[field]))].filter(Boolean).sort();
+  };
 
-  // Filter logic
+  const dynamicCategories = getAvailableOptions('category');
+  const typesList = getAvailableOptions('type');
+  const gendersList = getAvailableOptions('gender');
+  const venuesList = getAvailableOptions('venueType');
+
+  // Reset invalid selections when dependencies change
+  useEffect(() => {
+    if (selectedCategory !== 'All' && !dynamicCategories.includes(selectedCategory)) setSelectedCategory('All');
+    if (selectedType !== 'All' && !typesList.includes(selectedType)) setSelectedType('All');
+    if (selectedGender !== 'All' && !gendersList.includes(selectedGender)) setSelectedGender('All');
+    if (selectedVenue !== 'All' && !venuesList.includes(selectedVenue)) setSelectedVenue('All');
+  }, [selectedCategory, selectedType, selectedGender, selectedVenue, dynamicCategories, typesList, gendersList, venuesList]);
+
+  // Filter logic for the table
   const filteredPrograms = programs.filter((p) => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           p.category.toLowerCase().includes(searchTerm.toLowerCase());
@@ -526,10 +545,10 @@ export default function ProgramManagement() {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none transition text-sm text-slate-800"
             >
-              <option value="All">All categories</option>
-              {categoriesList.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
+              <option value="All">All Categories</option>
+              {dynamicCategories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
                 </option>
               ))}
             </select>
