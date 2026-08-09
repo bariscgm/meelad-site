@@ -351,6 +351,7 @@ import Login from './pages/Login';
 import CandidateRegistration from './pages/CandidateRegistration';
 import RegistrationControl from './pages/RegistrationControl';
 import TeamResults from './pages/TeamResults';
+import TeamFormation from './pages/TeamFormation';
 import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
@@ -386,6 +387,7 @@ function App() {
             <Route index element={<TeamDashboard />} />
             <Route path="students" element={<CandidateRegistration />} />
             <Route path="results" element={<TeamResults />} />
+            <Route path="formation" element={<TeamFormation />} />
           </Route>
         </Route>
         
