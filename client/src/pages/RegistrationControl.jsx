@@ -694,6 +694,21 @@ export default function RegistrationControl() {
       </div>
 
       {/* List */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <div className="bg-indigo-50/50 border border-indigo-100 px-5 py-3 rounded-2xl flex items-center gap-4">
+          <span className="text-slate-500 font-semibold text-sm">Total Students:</span>
+          <span className="text-xl font-bold text-indigo-700">{filteredCandidates.length}</span>
+        </div>
+        <div className="bg-blue-50/50 border border-blue-100 px-5 py-3 rounded-2xl flex items-center gap-4">
+          <span className="text-slate-500 font-semibold text-sm">Boys:</span>
+          <span className="text-xl font-bold text-blue-700">{filteredCandidates.filter(c => c.gender === 'Boy' || c.gender === 'Male').length}</span>
+        </div>
+        <div className="bg-pink-50/50 border border-pink-100 px-5 py-3 rounded-2xl flex items-center gap-4">
+          <span className="text-slate-500 font-semibold text-sm">Girls:</span>
+          <span className="text-xl font-bold text-pink-700">{filteredCandidates.filter(c => c.gender === 'Girl' || c.gender === 'Female').length}</span>
+        </div>
+      </div>
+
       <div className="glass rounded-3xl overflow-hidden">
         {loading ? (
           <div className="p-12 text-center text-slate-500">Loading registrations...</div>
