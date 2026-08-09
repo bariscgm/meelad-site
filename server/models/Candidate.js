@@ -11,6 +11,11 @@ const candidateSchema = new mongoose.Schema({
     required: true,
     enum: ['Male', 'Female', 'Boy', 'Girl', 'General']
   },
+  chestNo: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   className: {
     type: String,
     required: true,

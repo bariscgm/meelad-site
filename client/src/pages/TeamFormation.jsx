@@ -178,6 +178,9 @@ export default function TeamFormation() {
                           </h4>
                         </div>
                         <div className="flex flex-wrap gap-2 text-xs mt-2">
+                          <span className="bg-teal-50 text-teal-700 px-2 py-0.5 rounded font-medium border border-teal-100">
+                            {program.category}
+                          </span>
                           <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
                             {program.gender === 'General' ? 'All Genders' : program.gender}
                           </span>
