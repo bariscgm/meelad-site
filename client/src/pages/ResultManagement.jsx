@@ -84,6 +84,32 @@ export default function ResultManagement() {
     fetchCategories();
   }, []);
 
+  // Cascading Filter Logic
+  const getAvailableOptions = (field) => {
+    return [...new Set(results.filter(r => {
+      if (field !== 'category' && selectedCategory !== 'All' && r.program?.category !== selectedCategory) return false;
+      if (field !== 'gender' && selectedGender !== 'All' && r.program?.gender !== selectedGender) return false;
+      if (field !== 'status' && selectedStatus !== 'All' && r.status !== selectedStatus) return false;
+      return true;
+    }).map(r => {
+      if (field === 'category') return r.program?.category;
+      if (field === 'gender') return r.program?.gender;
+      if (field === 'status') return r.status;
+      return null;
+    }))].filter(Boolean).sort();
+  };
+
+  const dynamicCategories = getAvailableOptions('category');
+  const dynamicGenders = getAvailableOptions('gender');
+  const dynamicStatuses = getAvailableOptions('status');
+
+  // Reset invalid selections
+  useEffect(() => {
+    if (selectedCategory !== 'All' && !dynamicCategories.includes(selectedCategory)) setSelectedCategory('All');
+    if (selectedGender !== 'All' && !dynamicGenders.includes(selectedGender)) setSelectedGender('All');
+    if (selectedStatus !== 'All' && !dynamicStatuses.includes(selectedStatus)) setSelectedStatus('All');
+  }, [selectedCategory, selectedGender, selectedStatus, dynamicCategories, dynamicGenders, dynamicStatuses]);
+
   // Filtered results
   const filteredResults = results.filter((r) => {
     const matchesSearch =
@@ -343,8 +369,9 @@ export default function ResultManagement() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none transition text-sm text-slate-800"
           >
-            {categoriesList.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+            <option value="All">All Categories</option>
+            {dynamicCategories.map((c) => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
         </div>
@@ -355,9 +382,9 @@ export default function ResultManagement() {
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none transition text-sm text-slate-800"
           >
             <option value="All">All Genders</option>
-            <option value="Boy">Boy</option>
-            <option value="Girl">Girl</option>
-            <option value="General">General</option>
+            {dynamicGenders.map((g) => (
+              <option key={g} value={g}>{g}</option>
+            ))}
           </select>
         </div>
         <div>
@@ -367,9 +394,9 @@ export default function ResultManagement() {
             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white/80 focus:bg-white focus:ring-2 focus:ring-teal-500 focus:outline-none transition text-sm text-slate-800"
           >
             <option value="All">All Statuses</option>
-            <option value="Published">Published Only</option>
-            <option value="Draft">Draft (Pending)</option>
-            <option value="Hold">Hold Results</option>
+            {dynamicStatuses.map((s) => (
+              <option key={s} value={s}>{s === 'Published' ? 'Published Only' : s === 'Draft' ? 'Draft (Pending)' : 'Hold Results'}</option>
+            ))}
           </select>
         </div>
       </div>

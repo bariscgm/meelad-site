@@ -452,6 +452,7 @@ export default function CandidateRegistration() {
                   <div class="card-header">
                     <h2>${c.name}</h2>
                     <h3>${user.team || 'Unknown Team'}</h3>
+                    <h3 style="margin-top: 2px;">${c.className || ''}</h3>
                   </div>
                   <div class="chest-no">
                     ${c.chestNo || '-'}
