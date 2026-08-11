@@ -319,12 +319,14 @@ export default function CandidateRegistration() {
       return searchMatch && categoryMatch && programMatch && genderMatch;
     }).sort((a, b) => {
       const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
-      let idxA = order.findIndex(o => o.toLowerCase() === a.category.toLowerCase());
-      let idxB = order.findIndex(o => o.toLowerCase() === b.category.toLowerCase());
+      let catA = a.category ? a.category.toLowerCase() : '';
+      let catB = b.category ? b.category.toLowerCase() : '';
+      let idxA = order.findIndex(o => o.toLowerCase() === catA);
+      let idxB = order.findIndex(o => o.toLowerCase() === catB);
       if (idxA === -1) idxA = 999;
       if (idxB === -1) idxB = 999;
       if (idxA !== idxB) return idxA - idxB;
-      return a.name.localeCompare(b.name);
+      return (a.name || '').localeCompare(b.name || '');
     });
   }, [candidates, search, filterCategory, filterProgram, filterGender]);
 
@@ -473,7 +475,7 @@ export default function CandidateRegistration() {
                   <div class="card-header">
                     <h2>${c.name}</h2>
                     <h3>${user.team || 'Unknown Team'}</h3>
-                    <h3 style="margin-top: 2px;">${c.className || ''}</h3>
+                    <h3 style="margin-top: 2px;">Class: ${c.className || '-'}</h3>
                   </div>
                   <div class="chest-no">
                     ${c.chestNo || '-'}
