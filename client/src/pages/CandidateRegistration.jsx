@@ -46,7 +46,16 @@ export default function CandidateRegistration() {
         }
         if (catRes.ok) {
           const catData = await catRes.json();
-          setCategories(catData);
+          const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
+          const sortedCats = catData.sort((a, b) => {
+            let idxA = order.findIndex(o => o.toLowerCase() === a.name.toLowerCase());
+            let idxB = order.findIndex(o => o.toLowerCase() === b.name.toLowerCase());
+            if (idxA === -1) idxA = 999;
+            if (idxB === -1) idxB = 999;
+            if (idxA !== idxB) return idxA - idxB;
+            return a.name.localeCompare(b.name);
+          });
+          setCategories(sortedCats);
         }
         if (candRes.ok) {
           const candData = await candRes.json();

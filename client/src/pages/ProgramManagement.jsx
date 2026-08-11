@@ -38,7 +38,16 @@ export default function ProgramManagement() {
       const res = await fetch(`${API_URL}/api/categories`);
       if (res.ok) {
         const data = await res.json();
-        setCategoriesList(data.map(c => c.name));
+        const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
+        const cats = data.map(c => c.name).sort((a, b) => {
+          let idxA = order.findIndex(o => o.toLowerCase() === a.toLowerCase());
+          let idxB = order.findIndex(o => o.toLowerCase() === b.toLowerCase());
+          if (idxA === -1) idxA = 999;
+          if (idxB === -1) idxB = 999;
+          if (idxA !== idxB) return idxA - idxB;
+          return a.localeCompare(b);
+        });
+        setCategoriesList(cats);
       }
     } catch (error) {
       console.error('Failed to fetch categories:', error);
@@ -69,13 +78,26 @@ export default function ProgramManagement() {
 
   // Cascading Filter Logic
   const getAvailableOptions = (field) => {
-    return [...new Set(programs.filter(p => {
+    const options = [...new Set(programs.filter(p => {
       if (field !== 'category' && selectedCategory !== 'All' && p.category !== selectedCategory) return false;
       if (field !== 'gender' && selectedGender !== 'All' && p.gender !== selectedGender) return false;
       if (field !== 'type' && selectedType !== 'All' && p.type !== selectedType) return false;
       if (field !== 'venueType' && selectedVenue !== 'All' && p.venueType !== selectedVenue) return false;
       return true;
-    }).map(p => p[field]))].filter(Boolean).sort();
+    }).map(p => p[field]))].filter(Boolean);
+
+    if (field === 'category') {
+      const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
+      return options.sort((a, b) => {
+        let idxA = order.findIndex(o => o.toLowerCase() === a.toLowerCase());
+        let idxB = order.findIndex(o => o.toLowerCase() === b.toLowerCase());
+        if (idxA === -1) idxA = 999;
+        if (idxB === -1) idxB = 999;
+        if (idxA !== idxB) return idxA - idxB;
+        return a.localeCompare(b);
+      });
+    }
+    return options.sort();
   };
 
   const dynamicCategories = getAvailableOptions('category');
@@ -100,6 +122,14 @@ export default function ProgramManagement() {
     const matchesVenue = selectedVenue === 'All' || p.venueType === selectedVenue;
     const matchesGender = selectedGender === 'All' || p.gender === selectedGender;
     return matchesSearch && matchesCategory && matchesType && matchesVenue && matchesGender;
+  }).sort((a, b) => {
+    const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
+    let idxA = order.findIndex(o => o.toLowerCase() === a.category.toLowerCase());
+    let idxB = order.findIndex(o => o.toLowerCase() === b.category.toLowerCase());
+    if (idxA === -1) idxA = 999;
+    if (idxB === -1) idxB = 999;
+    if (idxA !== idxB) return idxA - idxB;
+    return a.name.localeCompare(b.name);
   });
 
   // Handle modal submit (Add / Edit)
