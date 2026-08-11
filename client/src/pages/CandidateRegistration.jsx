@@ -317,6 +317,14 @@ export default function CandidateRegistration() {
       const genderMatch = filterGender === 'All genders' || c.gender === filterGender;
 
       return searchMatch && categoryMatch && programMatch && genderMatch;
+    }).sort((a, b) => {
+      const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
+      let idxA = order.findIndex(o => o.toLowerCase() === a.category.toLowerCase());
+      let idxB = order.findIndex(o => o.toLowerCase() === b.category.toLowerCase());
+      if (idxA === -1) idxA = 999;
+      if (idxB === -1) idxB = 999;
+      if (idxA !== idxB) return idxA - idxB;
+      return a.name.localeCompare(b.name);
     });
   }, [candidates, search, filterCategory, filterProgram, filterGender]);
 
@@ -349,6 +357,8 @@ export default function CandidateRegistration() {
               <tr>
                 <th>Reg. No.</th>
                 <th>Student Name</th>
+                <th>Class</th>
+                <th>Category</th>
                 <th>Programmes</th>
               </tr>
             </thead>
@@ -357,6 +367,8 @@ export default function CandidateRegistration() {
                 <tr>
                   <td>${c.chestNo || '-'}</td>
                   <td>${c.name}</td>
+                  <td>${c.className || '-'}</td>
+                  <td>${c.category || '-'}</td>
                   <td>${c.programs.join(', ')}</td>
                 </tr>
               `).join('')}
