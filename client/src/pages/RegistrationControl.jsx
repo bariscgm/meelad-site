@@ -269,6 +269,16 @@ export default function RegistrationControl() {
       const genderMatch = filterGender === 'All genders' || c.gender === filterGender;
 
       return searchMatch && teamMatch && categoryMatch && programMatch && genderMatch;
+    }).sort((a, b) => {
+      const order = ['Kiddies', 'Sub Junior', 'Junior', 'Senior', 'Super Senior', 'General'];
+      let catA = a.category ? a.category.toLowerCase() : '';
+      let catB = b.category ? b.category.toLowerCase() : '';
+      let idxA = order.findIndex(o => o.toLowerCase() === catA);
+      let idxB = order.findIndex(o => o.toLowerCase() === catB);
+      if (idxA === -1) idxA = 999;
+      if (idxB === -1) idxB = 999;
+      if (idxA !== idxB) return idxA - idxB;
+      return (a.name || '').localeCompare(b.name || '');
     });
   }, [candidates, search, filterTeam, filterCategory, filterProgram, filterGender]);
 
@@ -302,6 +312,8 @@ export default function RegistrationControl() {
                 <th>Reg. No.</th>
                 <th>Student Name</th>
                 <th>Team</th>
+                <th>Class</th>
+                <th>Category</th>
                 <th>Programmes</th>
               </tr>
             </thead>
@@ -311,6 +323,8 @@ export default function RegistrationControl() {
                   <td>${c.chestNo || '-'}</td>
                   <td>${c.name}</td>
                   <td>${c.team?.name || 'Unknown'}</td>
+                  <td>${c.className || '-'}</td>
+                  <td>${c.category || '-'}</td>
                   <td>${c.programs.join(', ')}</td>
                 </tr>
               `).join('')}
@@ -419,6 +433,7 @@ export default function RegistrationControl() {
                   <div class="card-header">
                     <h2>${c.name}</h2>
                     <h3>${c.team?.name || 'Unknown Team'}</h3>
+                    <h3 style="margin-top: 2px;">Class: ${c.className || '-'}</h3>
                   </div>
                   <div class="chest-no">
                     ${c.chestNo || '-'}
