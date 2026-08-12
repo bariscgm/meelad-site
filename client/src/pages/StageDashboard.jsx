@@ -311,6 +311,134 @@ export default function StageDashboard() {
     printWindow.document.close();
   };
 
+  const handlePrintAllFiltered = async () => {
+    if (filteredPrograms.length === 0) {
+      Swal.fire('Info', 'No programs to print', 'info');
+      return;
+    }
+
+    Swal.fire({
+      title: 'Preparing Print...',
+      text: 'Fetching candidates for all selected programs',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
+    try {
+      const candidatesData = {};
+      const fetchPromises = filteredPrograms.map(async (prog) => {
+        if (candidatesByProgram[prog._id]) {
+          candidatesData[prog._id] = candidatesByProgram[prog._id];
+        } else {
+          const res = await fetch(`${API_URL}/api/programs/${prog._id}/candidates`);
+          if (res.ok) {
+            candidatesData[prog._id] = await res.json();
+          } else {
+            candidatesData[prog._id] = [];
+          }
+        }
+      });
+      
+      await Promise.all(fetchPromises);
+      
+      let html = `
+        <html>
+          <head>
+            <title>Filtered Programs List</title>
+            <style>
+              body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+              h1 { text-align: center; color: #1e293b; margin-bottom: 5px; font-size: 24px; }
+              .meta { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+              .program-section { margin-bottom: 40px; page-break-inside: avoid; }
+              .program-title { font-size: 18px; font-weight: bold; color: #0f172a; margin-bottom: 10px; border-bottom: 2px solid #cbd5e1; padding-bottom: 5px; }
+              table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+              th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; font-size: 13px; }
+              th { background-color: #f8fafc; font-weight: 600; color: #475569; }
+              tr:nth-child(even) { background-color: #f8fafc; }
+              .absent { color: #ef4444; font-weight: bold; }
+              .members { font-size: 11px; color: #64748b; display: block; margin-top: 4px; }
+              @media print {
+                body { padding: 0; }
+                button { display: none; }
+                .program-section { page-break-inside: avoid; }
+              }
+            </style>
+          </head>
+          <body>
+            <h1>Stage Manager - Selected Programs List</h1>
+            <div class="meta">Total Programs: ${filteredPrograms.length}</div>
+            
+            ${filteredPrograms.map(prog => {
+              const candidates = candidatesData[prog._id] || [];
+              return \`
+                <div class="program-section">
+                  <div class="program-title">\${prog.name} (\${prog.category} • \${prog.gender})</div>
+                  \${candidates.length === 0 ? '<p style="font-size: 13px; color: #64748b;">No candidates registered.</p>' : \`
+                    <table>
+                      <thead>
+                        <tr>
+                          <th width="5%">Sl No</th>
+                          <th width="30%">Name</th>
+                          <th width="15%">Chest No</th>
+                          <th width="20%">Team / Group</th>
+                          <th width="15%">Class</th>
+                          <th width="15%">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        \${candidates.map((cand, index) => {
+                          const isAbsent = cand.absentPrograms && cand.absentPrograms.includes(prog._id);
+                          const membersHtml = cand.isGroup && cand.members ? 
+                            '<span class="members">Members: ' + cand.members.map(m => m.name).join(', ') + '</span>' : '';
+                          const codeHtml = cand.programCodes && cand.programCodes[prog._id] ?
+                            ' (Code: ' + cand.programCodes[prog._id] + ')' : '';
+                            
+                          return \\\`
+                            <tr>
+                              <td>\\\${index + 1}</td>
+                              <td><strong>\\\${cand.name}</strong>\\\${codeHtml}\\\${membersHtml}</td>
+                              <td>\\\${cand.chestNo || '-'}</td>
+                              <td>\\\${cand.team?.name || '-'}</td>
+                              <td>\\\${cand.className || cand.category || '-'}</td>
+                              <td class="\\\${isAbsent ? 'absent' : ''}">\\\${isAbsent ? 'Absent' : ''}</td>
+                            </tr>
+                          \\\`;
+                        }).join('')}
+                      </tbody>
+                    </table>
+                  \`}
+                </div>
+              \`;
+            }).join('')}
+            
+            <div style="margin-top: 40px; text-align: right; font-size: 14px;">
+              <p>Signature of Stage Manager: ____________________</p>
+            </div>
+            
+            <script>
+              window.onload = () => {
+                window.print();
+              };
+            </script>
+          </body>
+        </html>
+      `;
+      
+      setCandidatesByProgram(prev => ({...prev, ...candidatesData}));
+      Swal.close();
+      
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(html);
+      printWindow.document.close();
+      
+    } catch (error) {
+      console.error('Failed to print filtered programs:', error);
+      Swal.fire('Error', 'Failed to load candidates for printing', 'error');
+    }
+  };
+
   const filteredPrograms = programs.filter(p => {
     const classMatch = filterClass === 'All' || p.class === filterClass;
     const categoryMatch = filterCategory === 'All' || p.category === filterCategory;
@@ -373,39 +501,51 @@ export default function StageDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-4 items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-slate-500">Class (Calls-wise)</label>
-            <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              {uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500">Class (Calls-wise)</label>
+              <select value={filterClass} onChange={e => setFilterClass(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                {uniqueClasses.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500">Category</label>
+              <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500">Gender</label>
+              <select value={filterGender} onChange={e => setFilterGender(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                {uniqueGenders.map(g => <option key={g} value={g}>{g}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500">Venue</label>
+              <select value={filterVenue} onChange={e => setFilterVenue(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                {uniqueVenues.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500">Status</label>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                <option value="All">All</option>
+                <option value="Pending">Pending</option>
+                <option value="Assigned/Finished">Assigned/Finished</option>
+              </select>
+            </div>
           </div>
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-slate-500">Category</label>
-            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              {uniqueCategories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-slate-500">Gender</label>
-            <select value={filterGender} onChange={e => setFilterGender(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              {uniqueGenders.map(g => <option key={g} value={g}>{g}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-slate-500">Venue</label>
-            <select value={filterVenue} onChange={e => setFilterVenue(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              {uniqueVenues.map(v => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
-          <div className="flex flex-col gap-1 w-full sm:w-auto">
-            <label className="text-xs font-semibold text-slate-500">Status</label>
-            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
-              <option value="All">All</option>
-              <option value="Pending">Pending</option>
-              <option value="Assigned/Finished">Assigned/Finished</option>
-            </select>
-          </div>
+          
+          <button 
+            onClick={handlePrintAllFiltered} 
+            className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition flex items-center gap-2 whitespace-nowrap"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Print Filtered
+          </button>
         </div>
 
         {/* Program List */}
