@@ -176,21 +176,35 @@ export const getStudentResultByChestNo = async (req, res) => {
       if (!result.program) continue;
 
       if (result.program.type === 'Group') {
-        const groupName = candidate.groupAssignments?.get(result.program._id.toString()) || candidate.groupAssignments?.get(result.program.name);
+        let groupName = candidate.groupAssignments?.get(result.program._id.toString()) || candidate.groupAssignments?.get(result.program.name);
+        if (!groupName) {
+          groupName = candidate.team?.name || 'Default Group';
+        }
+
         if (groupName) {
            const winnerRecord = result.winners.find(w => 
              w.team && w.team.toString() === candidate.team._id.toString() && w.name === groupName
            );
            
            if (winnerRecord) {
-             const membersCount = await Candidate.countDocuments({
+             let membersCountQuery = {
                team: candidate.team._id,
                $or: [
                  { [`groupAssignments.${result.program._id.toString()}`]: groupName },
                  { [`groupAssignments.${result.program.name}`]: groupName }
                ],
                status: 'Active'
-             });
+             };
+
+             if (groupName === candidate.team.name) {
+               membersCountQuery = {
+                 team: candidate.team._id,
+                 programs: result.program.name,
+                 status: 'Active'
+               };
+             }
+
+             const membersCount = await Candidate.countDocuments(membersCountQuery);
              
              studentResults.push({
                program: result.program,

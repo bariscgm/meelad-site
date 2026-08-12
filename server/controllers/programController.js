@@ -219,30 +219,36 @@ export const getProgramCandidates = async (req, res) => {
 
     if (program.type === 'Group') {
       const groupMap = {};
+      const individualCandidates = []; // For those who haven't formed a team
+      
       candidates.forEach(cand => {
         const programIdStr = program._id.toString();
         // Check both ID and Name to support older data formats
-        const groupName = cand.groupAssignments?.get(programIdStr) || cand.groupAssignments?.get(program.name);
-        if (!groupName) return; // Skip if not assigned to a group
-
-        const key = `${cand.team._id.toString()}_${groupName}`;
+        let groupName = cand.groupAssignments?.get(programIdStr) || cand.groupAssignments?.get(program.name);
         
-        if (!groupMap[key]) {
-          groupMap[key] = {
-            _id: key,
-            name: groupName,
-            team: cand.team,
-            className: 'Group',
-            programCodes: cand.programCodes || {},
-            absentPrograms: cand.absentPrograms || [],
-            isGroup: true,
-            members: [{ _id: cand._id, name: cand.name, chestNo: cand.chestNo }]
-          };
+        if (!groupName) {
+          // If they haven't formed a team, keep them as individuals
+          individualCandidates.push(cand);
         } else {
-          groupMap[key].members.push({ _id: cand._id, name: cand.name, chestNo: cand.chestNo });
+          const key = `${cand.team._id.toString()}_${groupName}`;
+          
+          if (!groupMap[key]) {
+            groupMap[key] = {
+              _id: key,
+              name: groupName,
+              team: cand.team,
+              className: 'Group',
+              programCodes: cand.programCodes || {},
+              absentPrograms: cand.absentPrograms || [],
+              isGroup: true,
+              members: [{ _id: cand._id, name: cand.name, chestNo: cand.chestNo }]
+            };
+          } else {
+            groupMap[key].members.push({ _id: cand._id, name: cand.name, chestNo: cand.chestNo });
+          }
         }
       });
-      return res.json(Object.values(groupMap));
+      return res.json([...Object.values(groupMap), ...individualCandidates]);
     }
 
     res.json(candidates);
@@ -270,20 +276,23 @@ export const shuffleProgramCodes = async (req, res) => {
       query.gender = program.gender;
     }
 
-    const candidates = await Candidate.find(query);
+    const candidates = await Candidate.find(query).populate('team', 'name code');
     let targetEntities = [];
     let isGroup = program.type === 'Group';
 
     if (isGroup) {
       const groupMap = {};
       candidates.forEach(cand => {
-        const groupName = cand.groupAssignments?.get(program._id.toString());
-        if (!groupName) return;
-        const key = `${cand.team._id.toString()}_${groupName}`;
-        if (!groupMap[key]) {
-          groupMap[key] = [];
+        let groupName = cand.groupAssignments?.get(program._id.toString()) || cand.groupAssignments?.get(program.name);
+        
+        // If they haven't formed a team, skip generating a code for them
+        if (groupName) {
+          const key = `${cand.team._id.toString()}_${groupName}`;
+          if (!groupMap[key]) {
+            groupMap[key] = [];
+          }
+          groupMap[key].push(cand);
         }
-        groupMap[key].push(cand);
       });
       targetEntities = Object.values(groupMap);
     } else {
