@@ -260,7 +260,12 @@ export default function RegistrationControl() {
       const teamMatch = filterTeam === 'All teams' || (c.team?.name === filterTeam);
       
       // Category
-      const categoryMatch = filterCategory === 'All categories' || c.category === filterCategory;
+      const categoryMatch = filterCategory === 'All categories' || 
+        c.category === filterCategory || 
+        (filterCategory === 'General' && c.programs.some(pName => {
+          const prog = programs.find(p => p.name === pName);
+          return prog && (prog.category === 'General' || prog.gender === 'General');
+        }));
       
       // Program
       const programMatch = filterProgram === 'All programmes' || c.programs.includes(filterProgram);

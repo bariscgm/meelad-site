@@ -450,7 +450,7 @@ export default function StageDashboard() {
                               <li key={cand._id} className="flex justify-between items-center text-sm p-2 bg-white rounded border border-slate-100 shadow-sm">
                                 <div className="flex flex-col">
                                   <span className="font-semibold text-slate-700">{idx + 1}. {cand.name}</span>
-                                  <span className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'} • {cand.className}</span>
+                                  <span className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'} • {cand.className} {cand.category ? `• ${cand.category}` : ''}</span>
                                   {cand.isGroup && cand.members && (
                                     <div className="mt-1 text-xs text-slate-400">
                                       Members: {cand.members.map(m => m.name).join(', ')}
