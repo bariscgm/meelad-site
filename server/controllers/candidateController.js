@@ -231,11 +231,17 @@ export const getStudentResultByChestNo = async (req, res) => {
       ]
     });
     
-    const participatingPrograms = participatingProgramsRaw.map(p => ({
-       name: p.name,
-       category: p.category,
-       status: p.status || 'Pending'
-    }));
+    const participatingPrograms = participatingProgramsRaw
+      .filter(p => {
+        const categoryMatches = !p.category || p.category.toLowerCase() === 'general' || p.category === candidate.category;
+        const genderMatches = !p.gender || p.gender.toLowerCase() === 'general' || p.gender === candidate.gender;
+        return categoryMatches && genderMatches;
+      })
+      .map(p => ({
+        name: p.name,
+        category: p.category,
+        status: p.status || 'Pending'
+      }));
 
     res.json({
       candidate,
