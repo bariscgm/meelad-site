@@ -271,18 +271,34 @@ export default function JudgeDashboard() {
                       <div className="w-1/3 font-semibold text-sm text-slate-600 pl-2">Grade</div>
                     </div>
                     
-                    {programCandidates.map((cand) => {
+                    {[...programCandidates].sort((a, b) => {
+                      const codeA = a.programCodes?.[selectedProgram._id] || a.chestNo || '';
+                      const codeB = b.programCodes?.[selectedProgram._id] || b.chestNo || '';
+                      return codeA.localeCompare(codeB);
+                    }).map((cand) => {
                       const score = candidateScores[cand._id] || { position: '', grade: '' };
                       const code = cand.programCodes?.[selectedProgram._id];
+                      const isAbsent = cand.absentPrograms?.includes(selectedProgram._id);
+
                       return (
-                        <div key={cand._id} className="p-4 sm:p-3 sm:px-4 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-purple-200 transition-colors flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0">
+                        <div key={cand._id} className={`p-4 sm:p-3 sm:px-4 bg-white border ${isAbsent ? 'border-rose-200 bg-rose-50/30' : 'border-slate-200'} rounded-xl shadow-sm hover:border-purple-200 transition-colors flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-0 relative`}>
+                          {isAbsent && (
+                            <div className="absolute top-2 right-2 sm:hidden">
+                              <span className="px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px] font-bold uppercase tracking-wider">Absent</span>
+                            </div>
+                          )}
                           <div className="flex justify-between items-center sm:w-1/3">
                             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider sm:hidden">Code</span>
-                            {code ? (
-                              <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg text-lg font-bold">{code}</span>
-                            ) : (
-                              <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">N/A</span>
-                            )}
+                            <div className="flex items-center gap-2">
+                              {code ? (
+                                <span className="px-3 py-1 bg-purple-100 text-purple-800 rounded-lg text-lg font-bold">{code}</span>
+                              ) : (
+                                <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">N/A</span>
+                              )}
+                              {isAbsent && (
+                                <span className="hidden sm:inline-block px-2 py-0.5 bg-rose-100 text-rose-700 rounded text-[10px] font-bold uppercase tracking-wider">Absent</span>
+                              )}
+                            </div>
                           </div>
                           <div className="grid grid-cols-2 gap-3 sm:flex sm:w-2/3 sm:gap-4">
                             <div className="sm:w-1/2">
@@ -290,7 +306,8 @@ export default function JudgeDashboard() {
                               <select 
                                 value={score.position} 
                                 onChange={(e) => handleScoreChange(cand._id, 'position', e.target.value)} 
-                                className="w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all text-sm font-medium text-slate-700"
+                                disabled={isAbsent}
+                                className={`w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg transition-all text-sm font-medium ${isAbsent ? 'opacity-60 cursor-not-allowed text-slate-400' : 'focus:ring-2 focus:ring-purple-500 focus:bg-white text-slate-700'}`}
                               >
                                 <option value="">None</option>
                                 <option value="1">1st Position</option>
@@ -303,7 +320,8 @@ export default function JudgeDashboard() {
                               <select 
                                 value={score.grade} 
                                 onChange={(e) => handleScoreChange(cand._id, 'grade', e.target.value)} 
-                                className="w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all text-sm font-medium text-slate-700"
+                                disabled={isAbsent}
+                                className={`w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg transition-all text-sm font-medium ${isAbsent ? 'opacity-60 cursor-not-allowed text-slate-400' : 'focus:ring-2 focus:ring-purple-500 focus:bg-white text-slate-700'}`}
                               >
                                 <option value="">None</option>
                                 <option value="A">A Grade</option>
