@@ -18,6 +18,7 @@ export default function StageDashboard() {
   const [filterClass, setFilterClass] = useState('All');
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterGender, setFilterGender] = useState('All');
+  const [filterVenue, setFilterVenue] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
 
   // Stats
@@ -234,17 +235,19 @@ export default function StageDashboard() {
     const classMatch = filterClass === 'All' || p.class === filterClass;
     const categoryMatch = filterCategory === 'All' || p.category === filterCategory;
     const genderMatch = filterGender === 'All' || p.gender === filterGender;
+    const venueMatch = filterVenue === 'All' || p.venueType === filterVenue;
     
     let statusMatch = true;
     if (filterStatus === 'Pending') statusMatch = p.status === 'Pending';
     if (filterStatus === 'Assigned/Finished') statusMatch = p.status === 'Assigned' || p.status === 'Finished';
     
-    return classMatch && categoryMatch && genderMatch && statusMatch;
+    return classMatch && categoryMatch && genderMatch && statusMatch && venueMatch;
   });
 
   const uniqueClasses = ['All', ...new Set(programs.map(p => p.class).filter(Boolean))];
   const uniqueCategories = ['All', ...new Set(programs.map(p => p.category).filter(Boolean))];
   const uniqueGenders = ['All', 'Boy', 'Girl', 'General'];
+  const uniqueVenues = ['All', ...new Set(programs.map(p => p.venueType).filter(Boolean))];
 
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
@@ -307,6 +310,12 @@ export default function StageDashboard() {
             <label className="text-xs font-semibold text-slate-500">Gender</label>
             <select value={filterGender} onChange={e => setFilterGender(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
               {uniqueGenders.map(g => <option key={g} value={g}>{g}</option>)}
+            </select>
+          </div>
+          <div className="flex flex-col gap-1 w-full sm:w-auto">
+            <label className="text-xs font-semibold text-slate-500">Venue</label>
+            <select value={filterVenue} onChange={e => setFilterVenue(e.target.value)} className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+              {uniqueVenues.map(v => <option key={v} value={v}>{v}</option>)}
             </select>
           </div>
           <div className="flex flex-col gap-1 w-full sm:w-auto">
