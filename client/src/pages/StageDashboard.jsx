@@ -234,6 +234,46 @@ export default function StageDashboard() {
   const handlePrint = (program) => {
     const candidates = candidatesByProgram[program._id] || [];
     
+    let candidatesHtml = '<p style="text-align:center;">No candidates registered.</p>';
+    if (candidates.length > 0) {
+      const rows = candidates.map((cand, index) => {
+        const isAbsent = cand.absentPrograms && cand.absentPrograms.includes(program._id);
+        const membersHtml = cand.isGroup && cand.members ? 
+          '<span class="members">Members: ' + cand.members.map(m => m.name).join(', ') + '</span>' : '';
+        const codeHtml = cand.programCodes && cand.programCodes[program._id] ?
+          ' (Code: ' + cand.programCodes[program._id] + ')' : '';
+          
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td><strong>${cand.name}</strong>${codeHtml}${membersHtml}</td>
+            <td>${cand.chestNo || '-'}</td>
+            <td>${cand.team?.name || '-'}</td>
+            <td>${cand.className || cand.category || '-'}</td>
+            <td class="${isAbsent ? 'absent' : ''}">${isAbsent ? 'Absent' : ''}</td>
+          </tr>
+        `;
+      }).join('');
+      
+      candidatesHtml = `
+        <table>
+          <thead>
+            <tr>
+              <th width="8%">Sl No</th>
+              <th width="30%">Name</th>
+              <th width="15%">Chest No</th>
+              <th width="20%">Team / Group</th>
+              <th width="15%">Class</th>
+              <th width="12%">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      `;
+    }
+
     const printContent = `
       <html>
         <head>
@@ -257,41 +297,7 @@ export default function StageDashboard() {
         <body>
           <h1>${program.name}</h1>
           <div class="meta">${program.category} • ${program.gender}</div>
-          
-          ${candidates.length === 0 ? '<p style="text-align:center;">No candidates registered.</p>' : `
-          <table>
-            <thead>
-              <tr>
-                <th width="8%">Sl No</th>
-                <th width="30%">Name</th>
-                <th width="15%">Chest No</th>
-                <th width="20%">Team / Group</th>
-                <th width="15%">Class</th>
-                <th width="12%">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${candidates.map((cand, index) => {
-                const isAbsent = cand.absentPrograms && cand.absentPrograms.includes(program._id);
-                const membersHtml = cand.isGroup && cand.members ? 
-                  '<span class="members">Members: ' + cand.members.map(m => m.name).join(', ') + '</span>' : '';
-                const codeHtml = cand.programCodes && cand.programCodes[program._id] ?
-                  ' (Code: ' + cand.programCodes[program._id] + ')' : '';
-                  
-                return \`
-                  <tr>
-                    <td>\${index + 1}</td>
-                    <td><strong>\${cand.name}</strong>\${codeHtml}\${membersHtml}</td>
-                    <td>\${cand.chestNo || '-'}</td>
-                    <td>\${cand.team?.name || '-'}</td>
-                    <td>\${cand.className || cand.category || '-'}</td>
-                    <td class="\${isAbsent ? 'absent' : ''}">\${isAbsent ? 'Absent' : ''}</td>
-                  </tr>
-                \`;
-              }).join('')}
-            </tbody>
-          </table>
-          `}
+          ${candidatesHtml}
           
           <div style="margin-top: 40px; text-align: right; font-size: 14px;">
             <p>Signature of Stage Manager: ____________________</p>
@@ -343,6 +349,56 @@ export default function StageDashboard() {
       
       await Promise.all(fetchPromises);
       
+      const programHtmls = filteredPrograms.map(prog => {
+        const candidates = candidatesData[prog._id] || [];
+        let candidatesHtml = '<p style="font-size: 13px; color: #64748b;">No candidates registered.</p>';
+        if (candidates.length > 0) {
+          const rows = candidates.map((cand, index) => {
+            const isAbsent = cand.absentPrograms && cand.absentPrograms.includes(prog._id);
+            const membersHtml = cand.isGroup && cand.members ? 
+              '<span class="members">Members: ' + cand.members.map(m => m.name).join(', ') + '</span>' : '';
+            const codeHtml = cand.programCodes && cand.programCodes[prog._id] ?
+              ' (Code: ' + cand.programCodes[prog._id] + ')' : '';
+              
+            return `
+              <tr>
+                <td>${index + 1}</td>
+                <td><strong>${cand.name}</strong>${codeHtml}${membersHtml}</td>
+                <td>${cand.chestNo || '-'}</td>
+                <td>${cand.team?.name || '-'}</td>
+                <td>${cand.className || cand.category || '-'}</td>
+                <td class="${isAbsent ? 'absent' : ''}">${isAbsent ? 'Absent' : ''}</td>
+              </tr>
+            `;
+          }).join('');
+
+          candidatesHtml = `
+            <table>
+              <thead>
+                <tr>
+                  <th width="5%">Sl No</th>
+                  <th width="30%">Name</th>
+                  <th width="15%">Chest No</th>
+                  <th width="20%">Team / Group</th>
+                  <th width="15%">Class</th>
+                  <th width="15%">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rows}
+              </tbody>
+            </table>
+          `;
+        }
+
+        return `
+          <div class="program-section">
+            <div class="program-title">${prog.name} (${prog.category} • ${prog.gender})</div>
+            ${candidatesHtml}
+          </div>
+        `;
+      }).join('');
+
       let html = `
         <html>
           <head>
@@ -370,48 +426,7 @@ export default function StageDashboard() {
             <h1>Stage Manager - Selected Programs List</h1>
             <div class="meta">Total Programs: ${filteredPrograms.length}</div>
             
-            ${filteredPrograms.map(prog => {
-              const candidates = candidatesData[prog._id] || [];
-              return \`
-                <div class="program-section">
-                  <div class="program-title">\${prog.name} (\${prog.category} • \${prog.gender})</div>
-                  \${candidates.length === 0 ? '<p style="font-size: 13px; color: #64748b;">No candidates registered.</p>' : \`
-                    <table>
-                      <thead>
-                        <tr>
-                          <th width="5%">Sl No</th>
-                          <th width="30%">Name</th>
-                          <th width="15%">Chest No</th>
-                          <th width="20%">Team / Group</th>
-                          <th width="15%">Class</th>
-                          <th width="15%">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        \${candidates.map((cand, index) => {
-                          const isAbsent = cand.absentPrograms && cand.absentPrograms.includes(prog._id);
-                          const membersHtml = cand.isGroup && cand.members ? 
-                            '<span class="members">Members: ' + cand.members.map(m => m.name).join(', ') + '</span>' : '';
-                          const codeHtml = cand.programCodes && cand.programCodes[prog._id] ?
-                            ' (Code: ' + cand.programCodes[prog._id] + ')' : '';
-                            
-                          return \\\`
-                            <tr>
-                              <td>\\\${index + 1}</td>
-                              <td><strong>\\\${cand.name}</strong>\\\${codeHtml}\\\${membersHtml}</td>
-                              <td>\\\${cand.chestNo || '-'}</td>
-                              <td>\\\${cand.team?.name || '-'}</td>
-                              <td>\\\${cand.className || cand.category || '-'}</td>
-                              <td class="\\\${isAbsent ? 'absent' : ''}">\\\${isAbsent ? 'Absent' : ''}</td>
-                            </tr>
-                          \\\`;
-                        }).join('')}
-                      </tbody>
-                    </table>
-                  \`}
-                </div>
-              \`;
-            }).join('')}
+            ${programHtmls}
             
             <div style="margin-top: 40px; text-align: right; font-size: 14px;">
               <p>Signature of Stage Manager: ____________________</p>
