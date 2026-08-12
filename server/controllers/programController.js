@@ -16,8 +16,8 @@ export const getPrograms = async (req, res) => {
     const programsWithCount = programs.map(p => {
       const match = candidates.filter(c => 
         c.programs && c.programs.includes(p.name) &&
-        (p.category === 'General' || c.category === p.category) &&
-        (p.gender === 'General' || c.gender === p.gender)
+        (p.category && p.category.toLowerCase() === 'general' || c.category === p.category) &&
+        (p.gender && p.gender.toLowerCase() === 'general' || c.gender === p.gender)
       );
       return { ...p, candidateCount: match.length };
     });
@@ -207,11 +207,11 @@ export const getProgramCandidates = async (req, res) => {
       status: 'Active'
     };
 
-    if (program.category !== 'General') {
+    if (program.category && program.category.toLowerCase() !== 'general') {
       query.category = program.category;
     }
 
-    if (program.gender !== 'General') {
+    if (program.gender && program.gender.toLowerCase() !== 'general') {
       query.gender = program.gender;
     }
 
@@ -263,10 +263,10 @@ export const shuffleProgramCodes = async (req, res) => {
       programs: program.name,
       status: 'Active'
     };
-    if (program.category !== 'General') {
+    if (program.category && program.category.toLowerCase() !== 'general') {
       query.category = program.category;
     }
-    if (program.gender !== 'General') {
+    if (program.gender && program.gender.toLowerCase() !== 'general') {
       query.gender = program.gender;
     }
 

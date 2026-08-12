@@ -204,7 +204,7 @@ export default function TeamFormation() {
                             {program.category}
                           </span>
                           <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
-                            {program.gender === 'General' ? 'All Genders' : program.gender}
+                            {program.gender?.toLowerCase() === 'general' ? 'All Genders' : program.gender}
                           </span>
                           <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
                             Max {program.maxParticipants}

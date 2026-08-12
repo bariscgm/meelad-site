@@ -264,7 +264,7 @@ export default function RegistrationControl() {
         c.category === filterCategory || 
         (filterCategory === 'General' && c.programs.some(pName => {
           const prog = programs.find(p => p.name === pName);
-          return prog && (prog.category === 'General' || prog.gender === 'General');
+          return prog && (prog.category?.toLowerCase() === 'general' || prog.gender?.toLowerCase() === 'general');
         }));
       
       // Program
