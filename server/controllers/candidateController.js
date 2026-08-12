@@ -213,9 +213,34 @@ export const getStudentResultByChestNo = async (req, res) => {
       }
     }
 
+    const Program = (await import('../models/Program.js')).default;
+    const mongoose = (await import('mongoose')).default;
+    
+    const programIdentifiers = [...(candidate.programs || [])];
+    if (candidate.groupAssignments) {
+       for (const key of candidate.groupAssignments.keys()) {
+          programIdentifiers.push(key);
+       }
+    }
+    
+    const validIds = programIdentifiers.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const participatingProgramsRaw = await Program.find({
+      $or: [
+        { name: { $in: programIdentifiers } },
+        { _id: { $in: validIds } }
+      ]
+    });
+    
+    const participatingPrograms = participatingProgramsRaw.map(p => ({
+       name: p.name,
+       category: p.category,
+       status: p.status || 'Pending'
+    }));
+
     res.json({
       candidate,
-      results: studentResults
+      results: studentResults,
+      participatingPrograms
     });
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch student results' });
