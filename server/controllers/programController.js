@@ -16,7 +16,7 @@ export const getPrograms = async (req, res) => {
     const programsWithCount = programs.map(p => {
       const match = candidates.filter(c => 
         c.programs && c.programs.includes(p.name) &&
-        c.category === p.category &&
+        (p.category === 'General' || c.category === p.category) &&
         (p.gender === 'General' || c.gender === p.gender)
       );
       return { ...p, candidateCount: match.length };
@@ -204,9 +204,12 @@ export const getProgramCandidates = async (req, res) => {
     // Find candidates matching the program criteria
     const query = {
       programs: program.name,
-      category: program.category,
       status: 'Active'
     };
+
+    if (program.category !== 'General') {
+      query.category = program.category;
+    }
 
     if (program.gender !== 'General') {
       query.gender = program.gender;
@@ -258,9 +261,11 @@ export const shuffleProgramCodes = async (req, res) => {
 
     const query = {
       programs: program.name,
-      category: program.category,
       status: 'Active'
     };
+    if (program.category !== 'General') {
+      query.category = program.category;
+    }
     if (program.gender !== 'General') {
       query.gender = program.gender;
     }
