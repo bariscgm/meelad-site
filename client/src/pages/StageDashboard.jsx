@@ -231,6 +231,86 @@ export default function StageDashboard() {
     }
   };
 
+  const handlePrint = (program) => {
+    const candidates = candidatesByProgram[program._id] || [];
+    
+    const printContent = `
+      <html>
+        <head>
+          <title>${program.name} - Candidates List</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; color: #333; }
+            h1 { text-align: center; color: #1e293b; margin-bottom: 5px; font-size: 24px; }
+            .meta { text-align: center; font-size: 14px; color: #64748b; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px 12px; text-align: left; font-size: 14px; }
+            th { background-color: #f8fafc; font-weight: 600; color: #475569; }
+            tr:nth-child(even) { background-color: #f8fafc; }
+            .absent { color: #ef4444; font-weight: bold; }
+            .members { font-size: 11px; color: #64748b; display: block; margin-top: 4px; }
+            @media print {
+              body { padding: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${program.name}</h1>
+          <div class="meta">${program.category} • ${program.gender}</div>
+          
+          ${candidates.length === 0 ? '<p style="text-align:center;">No candidates registered.</p>' : `
+          <table>
+            <thead>
+              <tr>
+                <th width="8%">Sl No</th>
+                <th width="30%">Name</th>
+                <th width="15%">Chest No</th>
+                <th width="20%">Team / Group</th>
+                <th width="15%">Class</th>
+                <th width="12%">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${candidates.map((cand, index) => {
+                const isAbsent = cand.absentPrograms && cand.absentPrograms.includes(program._id);
+                const membersHtml = cand.isGroup && cand.members ? 
+                  '<span class="members">Members: ' + cand.members.map(m => m.name).join(', ') + '</span>' : '';
+                const codeHtml = cand.programCodes && cand.programCodes[program._id] ?
+                  ' (Code: ' + cand.programCodes[program._id] + ')' : '';
+                  
+                return \`
+                  <tr>
+                    <td>\${index + 1}</td>
+                    <td><strong>\${cand.name}</strong>\${codeHtml}\${membersHtml}</td>
+                    <td>\${cand.chestNo || '-'}</td>
+                    <td>\${cand.team?.name || '-'}</td>
+                    <td>\${cand.className || cand.category || '-'}</td>
+                    <td class="\${isAbsent ? 'absent' : ''}">\${isAbsent ? 'Absent' : ''}</td>
+                  </tr>
+                \`;
+              }).join('')}
+            </tbody>
+          </table>
+          `}
+          
+          <div style="margin-top: 40px; text-align: right; font-size: 14px;">
+            <p>Signature of Stage Manager: ____________________</p>
+          </div>
+          
+          <script>
+            window.onload = () => {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+  };
+
   const filteredPrograms = programs.filter(p => {
     const classMatch = filterClass === 'All' || p.class === filterClass;
     const categoryMatch = filterCategory === 'All' || p.category === filterCategory;
@@ -430,14 +510,28 @@ export default function StageDashboard() {
                       <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 mt-2">
                         <div className="flex justify-between items-center mb-3">
                           <h4 className="text-sm font-bold text-slate-800">Candidates ({(candidatesByProgram[program._id] || []).length})</h4>
-                          {(candidatesByProgram[program._id] || []).length > 0 && (
-                            <button
-                              onClick={() => handleShuffleCodes(program._id)}
-                              className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200 transition"
-                            >
-                              Auto-Shuffle Code Letters
-                            </button>
-                          )}
+                          <div className="flex gap-2">
+                            {(candidatesByProgram[program._id] || []).length > 0 && (
+                              <button
+                                onClick={() => handlePrint(program)}
+                                className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-700 text-xs font-bold rounded-lg border border-teal-200 transition flex items-center gap-1"
+                                title="Print Candidates List"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
+                                Print
+                              </button>
+                            )}
+                            {(candidatesByProgram[program._id] || []).length > 0 && (
+                              <button
+                                onClick={() => handleShuffleCodes(program._id)}
+                                className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-lg border border-indigo-200 transition"
+                              >
+                                Auto-Shuffle Code Letters
+                              </button>
+                            )}
+                          </div>
                         </div>
                         
                         {loadingCandidates[program._id] ? (
