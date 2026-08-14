@@ -98,18 +98,18 @@ export default function ResultPoster({ result, onClose }) {
         </div>
       </div>
 
-      {/* Poster Element - 1080x1920 (Instagram Story/Reel ratio) */}
-      <div className="overflow-hidden rounded-xl shadow-2xl bg-black w-[360px] h-[640px] relative flex-shrink-0 origin-top" style={{ transform: 'scale(1)' }}>
+      {/* Poster Element - 1080x1080 (Instagram Post ratio) */}
+      <div className="overflow-hidden rounded-xl shadow-2xl bg-black w-[480px] h-[480px] relative flex-shrink-0 origin-top" style={{ transform: 'scale(1)' }}>
         <div 
           ref={posterRef} 
-          className="w-[1080px] h-[1920px] relative overflow-hidden flex flex-col items-center pt-[450px] pb-[300px] px-[80px] origin-top-left"
-          style={{ transform: 'scale(0.33333)' }} // 360 / 1080 = 0.33333
+          className="w-[1080px] h-[1080px] relative overflow-hidden flex flex-col items-center pt-[200px] pb-[100px] px-[60px] origin-top-left"
+          style={{ transform: 'scale(0.4444)' }} // 480 / 1080 = 0.4444
         >
           {/* Background Template */}
           <img 
             src="/poster-bg.png" 
             alt="Poster Background" 
-            className="absolute inset-0 w-full h-full object-cover z-0"
+            className="absolute inset-0 w-full h-full object-fill z-0"
             style={{ filter: `hue-rotate(${hueRotate}deg)` }}
             onError={(e) => {
               // Fallback gradient if image not found
@@ -120,8 +120,8 @@ export default function ResultPoster({ result, onClose }) {
 
           <div className="relative z-10 flex flex-col h-full w-full">
             {/* Header / Program Name */}
-            <div className="text-center mb-16 w-full px-4">
-              <h1 className="text-6xl font-black text-white leading-tight drop-shadow-2xl mb-6 break-words">
+            <div className="text-center mb-10 w-full px-4">
+              <h1 className="text-5xl font-black text-white leading-tight drop-shadow-2xl mb-4 break-words">
                 {result.program?.name}
               </h1>
               <div className="flex items-center justify-center gap-4">
@@ -135,17 +135,17 @@ export default function ResultPoster({ result, onClose }) {
             </div>
 
             {/* Winners */}
-            <div className="flex-1 flex flex-col items-center justify-center gap-8 w-full mt-4">
+            <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full mt-2 scale-95">
               
               {/* 1st Place */}
               {firstPlace.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-6 w-full">
+                <div className="flex flex-wrap justify-center gap-4 w-full">
                   {firstPlace.map(w => renderWinner(w, 'bg-gradient-to-b from-[#fef08a] to-[#eab308]', 'First Prize'))}
                 </div>
               )}
 
               {/* 2nd & 3rd Place row */}
-              <div className="flex flex-wrap justify-center gap-8 w-full mt-2">
+              <div className="flex flex-wrap justify-center gap-6 w-full mt-2">
                 {secondPlace.length > 0 && (
                   <div className="flex gap-4">
                     {secondPlace.map(w => renderWinner(w, 'bg-gradient-to-b from-[#e2e8f0] to-[#94a3b8]', 'Second Prize'))}
