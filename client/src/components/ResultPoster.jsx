@@ -64,13 +64,13 @@ export default function ResultPoster({ result, onClose }) {
   const renderWinner = (winner, badgeColor, title) => {
     const pts = winner.points || calculatePoints(result.program?.type, winner.position, winner.grade);
     return (
-      <div key={winner.chestNo || winner.name} className="flex flex-col items-center bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/30 shadow-2xl relative mt-8 min-w-[280px]">
+      <div key={winner.chestNo || winner.name} className="flex flex-col items-center bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/30 shadow-2xl relative mt-8 min-w-[280px] max-w-[320px]">
         <div className={`absolute -top-8 w-16 h-16 rounded-full ${badgeColor} flex items-center justify-center font-black text-white shadow-xl text-2xl border-4 border-slate-900`}>
           {winner.position}
         </div>
-        <h3 className="text-[#facc15] font-black text-lg uppercase tracking-[0.2em] mt-6 mb-3 drop-shadow-md">{title}</h3>
-        <p className="text-white font-black text-3xl text-center leading-tight drop-shadow-lg">{winner.name}</p>
-        <p className="text-teal-100 font-semibold text-lg mt-2 drop-shadow-md">{winner.team?.name}</p>
+        <h3 className="text-[#facc15] font-black text-lg uppercase tracking-[0.2em] mt-6 mb-3 drop-shadow-md text-center">{title}</h3>
+        <p className="text-white font-black text-3xl text-center leading-tight drop-shadow-lg break-words w-full">{winner.name}</p>
+        <p className="text-teal-100 font-semibold text-lg mt-2 drop-shadow-md text-center break-words w-full">{winner.team?.name}</p>
         <div className="flex gap-3 mt-5">
           {winner.grade && winner.grade !== 'None' && (
             <span className="px-4 py-1.5 bg-white/20 backdrop-blur-sm border border-white/30 rounded-lg text-sm font-bold text-white shadow-md">Grade {winner.grade}</span>
@@ -98,12 +98,12 @@ export default function ResultPoster({ result, onClose }) {
         </div>
       </div>
 
-      {/* Poster Element - 1080x1350 (Instagram Portrait ratio) */}
-      <div className="overflow-hidden rounded-xl shadow-2xl bg-black w-[480px] h-[600px] relative flex-shrink-0 origin-top" style={{ transform: 'scale(1)' }}>
+      {/* Poster Element - 1080x1920 (Instagram Story/Reel ratio) */}
+      <div className="overflow-hidden rounded-xl shadow-2xl bg-black w-[360px] h-[640px] relative flex-shrink-0 origin-top" style={{ transform: 'scale(1)' }}>
         <div 
           ref={posterRef} 
-          className="w-[1080px] h-[1350px] relative overflow-hidden flex flex-col items-center pt-[300px] pb-[200px] px-[100px] origin-top-left"
-          style={{ transform: 'scale(0.4444)' }} // 480 / 1080 = 0.4444
+          className="w-[1080px] h-[1920px] relative overflow-hidden flex flex-col items-center pt-[450px] pb-[300px] px-[80px] origin-top-left"
+          style={{ transform: 'scale(0.33333)' }} // 360 / 1080 = 0.33333
         >
           {/* Background Template */}
           <img 
@@ -120,8 +120,8 @@ export default function ResultPoster({ result, onClose }) {
 
           <div className="relative z-10 flex flex-col h-full w-full">
             {/* Header / Program Name */}
-            <div className="text-center mb-16">
-              <h1 className="text-6xl font-black text-white leading-tight drop-shadow-2xl mb-6">
+            <div className="text-center mb-16 w-full px-4">
+              <h1 className="text-6xl font-black text-white leading-tight drop-shadow-2xl mb-6 break-words">
                 {result.program?.name}
               </h1>
               <div className="flex items-center justify-center gap-4">
