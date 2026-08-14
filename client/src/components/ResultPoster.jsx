@@ -6,6 +6,17 @@ import Swal from 'sweetalert2';
 export default function ResultPoster({ result, onClose }) {
   const posterRef = useRef(null);
 
+  // Generate a consistent pseudo-random hue rotation based on program ID/name
+  const getHueRotation = () => {
+    if (!result?.program?._id) return 0;
+    let hash = 0;
+    for (let i = 0; i < result.program._id.length; i++) {
+      hash = result.program._id.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return Math.abs(hash % 360); // 0 to 360 degrees
+  };
+  const hueRotate = getHueRotation();
+
   const calculatePoints = (type, position, grade) => {
     let pts = 0;
     const pos = Number(position);
@@ -99,6 +110,7 @@ export default function ResultPoster({ result, onClose }) {
             src="/poster-bg.png" 
             alt="Poster Background" 
             className="absolute inset-0 w-full h-full object-cover z-0"
+            style={{ filter: `hue-rotate(${hueRotate}deg)` }}
             onError={(e) => {
               // Fallback gradient if image not found
               e.target.style.display = 'none';
