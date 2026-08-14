@@ -5,6 +5,17 @@ import Swal from 'sweetalert2';
 
 export default function ResultPoster({ result, onClose }) {
   const posterRef = useRef(null);
+  const [scale, setScale] = React.useState(0.4444);
+
+  React.useEffect(() => {
+    const updateScale = () => {
+      const maxWidth = Math.min(window.innerWidth - 32, 480); // 32px for padding
+      setScale(maxWidth / 1080);
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   // Generate a consistent pseudo-random hue rotation based on program ID/name
   const getHueRotation = () => {
@@ -99,12 +110,15 @@ export default function ResultPoster({ result, onClose }) {
       </div>
 
       {/* Poster Element - 1080x1080 (Instagram Post ratio) */}
-      <div className="overflow-hidden rounded-xl shadow-2xl bg-black w-[480px] h-[480px] relative flex-shrink-0 origin-top" style={{ transform: 'scale(1)' }}>
-        <div 
-          ref={posterRef} 
-          className="w-[1080px] h-[1080px] relative overflow-hidden flex flex-col items-center pt-[200px] pb-[100px] px-[60px] origin-top-left"
-          style={{ transform: 'scale(0.4444)' }} // 480 / 1080 = 0.4444
-        >
+      <div 
+        className="overflow-hidden rounded-xl shadow-2xl bg-black relative flex-shrink-0" 
+        style={{ width: Math.round(1080 * scale), height: Math.round(1080 * scale) }}
+      >
+        <div style={{ transform: `scale(${scale})`, transformOrigin: 'top left' }}>
+          <div 
+            ref={posterRef} 
+            className="w-[1080px] h-[1080px] relative overflow-hidden flex flex-col items-center pt-[200px] pb-[100px] px-[60px] bg-black"
+          >
           {/* Background Template */}
           <img 
             src="/poster-bg.png" 
