@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { API_URL } from '../config/api.js';
+import ResultPoster from '../components/ResultPoster';
+
 const calculatePoints = (type, position, grade) => {
   let pts = 0;
   const pos = Number(position);
@@ -34,6 +36,7 @@ export default function ResultManagement() {
   const [showTotalPoints, setShowTotalPoints] = useState(false);
   const [expandedResults, setExpandedResults] = useState({});
   const [categoriesList, setCategoriesList] = useState(['All']);
+  const [posterResult, setPosterResult] = useState(null);
 
   const toggleExpand = (id) => {
     setExpandedResults(prev => ({ ...prev, [id]: !prev[id] }));
@@ -481,6 +484,13 @@ export default function ResultManagement() {
                   
                   <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
                     <button
+                      onClick={() => setPosterResult(r)}
+                      className="px-3 py-1.5 text-xs font-bold rounded-lg transition bg-purple-100 text-purple-700 hover:bg-purple-200"
+                      title="Generate Poster"
+                    >
+                      Poster
+                    </button>
+                    <button
                       onClick={() => toggleExpand(r._id)}
                       className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${expandedResults[r._id] ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                     >
@@ -546,6 +556,12 @@ export default function ResultManagement() {
           ))}
         </div>
       )}
+
+      {/* Poster Generator Modal */}
+      {posterResult && (
+        <ResultPoster result={posterResult} onClose={() => setPosterResult(null)} />
+      )}
+
       {/* Edit Modal */}
       {editingResult && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">

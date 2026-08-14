@@ -131,6 +131,13 @@ export default function JudgeDashboard() {
     }
   };
 
+  const isPositionTaken = (pos, currentCandId) => {
+    if (!pos) return false;
+    return Object.entries(candidateScores).some(
+      ([id, score]) => id !== currentCandId && score.position === pos
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 p-4 md:p-8">
       <div className="glass p-6 md:p-8 rounded-3xl max-w-6xl mx-auto space-y-8">
@@ -310,7 +317,7 @@ export default function JudgeDashboard() {
                                 className={`w-full p-2.5 sm:p-2 bg-slate-50 border border-slate-200 rounded-lg transition-all text-sm font-medium ${isAbsent ? 'opacity-60 cursor-not-allowed text-slate-400' : 'focus:ring-2 focus:ring-purple-500 focus:bg-white text-slate-700'}`}
                               >
                                 <option value="">None</option>
-                                <option value="1">1st Position</option>
+                                <option value="1" disabled={isPositionTaken("1", cand._id)}>1st Position</option>
                                 <option value="2">2nd Position</option>
                                 <option value="3">3rd Position</option>
                               </select>
