@@ -178,6 +178,7 @@ export default function ResultPoster({ result, onClose }) {
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 }
