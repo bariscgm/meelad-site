@@ -22,7 +22,7 @@ export default function StageDashboard() {
   const [filterStatus, setFilterStatus] = useState('All');
 
   // Stats
-  const [stats, setStats] = useState({ total: 0, pending: 0, finished: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, assigned: 0, finished: 0 });
 
   useEffect(() => {
     fetchData();
@@ -59,8 +59,9 @@ export default function StageDashboard() {
 
         // Calculate Stats
         const pending = programsData.filter(p => p.status === 'Pending').length;
+        const assigned = programsData.filter(p => p.status === 'Assigned').length;
         const finished = programsData.filter(p => p.status === 'Finished').length;
-        setStats({ total: programsData.length, pending, finished });
+        setStats({ total: programsData.length, pending, assigned, finished });
       }
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -511,18 +512,22 @@ export default function StageDashboard() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col items-center justify-center">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center">
             <span className="text-4xl font-bold text-slate-800">{stats.total}</span>
-            <span className="text-sm font-medium text-slate-500 uppercase tracking-wider mt-1">Total Programs</span>
+            <span className="text-[11px] md:text-sm font-medium text-slate-500 uppercase tracking-wider mt-1">Total Programs</span>
           </div>
-          <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex flex-col items-center justify-center">
+          <div className="p-6 rounded-2xl bg-amber-50 border border-amber-200 shadow-sm flex flex-col items-center justify-center text-center">
             <span className="text-4xl font-bold text-amber-600">{stats.pending}</span>
-            <span className="text-sm font-medium text-amber-600 uppercase tracking-wider mt-1">Pending Programs</span>
+            <span className="text-[11px] md:text-sm font-medium text-amber-600 uppercase tracking-wider mt-1">Pending</span>
           </div>
-          <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm flex flex-col items-center justify-center">
+          <div className="p-6 rounded-2xl bg-blue-50 border border-blue-200 shadow-sm flex flex-col items-center justify-center text-center">
+            <span className="text-4xl font-bold text-blue-600">{stats.assigned}</span>
+            <span className="text-[11px] md:text-sm font-medium text-blue-600 uppercase tracking-wider mt-1">Assigned</span>
+          </div>
+          <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm flex flex-col items-center justify-center text-center">
             <span className="text-4xl font-bold text-emerald-600">{stats.finished}</span>
-            <span className="text-sm font-medium text-emerald-600 uppercase tracking-wider mt-1">Finished Programs</span>
+            <span className="text-[11px] md:text-sm font-medium text-emerald-600 uppercase tracking-wider mt-1">Finished (Results)</span>
           </div>
         </div>
 

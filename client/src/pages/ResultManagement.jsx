@@ -435,12 +435,16 @@ export default function ResultManagement() {
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredResults.map((r) => (
+          <div className="flex justify-between items-center px-2">
+            <h2 className="text-lg font-bold text-slate-700">Displaying {filteredResults.length} Results</h2>
+          </div>
+          {filteredResults.map((r, index) => (
             <div key={r._id} className="glass p-6 rounded-3xl space-y-4 border border-slate-100 hover:border-teal-200 transition">
               {/* Card Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
                 <div>
                   <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">#{index + 1}</span>
                     <h3 className="text-xl font-bold text-slate-800">{r.program?.name}</h3>
                     <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
                       {r.program?.category}
