@@ -403,7 +403,7 @@ function App() {
         </Route>
         
         {/* Stage Route */}
-        <Route element={<ProtectedRoute allowedRoles={['Stage Manager']} />}>
+        <Route element={<ProtectedRoute allowedRoles={['Stage Manager', 'Admin']} />}>
           <Route path="/stage" element={<StageDashboard />} />
         </Route>
 
