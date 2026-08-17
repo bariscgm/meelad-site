@@ -489,24 +489,22 @@ export default function ResultManagement() {
                 
                 <div className="flex items-center gap-3 print:hidden">
                   <div className="flex bg-slate-100 rounded-xl p-1">
-                    <button
-                      onClick={() => handleProtectedAction(() => handleStatusChange(r._id, 'Draft'), r)}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Draft' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
+                    <select
+                      value={r.status}
+                      onChange={(e) => {
+                        const newStatus = e.target.value;
+                        handleProtectedAction(() => handleStatusChange(r._id, newStatus), r);
+                      }}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition focus:outline-none cursor-pointer ${
+                        r.status === 'Draft' ? 'bg-white shadow-sm text-slate-800' : 
+                        r.status === 'Hold' ? 'bg-amber-100 text-amber-700 shadow-sm' : 
+                        'bg-emerald-100 text-emerald-700 shadow-sm'
+                      }`}
                     >
-                      Draft
-                    </button>
-                    <button
-                      onClick={() => handleProtectedAction(() => handleStatusChange(r._id, 'Hold'), r)}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Hold' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-slate-500 hover:text-amber-600'}`}
-                    >
-                      Hold
-                    </button>
-                    <button
-                      onClick={() => handleProtectedAction(() => handleStatusChange(r._id, 'Published'), r)}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Published' ? 'bg-emerald-100 text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-emerald-600'}`}
-                    >
-                      Publish
-                    </button>
+                      <option value="Draft" className="font-bold text-slate-800 bg-white">Draft</option>
+                      <option value="Hold" className="font-bold text-amber-700 bg-white">Hold</option>
+                      <option value="Published" className="font-bold text-emerald-700 bg-white">Published</option>
+                    </select>
                   </div>
                   
                   <div className="flex items-center gap-1 border-l border-slate-200 pl-3">

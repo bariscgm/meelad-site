@@ -269,9 +269,29 @@ export default function LiveScore() {
                               <h4 className="text-lg font-bold text-white">{res.program?.name}</h4>
                               <p className="text-sm text-slate-400">{res.program?.category} • {res.program?.type}</p>
                             </div>
-                            <span className="text-xs font-semibold text-teal-400 bg-teal-400/10 px-3 py-1 rounded-full uppercase tracking-wider">
-                              Published
-                            </span>
+                            <div className="flex items-center gap-3">
+                              <button
+                                onClick={() => {
+                                  const text = `Meelad Fest Result: ${res.program?.name} (${res.program?.category})\n` + 
+                                    res.winners.map(w => `${w.position}. ${w.name} (${w.team?.name}) - ${w.points} pts`).join('\n');
+                                  if (navigator.share) {
+                                    navigator.share({ title: `${res.program?.name} Result`, text });
+                                  } else {
+                                    navigator.clipboard.writeText(text);
+                                    alert('Result copied to clipboard!');
+                                  }
+                                }}
+                                className="text-slate-400 hover:text-teal-400 transition p-2 rounded-full hover:bg-white/5"
+                                title="Share Result"
+                              >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                                </svg>
+                              </button>
+                              <span className="text-xs font-semibold text-teal-400 bg-teal-400/10 px-3 py-1 rounded-full uppercase tracking-wider hidden sm:block">
+                                Published
+                              </span>
+                            </div>
                           </div>
                           
                           {/* Winners Rows */}

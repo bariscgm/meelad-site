@@ -181,6 +181,15 @@ export default function AdminLayout() {
           </div>
 
           <div className="ml-auto flex items-center gap-3">
+            <Link 
+              to="/stage" 
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 hover:bg-purple-200 rounded-xl text-xs font-bold transition mr-2 border border-purple-200"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9.5a2.5 2.5 0 00-2.5-2.5H15" />
+              </svg>
+              Stage Portal
+            </Link>
             <div className="text-right hidden sm:block">
               <p className="text-xs font-bold text-slate-800">Ilmul Rasool Admin</p>
               <p className="text-[10px] text-teal-600 font-semibold">Super Admin</p>
