@@ -505,9 +505,15 @@ export default function StageDashboard() {
               </svg>
               Print Filtered
             </button>
-            <Link to="/" className="text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl hover:bg-amber-100 transition flex items-center justify-center">
-              ← Back to Home
-            </Link>
+            {JSON.parse(localStorage.getItem('user') || '{}').role === 'Admin' ? (
+              <Link to="/admin" className="text-sm font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-xl hover:bg-indigo-100 transition flex items-center justify-center whitespace-nowrap">
+                ← Back to Admin
+              </Link>
+            ) : (
+              <Link to="/" className="text-sm font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl hover:bg-amber-100 transition flex items-center justify-center whitespace-nowrap">
+                ← Back to Home
+              </Link>
+            )}
           </div>
         </div>
 
