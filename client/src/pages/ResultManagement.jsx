@@ -142,6 +142,28 @@ export default function ResultManagement() {
     }
   };
 
+  const handleProtectedAction = async (action, r) => {
+    if (r.status === 'Published') {
+      const { value: password } = await Swal.fire({
+        title: 'Authentication Required',
+        text: 'Enter password to modify a published result',
+        input: 'password',
+        inputPlaceholder: 'Enter password',
+        showCancelButton: true,
+        confirmButtonColor: '#0f766e',
+        cancelButtonColor: '#ef4444',
+      });
+
+      if (password === '1234') {
+        action();
+      } else if (password !== undefined) {
+        Swal.fire('Error', 'Incorrect password', 'error');
+      }
+    } else {
+      action();
+    }
+  };
+
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
@@ -426,6 +448,11 @@ export default function ResultManagement() {
                     <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
                       {r.program?.type}
                     </span>
+                    {r.program?.gender && (
+                      <span className="text-xs bg-teal-50 text-teal-600 border border-teal-100 px-2.5 py-0.5 rounded-full font-semibold">
+                        {r.program?.gender}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Judge: {r.judge?.name}</p>
                   
@@ -463,19 +490,19 @@ export default function ResultManagement() {
                 <div className="flex items-center gap-3 print:hidden">
                   <div className="flex bg-slate-100 rounded-xl p-1">
                     <button
-                      onClick={() => handleStatusChange(r._id, 'Draft')}
+                      onClick={() => handleProtectedAction(() => handleStatusChange(r._id, 'Draft'), r)}
                       className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Draft' ? 'bg-white shadow-sm text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
                     >
                       Draft
                     </button>
                     <button
-                      onClick={() => handleStatusChange(r._id, 'Hold')}
+                      onClick={() => handleProtectedAction(() => handleStatusChange(r._id, 'Hold'), r)}
                       className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Hold' ? 'bg-amber-100 text-amber-700 shadow-sm' : 'text-slate-500 hover:text-amber-600'}`}
                     >
                       Hold
                     </button>
                     <button
-                      onClick={() => handleStatusChange(r._id, 'Published')}
+                      onClick={() => handleProtectedAction(() => handleStatusChange(r._id, 'Published'), r)}
                       className={`px-3 py-1 text-xs font-bold rounded-lg transition ${r.status === 'Published' ? 'bg-emerald-100 text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-emerald-600'}`}
                     >
                       Publish
@@ -497,7 +524,7 @@ export default function ResultManagement() {
                       {expandedResults[r._id] ? 'Hide' : 'View'}
                     </button>
                     <button
-                      onClick={() => setEditingResult(r)}
+                      onClick={() => handleProtectedAction(() => setEditingResult(r), r)}
                       className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                       title="Edit Result"
                     >
@@ -506,7 +533,7 @@ export default function ResultManagement() {
                       </svg>
                     </button>
                     <button
-                      onClick={() => handleDelete(r._id)}
+                      onClick={() => handleProtectedAction(() => handleDelete(r._id), r)}
                       className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                       title="Delete Result"
                     >
