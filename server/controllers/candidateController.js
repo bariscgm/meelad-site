@@ -170,6 +170,27 @@ export const getStudentResultByChestNo = async (req, res) => {
     const Result = (await import('../models/Result.js')).default;
     const publishedResults = await Result.find({ status: 'Published' }).populate('program');
 
+    const calculatePoints = (type, position, grade) => {
+      let pts = 0;
+      const pos = Number(position);
+      if (type === 'Individual') {
+        if (pos === 1) pts += 5;
+        else if (pos === 2) pts += 3;
+        else if (pos === 3) pts += 1;
+        if (grade === 'A') pts += 5;
+        else if (grade === 'B') pts += 3;
+        else if (grade === 'C') pts += 1;
+      } else if (type === 'Group') {
+        if (pos === 1) pts += 10;
+        else if (pos === 2) pts += 5;
+        else if (pos === 3) pts += 3;
+        if (grade === 'A') pts += 10;
+        else if (grade === 'B') pts += 5;
+        else if (grade === 'C') pts += 3;
+      }
+      return pts;
+    };
+
     const studentResults = [];
 
     for (const result of publishedResults) {
@@ -205,12 +226,13 @@ export const getStudentResultByChestNo = async (req, res) => {
              }
 
              const membersCount = await Candidate.countDocuments(membersCountQuery);
+             const basePoints = winnerRecord.points || calculatePoints(result.program.type, winnerRecord.position, winnerRecord.grade);
              
              studentResults.push({
                program: result.program,
                position: winnerRecord.position,
                grade: winnerRecord.grade,
-               points: membersCount > 0 ? (winnerRecord.points / membersCount) : winnerRecord.points
+               points: membersCount > 0 ? (basePoints / membersCount) : basePoints
              });
            }
         }
@@ -221,7 +243,7 @@ export const getStudentResultByChestNo = async (req, res) => {
             program: result.program,
             position: winnerRecord.position,
             grade: winnerRecord.grade,
-            points: winnerRecord.points
+            points: winnerRecord.points || calculatePoints(result.program.type, winnerRecord.position, winnerRecord.grade)
           });
         }
       }
