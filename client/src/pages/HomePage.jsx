@@ -315,51 +315,45 @@ export default function HomePage() {
                       {(!studentResult.participatingPrograms || studentResult.participatingPrograms.length === 0) ? (
                         <p className="text-slate-400 text-sm">No participating programs found.</p>
                       ) : (
-                        studentResult.participatingPrograms.map((prog, idx) => (
-                          <div key={`prog-${idx}`} className="flex justify-between items-center bg-white/5 p-3 rounded-lg border border-white/5">
-                            <div className="flex flex-col gap-1">
-                              <span className="text-sm font-bold text-white">{prog.name}</span>
-                              <span className="text-[10px] text-teal-400 uppercase tracking-wider">{prog.category}</span>
+                        studentResult.participatingPrograms.map((prog, idx) => {
+                          const progResult = studentResult.results?.find(r => r.program?.name === prog.name);
+                          return (
+                            <div key={`prog-${idx}`} className="flex flex-col gap-2 bg-white/5 p-3 rounded-lg border border-white/5">
+                              <div className="flex justify-between items-center">
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-sm font-bold text-white">{prog.name}</span>
+                                  <span className="text-[10px] text-teal-400 uppercase tracking-wider">{prog.category}</span>
+                                </div>
+                                <span className={`px-2 py-1 text-xs font-bold rounded-md ${
+                                  prog.status === 'Finished' ? 'bg-emerald-500/20 text-emerald-300' :
+                                  prog.status === 'Assigned' ? 'bg-blue-500/20 text-blue-300' :
+                                  'bg-amber-500/20 text-amber-300'
+                                }`}>
+                                  {prog.status}
+                                </span>
+                              </div>
+                              {progResult && (
+                                <div className="flex items-center gap-3 mt-1 text-xs border-t border-white/5 pt-2">
+                                  {progResult.position ? (
+                                    <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
+                                      Position: {progResult.position}
+                                    </span>
+                                  ) : null}
+                                  {progResult.grade ? (
+                                    <span className="font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
+                                      Grade: {progResult.grade}
+                                    </span>
+                                  ) : null}
+                                  {progResult.points !== undefined && progResult.points !== null ? (
+                                    <span className="font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
+                                      Points: {progResult.points}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              )}
                             </div>
-                            <span className={`px-2 py-1 text-xs font-bold rounded-md ${
-                              prog.status === 'Finished' ? 'bg-emerald-500/20 text-emerald-300' :
-                              prog.status === 'Assigned' ? 'bg-blue-500/20 text-blue-300' :
-                              'bg-amber-500/20 text-amber-300'
-                            }`}>
-                              {prog.status}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    <div className="space-y-3 mt-6">
-                      <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Published Results</h5>
-                      {studentResult.results.length === 0 ? (
-                        <p className="text-slate-400 text-sm">No published results found.</p>
-                      ) : (
-                        studentResult.results.map((res, idx) => (
-                          <div key={idx} className="flex flex-col gap-1 bg-white/5 p-3 rounded-lg border border-white/5">
-                            <span className="text-sm font-bold text-white">{res.program?.name}</span>
-                            <div className="flex items-center gap-3 mt-1 text-xs">
-                              {res.position ? (
-                                <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
-                                  Position: {res.position}
-                                </span>
-                              ) : null}
-                              {res.grade ? (
-                                <span className="font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
-                                  Grade: {res.grade}
-                                </span>
-                              ) : null}
-                              {res.points !== undefined && res.points !== null ? (
-                                <span className="font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
-                                  Points: {res.points}
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                        ))
+                          );
+                        })
                       )}
                     </div>
                   </div>
