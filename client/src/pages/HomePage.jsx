@@ -336,7 +336,10 @@ export default function HomePage() {
                                 <div className="flex items-center gap-3 mt-1 text-xs border-t border-white/5 pt-2">
                                   {progResult.position ? (
                                     <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
-                                      Position: {progResult.position}
+                                      {progResult.position === 1 ? 'First' : 
+                                       progResult.position === 2 ? 'Second' : 
+                                       progResult.position === 3 ? 'Third' : 
+                                       `Position: ${progResult.position}`}
                                     </span>
                                   ) : null}
                                   {progResult.grade ? (
