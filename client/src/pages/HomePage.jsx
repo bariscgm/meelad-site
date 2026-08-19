@@ -352,7 +352,7 @@ export default function HomePage() {
                                   Grade: {res.grade}
                                 </span>
                               ) : null}
-                              {res.points ? (
+                              {res.points !== undefined && res.points !== null ? (
                                 <span className="font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
                                   Points: {res.points}
                                 </span>
