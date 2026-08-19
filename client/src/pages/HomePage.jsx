@@ -344,9 +344,11 @@ export default function HomePage() {
                                       Grade: {progResult.grade}
                                     </span>
                                   ) : null}
-                                  <span className="font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
-                                    Marks: {progResult?.points !== undefined ? progResult.points : 0}
-                                  </span>
+                                  {(!progResult?.position && !progResult?.grade) && (
+                                    <span className="font-bold px-2 py-0.5 bg-slate-500/20 text-slate-300 rounded">
+                                      Participated
+                                    </span>
+                                  )}
                                 </div>
                               )}
                             </div>
