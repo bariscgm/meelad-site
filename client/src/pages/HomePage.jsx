@@ -332,23 +332,21 @@ export default function HomePage() {
                                   {prog.status}
                                 </span>
                               </div>
-                              {progResult && (
+                              {(progResult || prog.isResultPublished) && (
                                 <div className="flex items-center gap-3 mt-1 text-xs border-t border-white/5 pt-2">
-                                  {progResult.position ? (
+                                  {progResult?.position ? (
                                     <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
                                       Position: {progResult.position}
                                     </span>
                                   ) : null}
-                                  {progResult.grade ? (
+                                  {progResult?.grade ? (
                                     <span className="font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
                                       Grade: {progResult.grade}
                                     </span>
                                   ) : null}
-                                  {progResult.points !== undefined && progResult.points !== null ? (
-                                    <span className="font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
-                                      Points: {progResult.points}
-                                    </span>
-                                  ) : null}
+                                  <span className="font-bold px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">
+                                    Marks: {progResult?.points !== undefined ? progResult.points : 0}
+                                  </span>
                                 </div>
                               )}
                             </div>
