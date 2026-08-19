@@ -100,7 +100,7 @@ export default function LiveScore() {
     };
   }, []);
 
-  const latestResults = results.slice(0, 5);
+  const allPublishedResults = results;
   const topTeam = teams.length > 0 ? teams[0] : null;
   const secondTeam = teams.length > 1 ? teams[1] : null;
 
@@ -254,14 +254,14 @@ export default function LiveScore() {
                 <div className="mt-8">
                   <h3 className="text-xl font-bold text-white mb-8 flex items-center gap-3 border-b border-white/10 pb-4">
                     <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-                    Latest Results
+                    All Published Results
                   </h3>
 
                   <div className="space-y-6">
-                    {latestResults.length === 0 ? (
+                    {allPublishedResults.length === 0 ? (
                       <p className="text-slate-400 text-center py-8">No results published yet.</p>
                     ) : (
-                      latestResults.map(res => (
+                      allPublishedResults.map(res => (
                         <div key={res._id} className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden flex flex-col">
                           {/* Program Title Header */}
                           <div className="bg-white/5 px-6 py-4 border-b border-white/10 flex justify-between items-center">

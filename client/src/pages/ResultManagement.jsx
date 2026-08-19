@@ -37,6 +37,7 @@ export default function ResultManagement() {
   const [expandedResults, setExpandedResults] = useState({});
   const [categoriesList, setCategoriesList] = useState(['All']);
   const [posterResult, setPosterResult] = useState(null);
+  const [showPublished, setShowPublished] = useState(false);
 
   const toggleExpand = (id) => {
     setExpandedResults(prev => ({ ...prev, [id]: !prev[id] }));
@@ -48,7 +49,7 @@ export default function ResultManagement() {
       const res = await fetch(`${API_URL}/api/results`);
       if (res.ok) {
         const data = await res.json();
-        setResults(data);
+        setResults(data.reverse());
       }
     } catch (error) {
       console.error('Error fetching results:', error);
@@ -210,6 +211,155 @@ export default function ResultManagement() {
       Swal.fire('Error', 'Server connection failed', 'error');
     }
   };
+
+  const unpublishedResults = filteredResults.filter(r => r.status !== 'Published');
+  const publishedResults = filteredResults.filter(r => r.status === 'Published');
+
+  const renderResultCard = (r, index) => (
+            <div key={r._id} className="glass p-6 rounded-3xl space-y-4 border border-slate-100 hover:border-teal-200 transition">
+              {/* Card Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">#{index + 1}</span>
+                    <h3 className="text-xl font-bold text-slate-800">{r.program?.name}</h3>
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
+                      {r.program?.category}
+                    </span>
+                    <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
+                      {r.program?.type}
+                    </span>
+                    {r.program?.gender && (
+                      <span className="text-xs bg-teal-50 text-teal-600 border border-teal-100 px-2.5 py-0.5 rounded-full font-semibold">
+                        {r.program?.gender}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Judge: {r.judge?.name}</p>
+                  
+                  {/* Team Points for this program */}
+                  {(() => {
+                    const teamPts = {};
+                    r.winners?.forEach(w => {
+                      if (w.team) {
+                        const tId = w.team._id || w.team;
+                        const tName = w.team.name || 'Team';
+                        const tColor = w.team.color || '#ccc';
+                        const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                        if (!teamPts[tId]) {
+                          teamPts[tId] = { name: tName, color: tColor, pts: 0 };
+                        }
+                        teamPts[tId].pts += pts;
+                      }
+                    });
+                    const teamsArray = Object.values(teamPts).sort((a,b) => b.pts - a.pts);
+                    if (teamsArray.length === 0) return null;
+                    return (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {teamsArray.map(t => (
+                          <div key={t.name} className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs font-semibold shadow-sm">
+                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }}></span>
+                            <span className="text-slate-600">{t.name}:</span>
+                            <span className="text-slate-800 font-bold">{t.pts}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                </div>
+                
+                <div className="flex items-center gap-3 print:hidden">
+                  <div className="flex bg-slate-100 rounded-xl p-1">
+                    <select
+                      value={r.status}
+                      onChange={(e) => {
+                        const newStatus = e.target.value;
+                        handleProtectedAction(() => handleStatusChange(r._id, newStatus), r);
+                      }}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition focus:outline-none cursor-pointer ${
+                        r.status === 'Draft' ? 'bg-white shadow-sm text-slate-800' : 
+                        r.status === 'Hold' ? 'bg-amber-100 text-amber-700 shadow-sm' : 
+                        'bg-emerald-100 text-emerald-700 shadow-sm'
+                      }`}
+                    >
+                      <option value="Draft" className="font-bold text-slate-800 bg-white">Draft</option>
+                      <option value="Hold" className="font-bold text-amber-700 bg-white">Hold</option>
+                      <option value="Published" className="font-bold text-emerald-700 bg-white">Published</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
+                    <button
+                      onClick={() => setPosterResult(r)}
+                      className="px-3 py-1.5 text-xs font-bold rounded-lg transition bg-purple-100 text-purple-700 hover:bg-purple-200"
+                      title="Generate Poster"
+                    >
+                      Poster
+                    </button>
+                    <button
+                      onClick={() => toggleExpand(r._id)}
+                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${expandedResults[r._id] ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    >
+                      {expandedResults[r._id] ? 'Hide' : 'View'}
+                    </button>
+                    <button
+                      onClick={() => handleProtectedAction(() => setEditingResult(r), r)}
+                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                      title="Edit Result"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleProtectedAction(() => handleDelete(r._id), r)}
+                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      title="Delete Result"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Winners List */}
+              {expandedResults[r._id] && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {r.winners?.map((w, idx) => {
+                    const getPosColor = (pos) => {
+                      if (pos === 1) return { bg: '#dcfce7', text: '#15803d' }; // green
+                      if (pos === 2) return { bg: '#dbeafe', text: '#1d4ed8' }; // blue
+                      if (pos === 3) return { bg: '#fee2e2', text: '#b91c1c' }; // red
+                      return { bg: '#f1f5f9', text: '#64748b' };
+                    };
+                    const posColors = getPosColor(w.position);
+                    const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                    return (
+                      <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
+                          {w.position}
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                          <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
+                          <div className="flex gap-2 mt-1">
+                            <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
+                              Grade {w.grade}
+                            </span>
+                            <span className="inline-block bg-slate-200 text-slate-700 text-xs font-bold px-1.5 py-0.5 rounded">
+                              {displayPoints} pts
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+  );
 
   return (
     <div className="space-y-6">
@@ -434,155 +584,31 @@ export default function ResultManagement() {
           <p className="text-slate-400 font-medium">No results found matching your search criteria.</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-2">
-            <h2 className="text-lg font-bold text-slate-700">Displaying {filteredResults.length} Results</h2>
-          </div>
-          {filteredResults.map((r, index) => (
-            <div key={r._id} className="glass p-6 rounded-3xl space-y-4 border border-slate-100 hover:border-teal-200 transition">
-              {/* Card Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-100">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-black text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">#{index + 1}</span>
-                    <h3 className="text-xl font-bold text-slate-800">{r.program?.name}</h3>
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
-                      {r.program?.category}
-                    </span>
-                    <span className="text-xs bg-slate-100 text-slate-600 px-2.5 py-0.5 rounded-full font-semibold">
-                      {r.program?.type}
-                    </span>
-                    {r.program?.gender && (
-                      <span className="text-xs bg-teal-50 text-teal-600 border border-teal-100 px-2.5 py-0.5 rounded-full font-semibold">
-                        {r.program?.gender}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400 mt-1">Judge: {r.judge?.name}</p>
-                  
-                  {/* Team Points for this program */}
-                  {(() => {
-                    const teamPts = {};
-                    r.winners?.forEach(w => {
-                      if (w.team) {
-                        const tId = w.team._id || w.team;
-                        const tName = w.team.name || 'Team';
-                        const tColor = w.team.color || '#ccc';
-                        const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
-                        if (!teamPts[tId]) {
-                          teamPts[tId] = { name: tName, color: tColor, pts: 0 };
-                        }
-                        teamPts[tId].pts += pts;
-                      }
-                    });
-                    const teamsArray = Object.values(teamPts).sort((a,b) => b.pts - a.pts);
-                    if (teamsArray.length === 0) return null;
-                    return (
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {teamsArray.map(t => (
-                          <div key={t.name} className="flex items-center gap-1.5 px-2 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs font-semibold shadow-sm">
-                            <span className="w-2 h-2 rounded-full" style={{ backgroundColor: t.color }}></span>
-                            <span className="text-slate-600">{t.name}:</span>
-                            <span className="text-slate-800 font-bold">{t.pts}</span>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                </div>
-                
-                <div className="flex items-center gap-3 print:hidden">
-                  <div className="flex bg-slate-100 rounded-xl p-1">
-                    <select
-                      value={r.status}
-                      onChange={(e) => {
-                        const newStatus = e.target.value;
-                        handleProtectedAction(() => handleStatusChange(r._id, newStatus), r);
-                      }}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition focus:outline-none cursor-pointer ${
-                        r.status === 'Draft' ? 'bg-white shadow-sm text-slate-800' : 
-                        r.status === 'Hold' ? 'bg-amber-100 text-amber-700 shadow-sm' : 
-                        'bg-emerald-100 text-emerald-700 shadow-sm'
-                      }`}
-                    >
-                      <option value="Draft" className="font-bold text-slate-800 bg-white">Draft</option>
-                      <option value="Hold" className="font-bold text-amber-700 bg-white">Hold</option>
-                      <option value="Published" className="font-bold text-emerald-700 bg-white">Published</option>
-                    </select>
-                  </div>
-                  
-                  <div className="flex items-center gap-1 border-l border-slate-200 pl-3">
-                    <button
-                      onClick={() => setPosterResult(r)}
-                      className="px-3 py-1.5 text-xs font-bold rounded-lg transition bg-purple-100 text-purple-700 hover:bg-purple-200"
-                      title="Generate Poster"
-                    >
-                      Poster
-                    </button>
-                    <button
-                      onClick={() => toggleExpand(r._id)}
-                      className={`px-3 py-1.5 text-xs font-bold rounded-lg transition ${expandedResults[r._id] ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-                    >
-                      {expandedResults[r._id] ? 'Hide' : 'View'}
-                    </button>
-                    <button
-                      onClick={() => handleProtectedAction(() => setEditingResult(r), r)}
-                      className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                      title="Edit Result"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleProtectedAction(() => handleDelete(r._id), r)}
-                      className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete Result"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Winners List */}
-              {expandedResults[r._id] && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {r.winners?.map((w, idx) => {
-                    const getPosColor = (pos) => {
-                      if (pos === 1) return { bg: '#dcfce7', text: '#15803d' }; // green
-                      if (pos === 2) return { bg: '#dbeafe', text: '#1d4ed8' }; // blue
-                      if (pos === 3) return { bg: '#fee2e2', text: '#b91c1c' }; // red
-                      return { bg: '#f1f5f9', text: '#64748b' };
-                    };
-                    const posColors = getPosColor(w.position);
-                    const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
-                    return (
-                      <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
-                        <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
-                          {w.position}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
-                          <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
-                          <div className="flex gap-2 mt-1">
-                            <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
-                              Grade {w.grade}
-                            </span>
-                            <span className="inline-block bg-slate-200 text-slate-700 text-xs font-bold px-1.5 py-0.5 rounded">
-                              {displayPoints} pts
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center px-2">
+              <h2 className="text-lg font-bold text-slate-700">Displaying {unpublishedResults.length} Unpublished Results</h2>
             </div>
-          ))}
+            {unpublishedResults.map((r, index) => renderResultCard(r, index))}
+          </div>
+          
+          <div className="space-y-4">
+            <button 
+              onClick={() => setShowPublished(!showPublished)}
+              className="w-full flex justify-between items-center bg-emerald-50 text-emerald-700 px-6 py-4 rounded-2xl font-bold hover:bg-emerald-100 transition border border-emerald-200"
+            >
+              <span>View Published Results ({publishedResults.length})</span>
+              <svg className={`w-5 h-5 transition-transform duration-300 ${showPublished ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {showPublished && (
+              <div className="space-y-4 pt-2">
+                {publishedResults.map((r, index) => renderResultCard(r, index))}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
