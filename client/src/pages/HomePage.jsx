@@ -324,31 +324,26 @@ export default function HomePage() {
                                   <span className="text-sm font-bold text-white">{prog.name}</span>
                                   <span className="text-[10px] text-teal-400 uppercase tracking-wider">{prog.category}</span>
                                 </div>
-                                <span className={`px-2 py-1 text-xs font-bold rounded-md ${
-                                  prog.status === 'Finished' ? 'bg-emerald-500/20 text-emerald-300' :
-                                  prog.status === 'Assigned' ? 'bg-blue-500/20 text-blue-300' :
-                                  'bg-amber-500/20 text-amber-300'
-                                }`}>
-                                  {prog.status}
-                                </span>
-                              </div>
-                              {progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None')) && (
-                                <div className="flex items-center gap-3 mt-1 text-xs border-t border-white/5 pt-2">
-                                  {progResult.position ? (
-                                    <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
-                                      {Number(progResult.position) === 1 ? 'First' : 
-                                       Number(progResult.position) === 2 ? 'Second' : 
-                                       Number(progResult.position) === 3 ? 'Third' : 
-                                       `Position: ${progResult.position}`}
-                                    </span>
-                                  ) : null}
-                                  {(progResult.grade && progResult.grade !== 'None') ? (
-                                    <span className="font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
-                                      Grade: {progResult.grade}
-                                    </span>
-                                  ) : null}
+                                <div className="flex flex-col items-end gap-1">
+                                  <span className={`px-2 py-1 text-xs font-bold rounded-md ${
+                                    prog.status === 'Finished' ? 'bg-emerald-500/20 text-emerald-300' :
+                                    prog.status === 'Assigned' ? 'bg-blue-500/20 text-blue-300' :
+                                    'bg-amber-500/20 text-amber-300'
+                                  }`}>
+                                    {(() => {
+                                      if (prog.status === 'Finished' && progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None'))) {
+                                        const posText = Number(progResult.position) === 1 ? 'First' : 
+                                                        Number(progResult.position) === 2 ? 'Second' : 
+                                                        Number(progResult.position) === 3 ? 'Third' : 
+                                                        progResult.position ? `Pos: ${progResult.position}` : '';
+                                        const gradeText = (progResult.grade && progResult.grade !== 'None') ? `Grade ${progResult.grade}` : '';
+                                        return [posText, gradeText].filter(Boolean).join(' | ');
+                                      }
+                                      return prog.status;
+                                    })()}
+                                  </span>
                                 </div>
-                              )}
+                              </div>
                             </div>
                           );
                         })
