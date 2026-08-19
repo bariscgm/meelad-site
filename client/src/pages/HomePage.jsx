@@ -332,7 +332,7 @@ export default function HomePage() {
                                   {prog.status}
                                 </span>
                               </div>
-                              {progResult && (progResult.position || progResult.grade) && (
+                              {progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None')) && (
                                 <div className="flex items-center gap-3 mt-1 text-xs border-t border-white/5 pt-2">
                                   {progResult.position ? (
                                     <span className="font-bold px-2 py-0.5 bg-yellow-500/20 text-yellow-300 rounded">
@@ -342,7 +342,7 @@ export default function HomePage() {
                                        `Position: ${progResult.position}`}
                                     </span>
                                   ) : null}
-                                  {progResult.grade ? (
+                                  {(progResult.grade && progResult.grade !== 'None') ? (
                                     <span className="font-bold px-2 py-0.5 bg-blue-500/20 text-blue-300 rounded">
                                       Grade: {progResult.grade}
                                     </span>

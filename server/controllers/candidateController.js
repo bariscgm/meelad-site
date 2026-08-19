@@ -237,7 +237,7 @@ export const getStudentResultByChestNo = async (req, res) => {
            }
         }
       } else {
-        const winnerRecord = result.winners.find(w => w.chestNo === chestNo);
+        const winnerRecord = result.winners.find(w => String(w.chestNo).trim() === String(chestNo).trim());
         if (winnerRecord) {
           studentResults.push({
             program: result.program,
