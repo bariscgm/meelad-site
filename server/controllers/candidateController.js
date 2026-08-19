@@ -273,11 +273,15 @@ export const getStudentResultByChestNo = async (req, res) => {
         const genderMatches = !p.gender || p.gender.toLowerCase() === 'general' || p.gender === candidate.gender;
         return categoryMatches && genderMatches;
       })
-      .map(p => ({
-        name: p.name,
-        category: p.category,
-        status: p.status || 'Pending'
-      }));
+      .map(p => {
+        const isPublished = publishedResults.some(r => r.program && r.program._id.toString() === p._id.toString());
+        return {
+          name: p.name,
+          category: p.category,
+          status: p.status || 'Pending',
+          isResultPublished: isPublished
+        };
+      });
 
     res.json({
       candidate,
