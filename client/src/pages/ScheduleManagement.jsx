@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { API_URL } from '../config/api.js';
+import Swal from 'sweetalert2';
 
 export default function ScheduleManagement() {
   const [categories, setCategories] = useState([]);
@@ -252,6 +253,58 @@ export default function ScheduleManagement() {
         isFeasible: newTotalRequired <= prev.totalCapacity
       };
     });
+  };
+
+  const handleSaveSchedule = async () => {
+    if (!actualSchedule || actualSchedule.length === 0) return;
+
+    const { value: scheduleName } = await Swal.fire({
+      title: 'Save Schedule',
+      input: 'text',
+      inputLabel: 'Enter a name for this schedule (e.g. Day 1 - Boys Main)',
+      inputPlaceholder: 'Schedule Name',
+      showCancelButton: true,
+      inputValidator: (value) => {
+        if (!value) {
+          return 'You need to write a name!';
+        }
+      }
+    });
+
+    if (scheduleName) {
+      try {
+        const res = await fetch(`${API_URL}/api/schedules`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            name: scheduleName,
+            stages: actualSchedule,
+            report: scheduleReport
+          })
+        });
+
+        if (res.ok) {
+          const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+          });
+          Toast.fire({
+            icon: 'success',
+            title: 'Schedule saved successfully'
+          });
+        } else {
+          const err = await res.json();
+          Swal.fire('Error', err.message || 'Failed to save schedule', 'error');
+        }
+      } catch (error) {
+        Swal.fire('Error', 'Network error while saving schedule', 'error');
+      }
+    }
   };
 
   const handleCategoryToggle = (cat) => {
@@ -706,6 +759,16 @@ export default function ScheduleManagement() {
                   </div>
                 </div>
               ))}
+            </div>
+            
+            <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end">
+               <button 
+                 onClick={handleSaveSchedule}
+                 className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-200 transition flex items-center gap-2"
+               >
+                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
+                 Save Schedule
+               </button>
             </div>
           </div>
         )}
