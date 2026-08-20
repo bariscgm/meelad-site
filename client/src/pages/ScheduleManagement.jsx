@@ -24,6 +24,7 @@ export default function ScheduleManagement() {
   const [actualSchedule, setActualSchedule] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedReportProgram, setSelectedReportProgram] = useState(null);
+  const [savedSchedules, setSavedSchedules] = useState([]);
 
   const formatMinutes = (totalMins) => {
     const h = Math.floor(totalMins / 60) % 24;
@@ -35,7 +36,20 @@ export default function ScheduleManagement() {
 
   useEffect(() => {
     fetchData();
+    fetchSchedules();
   }, []);
+
+  const fetchSchedules = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/schedules`);
+      if (res.ok) {
+        const data = await res.json();
+        setSavedSchedules(data);
+      }
+    } catch (error) {
+      console.error('Error fetching schedules:', error);
+    }
+  };
 
   const fetchData = async () => {
     try {
@@ -297,6 +311,7 @@ export default function ScheduleManagement() {
             icon: 'success',
             title: 'Schedule saved successfully'
           });
+          fetchSchedules(); // Refresh the list
         } else {
           const err = await res.json();
           Swal.fire('Error', err.message || 'Failed to save schedule', 'error');
@@ -305,6 +320,82 @@ export default function ScheduleManagement() {
         Swal.fire('Error', 'Network error while saving schedule', 'error');
       }
     }
+  };
+
+  const handlePrint = (schedule) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      Swal.fire('Error', 'Popup blocked. Please allow popups to print.', 'error');
+      return;
+    }
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Print Schedule - ${schedule.name}</title>
+        <style>
+          body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; }
+          h1 { text-align: center; color: #1e1e1e; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
+          .header-info { text-align: center; margin-bottom: 30px; font-size: 14px; color: #555; }
+          .stage-container { margin-bottom: 40px; page-break-inside: avoid; }
+          .stage-title { font-size: 18px; font-weight: bold; background-color: #f3f4f6; padding: 10px 15px; border-left: 4px solid #4f46e5; margin-bottom: 15px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+          th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
+          th { background-color: #f9fafb; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #6b7280; }
+          td { font-size: 14px; }
+          .time-col { width: 150px; font-weight: bold; color: #4b5563; }
+          .meta-info { font-size: 12px; color: #6b7280; margin-top: 4px; }
+          @media print {
+            body { padding: 0; }
+            .stage-container { page-break-inside: avoid; }
+            button { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>${schedule.name}</h1>
+        <div class="header-info">
+          Generated on: ${new Date(schedule.createdAt).toLocaleDateString()} at ${new Date(schedule.createdAt).toLocaleTimeString()}
+        </div>
+        
+        ${schedule.stages.map(stage => `
+          <div class="stage-container">
+            <div class="stage-title">${stage.stageName}</div>
+            <table>
+              <thead>
+                <tr>
+                  <th class="time-col">Time</th>
+                  <th>Programme</th>
+                  <th>Category</th>
+                  <th>Count</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${stage.items.length > 0 ? stage.items.map(item => `
+                  <tr>
+                    <td class="time-col">${item.startTimeFormatted} - ${item.endTimeFormatted}</td>
+                    <td>
+                      <div style="font-weight: bold;">${item.name}</div>
+                    </td>
+                    <td>${item.category}</td>
+                    <td>${item.studentCount} students</td>
+                  </tr>
+                `).join('') : '<tr><td colspan="4" style="text-align: center;">No programs scheduled</td></tr>'}
+              </tbody>
+            </table>
+          </div>
+        `).join('')}
+        
+        <script>
+          window.onload = function() { window.print(); window.close(); }
+        </script>
+      </body>
+      </html>
+    `;
+
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
   };
 
   const handleCategoryToggle = (cat) => {
@@ -769,6 +860,79 @@ export default function ScheduleManagement() {
                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
                  Save Schedule
                </button>
+            </div>
+            </div>
+          </div>
+        )}
+
+        {/* Saved Schedules Section */}
+        {savedSchedules.length > 0 && (
+          <div className="glass p-6 md:p-8 rounded-3xl relative animate-fade-in mt-8">
+            <h2 className="text-2xl font-bold text-slate-800 mb-6">Saved Schedules</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {savedSchedules.map((schedule) => (
+                <div key={schedule._id} className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 flex flex-col justify-between hover:shadow-md transition">
+                  <div>
+                    <h3 className="text-lg font-bold text-slate-800 mb-2 truncate" title={schedule.name}>
+                      {schedule.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 mb-4">
+                      Saved: {new Date(schedule.createdAt).toLocaleDateString()} {new Date(schedule.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </p>
+                    <div className="space-y-2 mb-6">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Stages</span>
+                        <span className="font-bold text-slate-700">{schedule.stages?.length || 0}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-500">Programmes</span>
+                        <span className="font-bold text-slate-700">
+                          {schedule.stages?.reduce((acc, stage) => acc + (stage.items?.length || 0), 0) || 0}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 mt-4">
+                    <button 
+                      onClick={() => handlePrint(schedule)}
+                      className="flex-1 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded-xl transition flex items-center justify-center gap-2"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                      </svg>
+                      Print PDF
+                    </button>
+                    <button
+                      onClick={async () => {
+                        const result = await Swal.fire({
+                          title: 'Are you sure?',
+                          text: "You won't be able to revert this!",
+                          icon: 'warning',
+                          showCancelButton: true,
+                          confirmButtonColor: '#ef4444',
+                          cancelButtonColor: '#94a3b8',
+                          confirmButtonText: 'Yes, delete it!'
+                        });
+                        if (result.isConfirmed) {
+                          try {
+                            const res = await fetch(`${API_URL}/api/schedules/${schedule._id}`, { method: 'DELETE' });
+                            if (res.ok) {
+                              Swal.fire('Deleted!', 'Schedule has been deleted.', 'success');
+                              fetchSchedules();
+                            }
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }
+                      }}
+                      className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition"
+                      title="Delete Schedule"
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}
