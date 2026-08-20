@@ -22,6 +22,7 @@ export default function ScheduleManagement() {
   const [scheduleReport, setScheduleReport] = useState(null);
   const [actualSchedule, setActualSchedule] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selectedReportProgram, setSelectedReportProgram] = useState(null);
 
   const formatMinutes = (totalMins) => {
     const h = Math.floor(totalMins / 60) % 24;
@@ -550,7 +551,12 @@ export default function ScheduleManagement() {
                        {scheduleReport.breakdown.length > 0 ? (
                          scheduleReport.breakdown.map(item => (
                            <tr key={item.id} className="hover:bg-slate-50/50 transition">
-                             <td className="px-6 py-4 font-bold text-slate-800">{item.name}</td>
+                             <td 
+                               className="px-6 py-4 font-bold text-indigo-600 cursor-pointer hover:underline"
+                               onClick={() => setSelectedReportProgram(item)}
+                             >
+                               {item.name}
+                             </td>
                              <td className="px-6 py-4">{item.category}</td>
                              <td className="px-6 py-4 text-center font-medium">
                                 <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{item.studentCount}</span>
@@ -610,6 +616,39 @@ export default function ScheduleManagement() {
           </div>
         )}
       </div>
+
+      {/* Program Students Modal */}
+      {selectedReportProgram && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">{selectedReportProgram.name}</h3>
+                <p className="text-sm text-slate-500">{selectedReportProgram.category}</p>
+              </div>
+              <button onClick={() => setSelectedReportProgram(null)} className="p-2 text-slate-400 hover:bg-slate-200 rounded-full transition">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto">
+              <div className="space-y-3">
+                {candidates.filter(c => 
+                  c.category === selectedReportProgram.category && 
+                  c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === selectedReportProgram.name.trim().toLowerCase())
+                ).map((c, i) => (
+                  <div key={i} className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50">
+                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">{i + 1}</div>
+                    <div>
+                      <p className="font-bold text-slate-800 text-sm">{c.name}</p>
+                      <p className="text-xs text-slate-500">Chest No: {c.chestNo} | Team: {c.team?.name || 'N/A'}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
