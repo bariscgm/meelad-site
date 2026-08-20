@@ -311,19 +311,17 @@ export default function HomePage() {
                     </div>
 
                     <div className="space-y-3 mt-4">
-                      <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Achievements</h5>
+                      <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Programs & Results</h5>
                       {(() => {
-                        const achievedPrograms = (studentResult.results || []).filter(progResult => {
-                          return progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None'));
-                        });
-
-                        if (achievedPrograms.length === 0) {
-                          return <p className="text-slate-400 text-sm">No prizes or grades won yet.</p>;
+                        const programs = studentResult.participatingPrograms || [];
+                        if (programs.length === 0) {
+                          return <p className="text-slate-400 text-sm">No programs found.</p>;
                         }
 
-                        return achievedPrograms.map((progResult, idx) => {
-                          const prog = progResult.program;
-                          if (!prog) return null;
+                        return programs.map((prog, idx) => {
+                          // Check if they won anything in this program
+                          const wonResult = (studentResult.results || []).find(r => r.program?.name === prog.name);
+
                           return (
                             <div key={`prog-${idx}`} className="flex flex-col gap-2 bg-white/5 p-3 rounded-lg border border-white/5">
                               <div className="flex justify-between items-center">
@@ -332,16 +330,28 @@ export default function HomePage() {
                                   <span className="text-[10px] text-teal-400 uppercase tracking-wider">{prog.category}</span>
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
-                                  <span className="px-2 py-1 text-xs font-bold rounded-md bg-emerald-500/20 text-emerald-300">
-                                    {(() => {
-                                      const posText = Number(progResult.position) === 1 ? 'First' : 
-                                                      Number(progResult.position) === 2 ? 'Second' : 
-                                                      Number(progResult.position) === 3 ? 'Third' : 
-                                                      progResult.position ? `Pos: ${progResult.position}` : '';
-                                      const gradeText = (progResult.grade && progResult.grade !== 'None') ? `Grade ${progResult.grade}` : '';
-                                      return [posText, gradeText].filter(Boolean).join(' | ');
-                                    })()}
-                                  </span>
+                                  {prog.isResultPublished ? (
+                                    wonResult ? (
+                                      <span className="px-2 py-1 text-xs font-bold rounded-md bg-emerald-500/20 text-emerald-300">
+                                        {(() => {
+                                          const posText = Number(wonResult.position) === 1 ? 'First' : 
+                                                          Number(wonResult.position) === 2 ? 'Second' : 
+                                                          Number(wonResult.position) === 3 ? 'Third' : 
+                                                          wonResult.position ? `Pos: ${wonResult.position}` : '';
+                                          const gradeText = (wonResult.grade && wonResult.grade !== 'None') ? `Grade ${wonResult.grade}` : '';
+                                          return [posText, gradeText].filter(Boolean).join(' | ');
+                                        })()}
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-1 text-xs font-bold rounded-md bg-slate-500/20 text-slate-300">
+                                        Participated
+                                      </span>
+                                    )
+                                  ) : (
+                                    <span className="px-2 py-1 text-xs font-bold rounded-md bg-amber-500/20 text-amber-300">
+                                      Result Pending
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
