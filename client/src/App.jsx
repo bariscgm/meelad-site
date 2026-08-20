@@ -14,6 +14,7 @@ function AdminDashboard() {
       publishedResults: 0
     },
     topTeams: [],
+    topStudents: [],
     recentActivity: []
   });
 

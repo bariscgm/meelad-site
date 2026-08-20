@@ -52,6 +52,37 @@ export const getAdminDashboard = async (req, res) => {
           : 'bg-purple-50 text-purple-700 border-purple-200'
       }));
 
+    // Aggregate Top Students from Results
+    const studentPoints = {};
+
+    allPublishedResults.forEach(result => {
+      result.winners.forEach(winner => {
+        if (winner.chestNo && winner.name) {
+          const chestNo = winner.chestNo;
+          if (!studentPoints[chestNo]) {
+            studentPoints[chestNo] = {
+              chestNo: chestNo,
+              name: winner.name,
+              totalPoints: 0,
+              team: winner.team ? winner.team.name : 'Unknown'
+            };
+          }
+          studentPoints[chestNo].totalPoints += (winner.points || 0);
+        }
+      });
+    });
+
+    const topStudents = Object.values(studentPoints)
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .slice(0, 5) // Get top 5 students
+      .map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        chestNo: item.chestNo,
+        team: item.team,
+        points: item.totalPoints
+      }));
+
     // Recent System Activity
     // Fetch last 3 published results and last 2 programs created
     const recentResults = await Result.find({ status: 'Published' })
@@ -99,6 +130,7 @@ export const getAdminDashboard = async (req, res) => {
         publishedResults: publishedResultsCount
       },
       topTeams: leaderboard,
+      topStudents: topStudents,
       recentActivity: activityLog.slice(0, 4) // Return 4 most recent events
     });
 
