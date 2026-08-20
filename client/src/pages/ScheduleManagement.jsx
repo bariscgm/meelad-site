@@ -861,7 +861,6 @@ export default function ScheduleManagement() {
                  Save Schedule
                </button>
             </div>
-            </div>
           </div>
         )}
 
