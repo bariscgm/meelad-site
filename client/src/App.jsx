@@ -156,12 +156,12 @@ function AdminDashboard() {
         </div>
       </div>
 
-      {/* Activity Feed & Team Standing Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Activity Feed & Team/Student Standings Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Top Teams Standings */}
         <div className="glass p-8 rounded-3xl space-y-4">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <span>🏆</span> Top Teams Points Leaderboard
+            <span>🏆</span> Top Teams Points
           </h2>
           <div className="space-y-3">
             {dashboardData.topTeams.length > 0 ? (
@@ -185,10 +185,37 @@ function AdminDashboard() {
           </div>
         </div>
 
+        {/* Top Students Standings */}
+        <div className="glass p-8 rounded-3xl space-y-4">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>🌟</span> Top Students
+          </h2>
+          <div className="space-y-3">
+            {dashboardData.topStudents && dashboardData.topStudents.length > 0 ? (
+              dashboardData.topStudents.map((s) => (
+                <div key={s.rank} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs ${s.color}`}>
+                      {s.rank}
+                    </span>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-sm truncate max-w-[120px]">{s.name}</h4>
+                      <span className="text-xs font-mono text-slate-500">No: {s.chestNo}</span>
+                    </div>
+                  </div>
+                  <span className="font-extrabold text-teal-600 text-sm">{s.points} pts</span>
+                </div>
+              ))
+            ) : (
+              <div className="p-4 text-slate-500 text-sm text-center">No scores yet.</div>
+            )}
+          </div>
+        </div>
+
         {/* Recent Admin Activity Log */}
         <div className="glass p-8 rounded-3xl space-y-4">
           <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <span>⚡</span> Recent System Activity
+            <span>⚡</span> Recent Activity
           </h2>
           <div className="space-y-3 text-xs">
             {dashboardData.recentActivity.length > 0 ? (
