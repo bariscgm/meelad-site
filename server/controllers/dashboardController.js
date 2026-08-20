@@ -18,7 +18,9 @@ export const getAdminDashboard = async (req, res) => {
 
     // Aggregate Top Teams from Results
     // Only published results count towards top team leaderboard
-    const allPublishedResults = await Result.find({ status: 'Published' }).populate('winners.team');
+    const allPublishedResults = await Result.find({ status: 'Published' })
+      .populate('winners.team')
+      .populate('program');
     
     const teamPoints = {};
 
@@ -92,19 +94,22 @@ export const getAdminDashboard = async (req, res) => {
     const studentPoints = {};
 
     allPublishedResults.forEach(result => {
-      result.winners.forEach(winner => {
-        if (winner.chestNo && winner.name) {
-          const key = winner.chestNo;
-          if (!studentPoints[key]) {
-            studentPoints[key] = {
-              name: winner.name,
-              chestNo: winner.chestNo,
-              totalPoints: 0
-            };
+      // Only count individual programs for student leaderboard
+      if (result.program && result.program.type === 'Individual') {
+        result.winners.forEach(winner => {
+          if (winner.chestNo && winner.name) {
+            const key = winner.chestNo;
+            if (!studentPoints[key]) {
+              studentPoints[key] = {
+                name: winner.name,
+                chestNo: winner.chestNo,
+                totalPoints: 0
+              };
+            }
+            studentPoints[key].totalPoints += (winner.points || 0);
           }
-          studentPoints[key].totalPoints += (winner.points || 0);
-        }
-      });
+        });
+      }
     });
 
     const topStudents = Object.values(studentPoints)
