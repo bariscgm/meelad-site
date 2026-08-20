@@ -123,7 +123,9 @@ export default function ScheduleManagement() {
         category: p.category,
         studentCount: count,
         durationPerStudent: duration,
-        timeNeeded
+        timeNeeded,
+        venueType: p.venueType,
+        type: p.type
       });
     });
     
@@ -169,6 +171,69 @@ export default function ScheduleManagement() {
     });
     
     setIsGenerating(false);
+  };
+
+  const handleManualCountChange = (id, newCount) => {
+    if (isNaN(newCount) || newCount < 0) return;
+    
+    setScheduleReport(prev => {
+      if (!prev) return prev;
+      
+      const newBreakdown = prev.breakdown.map(item => {
+        if (item.id !== id) return item;
+        
+        let newTimeNeeded = 0;
+        if (item.venueType === 'OFF-STAGE') {
+          newTimeNeeded = newCount > 0 ? item.durationPerStudent : 0;
+        } else if (item.type === 'Group') {
+          newTimeNeeded = Math.ceil(newCount / 3) * item.durationPerStudent;
+        } else {
+          newTimeNeeded = newCount * item.durationPerStudent;
+        }
+        
+        return { ...item, studentCount: newCount, timeNeeded: newTimeNeeded };
+      });
+      
+      const newTotalRequired = newBreakdown.reduce((sum, b) => sum + b.timeNeeded, 0);
+      
+      const [startH, startM] = startTime.split(':').map(Number);
+      const stageSchedules = Array.from({ length: prev.stages }, (_, i) => ({
+        stageName: `Stage ${i + 1}`,
+        items: [],
+        currentMinutes: startH * 60 + startM
+      }));
+
+      const sortedBreakdown = [...newBreakdown].filter(b => b.timeNeeded > 0).sort((a, b) => b.timeNeeded - a.timeNeeded);
+      
+      sortedBreakdown.forEach(item => {
+        let earliestStage = stageSchedules[0];
+        for (let i = 1; i < stageSchedules.length; i++) {
+          if (stageSchedules[i].currentMinutes < earliestStage.currentMinutes) {
+            earliestStage = stageSchedules[i];
+          }
+        }
+        
+        const startMin = earliestStage.currentMinutes;
+        const endMin = startMin + item.timeNeeded;
+        
+        earliestStage.items.push({
+          ...item,
+          startTimeFormatted: formatMinutes(startMin),
+          endTimeFormatted: formatMinutes(endMin)
+        });
+        
+        earliestStage.currentMinutes = endMin;
+      });
+
+      setActualSchedule(stageSchedules);
+      
+      return {
+        ...prev,
+        breakdown: newBreakdown,
+        totalRequired: newTotalRequired,
+        isFeasible: newTotalRequired <= prev.totalCapacity
+      };
+    });
   };
 
   const handleCategoryToggle = (cat) => {
@@ -563,8 +628,14 @@ export default function ScheduleManagement() {
                                {item.name}
                              </td>
                              <td className="px-6 py-4">{item.category}</td>
-                             <td className="px-6 py-4 text-center font-medium">
-                                <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md">{item.studentCount}</span>
+                             <td className="px-6 py-4 text-center font-medium" onClick={e => e.stopPropagation()}>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  value={item.studentCount}
+                                  onChange={(e) => handleManualCountChange(item.id, parseInt(e.target.value, 10) || 0)}
+                                  className="w-16 bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded-md text-center focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
                              </td>
                              <td className="px-6 py-4 text-center">{item.durationPerStudent} min</td>
                              <td className="px-6 py-4 text-right font-bold text-indigo-600">{item.timeNeeded} min</td>
