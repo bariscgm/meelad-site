@@ -339,7 +339,8 @@ export default function HomePage() {
                                                           Number(wonResult.position) === 3 ? 'Third' : 
                                                           wonResult.position ? `Pos: ${wonResult.position}` : '';
                                           const gradeText = (wonResult.grade && wonResult.grade !== 'None') ? `Grade ${wonResult.grade}` : '';
-                                          return [posText, gradeText].filter(Boolean).join(' | ');
+                                          const pointsText = wonResult.points ? `${wonResult.points} Pts` : '';
+                                          return [posText, gradeText, pointsText].filter(Boolean).join(' | ');
                                         })()}
                                       </span>
                                     ) : (
@@ -412,7 +413,8 @@ export default function HomePage() {
                                                   Number(w.position) === 3 ? 'Third' : 
                                                   w.position ? `Pos: ${w.position}` : '';
                                   const gradeText = (w.grade && w.grade !== 'None') ? `Grade ${w.grade}` : '';
-                                  return [posText, gradeText].filter(Boolean).join(' | ');
+                                  const pointsText = w.points ? `${w.points} Pts` : '';
+                                  return [posText, gradeText, pointsText].filter(Boolean).join(' | ');
                                 })()}
                               </span>
                               <span className="text-slate-300 truncate max-w-[120px]">{w.name}</span>
