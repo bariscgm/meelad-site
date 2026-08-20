@@ -176,7 +176,7 @@ export default function ScheduleManagement() {
   const filteredPrograms = useMemo(() => {
     return programs.filter(p => {
       // Category filter
-      if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) {
+      if (!selectedCategories.includes(p.category)) {
         return false;
       }
       
@@ -204,7 +204,7 @@ export default function ScheduleManagement() {
   // Cascading logic for Gender and Programme Type dropdowns
   const dynamicGenders = useMemo(() => {
     const genders = new Set(programs.filter(p => {
-      if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) return false;
+      if (!selectedCategories.includes(p.category)) return false;
       if (programmeType !== 'Stage + Off-stage') {
         const pType = (p.venueType || '').toLowerCase();
         if (programmeType === 'Stage' && pType !== 'stage') return false;
@@ -223,7 +223,7 @@ export default function ScheduleManagement() {
 
   const dynamicVenues = useMemo(() => {
     const venues = new Set(programs.filter(p => {
-      if (selectedCategories.length > 0 && !selectedCategories.includes(p.category)) return false;
+      if (!selectedCategories.includes(p.category)) return false;
       if (genderFilter !== 'All') {
         const fGender = genderFilter.toLowerCase();
         const pGender = (p.gender || '').toLowerCase();
