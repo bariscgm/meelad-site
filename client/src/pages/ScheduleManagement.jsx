@@ -88,9 +88,16 @@ export default function ScheduleManagement() {
     selectedProgramDetails.forEach(p => {
       // Find candidates for this program (case-insensitive, trimmed)
       const progName = p.name.trim().toLowerCase();
-      const count = candidates.filter(c => 
-        c.category === p.category && c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === progName)
-      ).length;
+      const count = candidates.filter(c => {
+        if (c.category !== p.category) return false;
+        if (genderFilter !== 'All') {
+          const fGender = genderFilter.toLowerCase();
+          const cGender = (c.gender || '').toLowerCase();
+          if (fGender === 'boys only' && cGender !== 'boy' && cGender !== 'male') return false;
+          if (fGender === 'girls only' && cGender !== 'girl' && cGender !== 'female') return false;
+        }
+        return c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === progName);
+      }).length;
       
       const durMatch = (p.duration || '5').toString().match(/\d+/);
       const duration = durMatch ? parseInt(durMatch[0]) : 5;
@@ -184,10 +191,9 @@ export default function ScheduleManagement() {
       if (genderFilter !== 'All') {
         const fGender = genderFilter.toLowerCase();
         const pGender = (p.gender || '').toLowerCase();
-        if (fGender === 'boys only' && pGender !== 'boy' && pGender !== 'male') return false;
-        if (fGender === 'girls only' && pGender !== 'girl' && pGender !== 'female') return false;
-        if (fGender === 'general' && pGender !== 'general' && pGender !== 'common') return false;
-        if (fGender === 'common' && pGender !== 'common' && pGender !== 'general') return false;
+        if (fGender === 'boys only' && !['boy', 'male', 'general', 'common'].includes(pGender)) return false;
+        if (fGender === 'girls only' && !['girl', 'female', 'general', 'common'].includes(pGender)) return false;
+        if (fGender === 'general' && !['general', 'common'].includes(pGender)) return false;
       }
 
       // Programme Type filter
@@ -227,10 +233,9 @@ export default function ScheduleManagement() {
       if (genderFilter !== 'All') {
         const fGender = genderFilter.toLowerCase();
         const pGender = (p.gender || '').toLowerCase();
-        if (fGender === 'boys only' && pGender !== 'boy' && pGender !== 'male') return false;
-        if (fGender === 'girls only' && pGender !== 'girl' && pGender !== 'female') return false;
-        if (fGender === 'general' && pGender !== 'general' && pGender !== 'common') return false;
-        if (fGender === 'common' && pGender !== 'common' && pGender !== 'general') return false;
+        if (fGender === 'boys only' && !['boy', 'male', 'general', 'common'].includes(pGender)) return false;
+        if (fGender === 'girls only' && !['girl', 'female', 'general', 'common'].includes(pGender)) return false;
+        if (fGender === 'general' && !['general', 'common'].includes(pGender)) return false;
       }
       return true;
     }).map(p => {
@@ -632,10 +637,16 @@ export default function ScheduleManagement() {
             </div>
             <div className="p-6 overflow-y-auto">
               <div className="space-y-3">
-                {candidates.filter(c => 
-                  c.category === selectedReportProgram.category && 
-                  c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === selectedReportProgram.name.trim().toLowerCase())
-                ).map((c, i) => (
+                {candidates.filter(c => {
+                  if (c.category !== selectedReportProgram.category) return false;
+                  if (genderFilter !== 'All') {
+                    const fGender = genderFilter.toLowerCase();
+                    const cGender = (c.gender || '').toLowerCase();
+                    if (fGender === 'boys only' && cGender !== 'boy' && cGender !== 'male') return false;
+                    if (fGender === 'girls only' && cGender !== 'girl' && cGender !== 'female') return false;
+                  }
+                  return c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === selectedReportProgram.name.trim().toLowerCase());
+                }).map((c, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 border rounded-xl bg-slate-50">
                     <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">{i + 1}</div>
                     <div>
