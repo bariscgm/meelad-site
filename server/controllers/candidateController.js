@@ -237,7 +237,19 @@ export const getStudentResultByChestNo = async (req, res) => {
            }
         }
       } else {
-        const winnerRecord = result.winners.find(w => String(w.chestNo).trim() === String(chestNo).trim());
+        let winnerRecord = result.winners.find(w => String(w.chestNo).trim() === String(chestNo).trim());
+
+        if (!winnerRecord) {
+          const programCodeStr = candidate.programCodes?.get(result.program._id.toString()) || candidate.programCodes?.get(result.program.name);
+          if (programCodeStr) {
+            winnerRecord = result.winners.find(w => String(w.chestNo).trim().toUpperCase() === String(programCodeStr).trim().toUpperCase());
+          }
+        }
+
+        if (!winnerRecord) {
+          winnerRecord = result.winners.find(w => w.name && w.name.trim().toLowerCase() === candidate.name.trim().toLowerCase());
+        }
+
         if (winnerRecord) {
           studentResults.push({
             program: result.program,
