@@ -313,17 +313,17 @@ export default function HomePage() {
                     <div className="space-y-3 mt-4">
                       <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Achievements</h5>
                       {(() => {
-                        const achievedPrograms = (studentResult.participatingPrograms || []).filter(prog => {
-                          const progResult = studentResult.results?.find(r => r.program?.name === prog.name);
-                          return prog.status === 'Finished' && progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None'));
+                        const achievedPrograms = (studentResult.results || []).filter(progResult => {
+                          return progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None'));
                         });
 
                         if (achievedPrograms.length === 0) {
                           return <p className="text-slate-400 text-sm">No prizes or grades won yet.</p>;
                         }
 
-                        return achievedPrograms.map((prog, idx) => {
-                          const progResult = studentResult.results?.find(r => r.program?.name === prog.name);
+                        return achievedPrograms.map((progResult, idx) => {
+                          const prog = progResult.program;
+                          if (!prog) return null;
                           return (
                             <div key={`prog-${idx}`} className="flex flex-col gap-2 bg-white/5 p-3 rounded-lg border border-white/5">
                               <div className="flex justify-between items-center">
