@@ -5,6 +5,7 @@ import AdminLayout from './layouts/AdminLayout';
 import TeamLayout from './layouts/TeamLayout';
 
 function AdminDashboard() {
+  const [studentCategoryFilter, setStudentCategoryFilter] = useState('All');
   const [dashboardData, setDashboardData] = useState({
     stats: {
       totalStudents: 0,
@@ -14,6 +15,7 @@ function AdminDashboard() {
       publishedResults: 0
     },
     topTeams: [],
+    topStudents: [],
     recentActivity: []
   });
 
@@ -187,25 +189,59 @@ function AdminDashboard() {
 
         {/* Top Students Standings */}
         <div className="glass p-8 rounded-3xl space-y-4">
-          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <span>🌟</span> Top Students
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+              <span>🌟</span> Top Students
+            </h2>
+            <select
+              value={studentCategoryFilter}
+              onChange={(e) => setStudentCategoryFilter(e.target.value)}
+              className="text-xs border border-slate-200 rounded-lg px-2 py-1 bg-white text-slate-700 font-medium outline-none focus:border-teal-500"
+            >
+              <option value="All">All</option>
+              <option value="SUB JUNIOR">Sub Junior</option>
+              <option value="JUNIOR">Junior</option>
+              <option value="SENIOR">Senior</option>
+              <option value="SUPER SENIOR">Super Senior</option>
+              <option value="GENERAL">General</option>
+            </select>
+          </div>
           <div className="space-y-3">
             {dashboardData.topStudents && dashboardData.topStudents.length > 0 ? (
-              dashboardData.topStudents.map((s) => (
-                <div key={s.rank} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs ${s.color}`}>
-                      {s.rank}
-                    </span>
-                    <div>
-                      <h4 className="font-bold text-slate-800 text-sm truncate max-w-[120px]">{s.name}</h4>
-                      <span className="text-xs font-mono text-slate-500">No: {s.chestNo}</span>
+              (() => {
+                const filteredStudents = dashboardData.topStudents
+                  .filter(s => studentCategoryFilter === 'All' || s.category === studentCategoryFilter.toUpperCase())
+                  .slice(0, 5)
+                  .map((s, index) => {
+                    const color = index === 0 
+                        ? 'bg-amber-50 text-amber-700 border-amber-200' 
+                        : index === 1 
+                        ? 'bg-slate-50 text-slate-700 border-slate-200'
+                        : index === 2
+                        ? 'bg-orange-50 text-orange-700 border-orange-200'
+                        : 'bg-indigo-50 text-indigo-700 border-indigo-200';
+                    return { ...s, displayRank: index + 1, color };
+                  });
+
+                if (filteredStudents.length === 0) {
+                  return <div className="p-4 text-slate-500 text-sm text-center">No scores in this category yet.</div>;
+                }
+
+                return filteredStudents.map((s) => (
+                  <div key={s.chestNo} className="p-4 rounded-2xl bg-white/60 border border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className={`w-8 h-8 rounded-full border flex items-center justify-center font-bold text-xs ${s.color}`}>
+                        {s.displayRank}
+                      </span>
+                      <div>
+                        <h4 className="font-bold text-slate-800 text-sm truncate max-w-[120px]" title={s.name}>{s.name}</h4>
+                        <span className="text-xs font-mono text-slate-500">No: {s.chestNo}</span>
+                      </div>
                     </div>
+                    <span className="font-extrabold text-teal-600 text-sm">{s.points} pts</span>
                   </div>
-                  <span className="font-extrabold text-teal-600 text-sm">{s.points} pts</span>
-                </div>
-              ))
+                ));
+              })()
             ) : (
               <div className="p-4 text-slate-500 text-sm text-center">No scores yet.</div>
             )}
