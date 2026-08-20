@@ -88,7 +88,7 @@ export default function ScheduleManagement() {
       // Find candidates for this program (case-insensitive, trimmed)
       const progName = p.name.trim().toLowerCase();
       const count = candidates.filter(c => 
-        c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === progName)
+        c.category === p.category && c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === progName)
       ).length;
       
       const durMatch = (p.duration || '5').toString().match(/\d+/);
