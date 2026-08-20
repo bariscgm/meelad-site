@@ -405,7 +405,16 @@ export default function HomePage() {
                         {res.winners?.slice(0, 3).map((w, idx) => (
                           <div key={idx} className="flex items-center justify-between text-xs">
                             <div className="flex items-center gap-2">
-                              <span className="font-bold w-4" style={{ color: w.team?.color || '#94a3b8' }}>{w.position}</span>
+                              <span className="font-bold text-[10px] uppercase tracking-wider" style={{ color: w.team?.color || '#94a3b8' }}>
+                                {(() => {
+                                  const posText = Number(w.position) === 1 ? 'First' : 
+                                                  Number(w.position) === 2 ? 'Second' : 
+                                                  Number(w.position) === 3 ? 'Third' : 
+                                                  w.position ? `Pos: ${w.position}` : '';
+                                  const gradeText = (w.grade && w.grade !== 'None') ? `Grade ${w.grade}` : '';
+                                  return [posText, gradeText].filter(Boolean).join(' | ');
+                                })()}
+                              </span>
                               <span className="text-slate-300 truncate max-w-[120px]">{w.name}</span>
                             </div>
                             <span className="font-semibold px-2 py-0.5 rounded text-white" style={{ backgroundColor: `${w.team?.color}40` || '#334155' }}>
