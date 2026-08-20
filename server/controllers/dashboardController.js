@@ -90,12 +90,16 @@ export const getAdminDashboard = async (req, res) => {
     // Sort combined activity by time descending
     activityLog.sort((a, b) => new Date(b.time) - new Date(a.time));
 
-    // Fetch all candidates to map chestNo to category
-    const candidates = await Candidate.find({}, 'chestNo category').lean();
-    const chestNoToCategory = {};
+    // Fetch all candidates to map chestNo and name to category
+    const candidates = await Candidate.find({}, 'chestNo name category').lean();
+    const candidateMap = {};
     candidates.forEach(c => {
+      const cat = c.category ? c.category.toUpperCase() : 'UNKNOWN';
       if (c.chestNo) {
-        chestNoToCategory[c.chestNo] = c.category ? c.category.toUpperCase() : 'UNKNOWN';
+        candidateMap[c.chestNo] = { category: cat, trueChestNo: c.chestNo, name: c.name };
+      }
+      if (c.name) {
+        candidateMap[c.name.trim().toLowerCase()] = { category: cat, trueChestNo: c.chestNo || '', name: c.name };
       }
     });
 
@@ -107,12 +111,17 @@ export const getAdminDashboard = async (req, res) => {
       if (result.program && result.program.type === 'Individual') {
         result.winners.forEach(winner => {
           if (winner.chestNo && winner.name) {
-            const key = winner.chestNo;
+            const searchName = winner.name.trim().toLowerCase();
+            const candidateInfo = candidateMap[winner.chestNo] || candidateMap[searchName] || { category: 'UNKNOWN', trueChestNo: winner.chestNo, name: winner.name };
+            
+            // Key by search name to merge points correctly even if they used a temp program code in results
+            const key = searchName;
+            
             if (!studentPoints[key]) {
               studentPoints[key] = {
-                name: winner.name,
-                chestNo: winner.chestNo,
-                category: chestNoToCategory[key] || 'UNKNOWN',
+                name: candidateInfo.name,
+                chestNo: candidateInfo.trueChestNo,
+                category: candidateInfo.category,
                 totalPoints: 0
               };
             }
