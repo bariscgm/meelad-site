@@ -88,7 +88,7 @@ export default function ScheduleManagement() {
     selectedProgramDetails.forEach(p => {
       // Find candidates for this program (case-insensitive, trimmed)
       const progName = p.name.trim().toLowerCase();
-      const count = candidates.filter(c => {
+      const eligibleCandidates = candidates.filter(c => {
         if (c.category !== p.category) return false;
         if (genderFilter !== 'All') {
           const fGender = genderFilter.toLowerCase();
@@ -97,7 +97,30 @@ export default function ScheduleManagement() {
           if (fGender === 'girls only' && cGender !== 'girl' && cGender !== 'female') return false;
         }
         return c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === progName);
-      }).length;
+      });
+
+      let count = 0;
+      if (p.type === 'Group') {
+        const uniqueGroups = new Set();
+        eligibleCandidates.forEach(c => {
+          let assignedGroup = null;
+          if (c.groupAssignments) {
+            for (const key in c.groupAssignments) {
+              if (key.trim().toLowerCase() === progName) {
+                assignedGroup = c.groupAssignments[key];
+                break;
+              }
+            }
+          }
+          if (assignedGroup) {
+            const teamId = c.team?._id || c.team?.id || c.team || 'unknown';
+            uniqueGroups.add(`${teamId}_${assignedGroup}`);
+          }
+        });
+        count = uniqueGroups.size;
+      } else {
+        count = eligibleCandidates.length;
+      }
       
       const durMatch = (p.duration || '5').toString().match(/\d+/);
       const duration = durMatch ? parseInt(durMatch[0]) : 5;
@@ -107,11 +130,8 @@ export default function ScheduleManagement() {
       if (p.venueType === 'OFF-STAGE') {
         // All participants perform simultaneously
         timeNeeded = count > 0 ? duration : 0;
-      } else if (p.type === 'Group') {
-        // 3 people per group, each group takes `duration` time
-        timeNeeded = Math.ceil(count / 3) * duration;
       } else {
-        // Individual stage items
+        // Each performance (group or individual) takes `duration` time
         timeNeeded = count * duration;
       }
       
@@ -185,8 +205,6 @@ export default function ScheduleManagement() {
         let newTimeNeeded = 0;
         if (item.venueType === 'OFF-STAGE') {
           newTimeNeeded = newCount > 0 ? item.durationPerStudent : 0;
-        } else if (item.type === 'Group') {
-          newTimeNeeded = Math.ceil(newCount / 3) * item.durationPerStudent;
         } else {
           newTimeNeeded = newCount * item.durationPerStudent;
         }
