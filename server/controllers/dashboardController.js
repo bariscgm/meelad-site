@@ -88,6 +88,42 @@ export const getAdminDashboard = async (req, res) => {
     // Sort combined activity by time descending
     activityLog.sort((a, b) => new Date(b.time) - new Date(a.time));
 
+    // Aggregate Top Students from Results
+    const studentPoints = {};
+
+    allPublishedResults.forEach(result => {
+      result.winners.forEach(winner => {
+        if (winner.chestNo && winner.name) {
+          const key = winner.chestNo;
+          if (!studentPoints[key]) {
+            studentPoints[key] = {
+              name: winner.name,
+              chestNo: winner.chestNo,
+              totalPoints: 0
+            };
+          }
+          studentPoints[key].totalPoints += (winner.points || 0);
+        }
+      });
+    });
+
+    const topStudents = Object.values(studentPoints)
+      .sort((a, b) => b.totalPoints - a.totalPoints)
+      .slice(0, 5)
+      .map((item, index) => ({
+        rank: index + 1,
+        name: item.name,
+        chestNo: item.chestNo,
+        points: item.totalPoints,
+        color: index === 0 
+          ? 'bg-amber-50 text-amber-700 border-amber-200' 
+          : index === 1 
+          ? 'bg-slate-50 text-slate-700 border-slate-200'
+          : index === 2
+          ? 'bg-orange-50 text-orange-700 border-orange-200'
+          : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+      }));
+
     res.json({
       stats: {
         totalStudents,
@@ -99,6 +135,7 @@ export const getAdminDashboard = async (req, res) => {
         publishedResults: publishedResultsCount
       },
       topTeams: leaderboard,
+      topStudents: topStudents,
       recentActivity: activityLog.slice(0, 4) // Return 4 most recent events
     });
 
