@@ -339,13 +339,13 @@ export default function HomePage() {
                                                           Number(wonResult.position) === 3 ? 'Third' : 
                                                           wonResult.position ? `Pos: ${wonResult.position}` : '';
                                           const gradeText = (wonResult.grade && wonResult.grade !== 'None') ? `Grade ${wonResult.grade}` : '';
-                                          const pointsText = wonResult.points ? `${wonResult.points} Pts` : '';
+                                          const pointsText = (wonResult.points !== undefined && wonResult.points !== null) ? `${wonResult.points} Pts` : '0 Pts';
                                           return [posText, gradeText, pointsText].filter(Boolean).join(' | ');
                                         })()}
                                       </span>
                                     ) : (
                                       <span className="px-2 py-1 text-xs font-bold rounded-md bg-slate-500/20 text-slate-300">
-                                        Participated
+                                        0 Pts
                                       </span>
                                     )
                                   ) : (
