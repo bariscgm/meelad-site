@@ -311,11 +311,18 @@ export default function HomePage() {
                     </div>
 
                     <div className="space-y-3 mt-4">
-                      <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Participating Programs</h5>
-                      {(!studentResult.participatingPrograms || studentResult.participatingPrograms.length === 0) ? (
-                        <p className="text-slate-400 text-sm">No participating programs found.</p>
-                      ) : (
-                        studentResult.participatingPrograms.map((prog, idx) => {
+                      <h5 className="text-white font-semibold text-sm border-b border-white/10 pb-2">Achievements</h5>
+                      {(() => {
+                        const achievedPrograms = (studentResult.participatingPrograms || []).filter(prog => {
+                          const progResult = studentResult.results?.find(r => r.program?.name === prog.name);
+                          return prog.status === 'Finished' && progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None'));
+                        });
+
+                        if (achievedPrograms.length === 0) {
+                          return <p className="text-slate-400 text-sm">No prizes or grades won yet.</p>;
+                        }
+
+                        return achievedPrograms.map((prog, idx) => {
                           const progResult = studentResult.results?.find(r => r.program?.name === prog.name);
                           return (
                             <div key={`prog-${idx}`} className="flex flex-col gap-2 bg-white/5 p-3 rounded-lg border border-white/5">
@@ -325,29 +332,22 @@ export default function HomePage() {
                                   <span className="text-[10px] text-teal-400 uppercase tracking-wider">{prog.category}</span>
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
-                                  <span className={`px-2 py-1 text-xs font-bold rounded-md ${
-                                    prog.status === 'Finished' ? 'bg-emerald-500/20 text-emerald-300' :
-                                    prog.status === 'Assigned' ? 'bg-blue-500/20 text-blue-300' :
-                                    'bg-amber-500/20 text-amber-300'
-                                  }`}>
+                                  <span className="px-2 py-1 text-xs font-bold rounded-md bg-emerald-500/20 text-emerald-300">
                                     {(() => {
-                                      if (prog.status === 'Finished' && progResult && (progResult.position || (progResult.grade && progResult.grade !== 'None'))) {
-                                        const posText = Number(progResult.position) === 1 ? 'First' : 
-                                                        Number(progResult.position) === 2 ? 'Second' : 
-                                                        Number(progResult.position) === 3 ? 'Third' : 
-                                                        progResult.position ? `Pos: ${progResult.position}` : '';
-                                        const gradeText = (progResult.grade && progResult.grade !== 'None') ? `Grade ${progResult.grade}` : '';
-                                        return [posText, gradeText].filter(Boolean).join(' | ');
-                                      }
-                                      return prog.status;
+                                      const posText = Number(progResult.position) === 1 ? 'First' : 
+                                                      Number(progResult.position) === 2 ? 'Second' : 
+                                                      Number(progResult.position) === 3 ? 'Third' : 
+                                                      progResult.position ? `Pos: ${progResult.position}` : '';
+                                      const gradeText = (progResult.grade && progResult.grade !== 'None') ? `Grade ${progResult.grade}` : '';
+                                      return [posText, gradeText].filter(Boolean).join(' | ');
                                     })()}
                                   </span>
                                 </div>
                               </div>
                             </div>
                           );
-                        })
-                      )}
+                        });
+                      })()}
                     </div>
                   </div>
                 )}
