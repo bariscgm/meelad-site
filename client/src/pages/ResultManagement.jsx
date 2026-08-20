@@ -38,6 +38,7 @@ export default function ResultManagement() {
   const [categoriesList, setCategoriesList] = useState(['All']);
   const [posterResult, setPosterResult] = useState(null);
   const [showPublished, setShowPublished] = useState(false);
+  const [candidates, setCandidates] = useState([]);
 
   const toggleExpand = (id) => {
     setExpandedResults(prev => ({ ...prev, [id]: !prev[id] }));
@@ -82,10 +83,23 @@ export default function ResultManagement() {
     }
   };
 
+  const fetchCandidates = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/candidates`);
+      if (res.ok) {
+        const data = await res.json();
+        setCandidates(data);
+      }
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+    }
+  };
+
   useEffect(() => {
     fetchResults();
     fetchTeams();
     fetchCategories();
+    fetchCandidates();
   }, []);
 
   // Cascading Filter Logic
@@ -336,13 +350,20 @@ export default function ResultManagement() {
                     };
                     const posColors = getPosColor(w.position);
                     const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
+                    const candidate = candidates.find(c => c.name === w.name);
+                    const actualChestNo = candidate ? candidate.chestNo : null;
                     return (
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
                           {w.position}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-800">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                          <p className="text-sm font-bold text-slate-800">
+                            {w.name} 
+                            <span className="text-slate-400 text-xs ml-1">
+                              (Code: {w.chestNo}{actualChestNo ? ` | Chest No: ${actualChestNo}` : ''})
+                            </span>
+                          </p>
                           <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
                           <div className="flex gap-2 mt-1">
                             <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
