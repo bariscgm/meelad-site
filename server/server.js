@@ -66,6 +66,7 @@ import resultRoutes from './routes/resultRoutes.js';
 import categoryRoutes from './routes/categoryRoutes.js';
 import dashboardRoutes from './routes/dashboardRoutes.js';
 import candidateRoutes from './routes/candidateRoutes.js';
+import scheduleRoutes from './routes/scheduleRoutes.js';
 
 // Middleware
 app.use(nocache());
@@ -90,6 +91,7 @@ app.use('/api/results', resultRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/candidates', candidateRoutes);
+app.use('/api/schedules', scheduleRoutes);
 
 // Root Route
 app.get('/', (req, res) => {
