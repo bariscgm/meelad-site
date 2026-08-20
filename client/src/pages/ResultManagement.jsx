@@ -341,7 +341,7 @@ export default function ResultManagement() {
               {/* Winners List */}
               {expandedResults[r._id] && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {r.winners?.map((w, idx) => {
+                  {[...(r.winners || [])].sort((a, b) => (Number(a.position) || 999) - (Number(b.position) || 999)).map((w, idx) => {
                     const getPosColor = (pos) => {
                       if (pos === 1) return { bg: '#dcfce7', text: '#15803d' }; // green
                       if (pos === 2) return { bg: '#dbeafe', text: '#1d4ed8' }; // blue
