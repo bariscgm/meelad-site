@@ -39,6 +39,9 @@ export default function ResultManagement() {
   const [posterResult, setPosterResult] = useState(null);
   const [showPublished, setShowPublished] = useState(false);
   const [candidates, setCandidates] = useState([]);
+  const [programCandidates, setProgramCandidates] = useState([]);
+  const [candidateScores, setCandidateScores] = useState({});
+  const [loadingCandidates, setLoadingCandidates] = useState(false);
 
   const toggleExpand = (id) => {
     setExpandedResults(prev => ({ ...prev, [id]: !prev[id] }));
@@ -237,13 +240,59 @@ export default function ResultManagement() {
     }
   };
 
+  const handleOpenEdit = async (r) => {
+    setEditingResult(r);
+    setProgramCandidates([]);
+    setCandidateScores({});
+    setLoadingCandidates(true);
+    try {
+      const progId = r.program?._id || r.program;
+      const res = await fetch(`${API_URL}/api/programs/${progId}/candidates`);
+      if (res.ok) {
+        const data = await res.json();
+        setProgramCandidates(data);
+        const initialScores = {};
+        
+        data.forEach(c => {
+          const existingWinner = r.winners?.find(w => w.name === c.name);
+          initialScores[c._id] = { 
+            position: existingWinner?.position || '', 
+            grade: existingWinner?.grade || '' 
+          };
+        });
+        setCandidateScores(initialScores);
+      }
+    } catch (error) {
+      console.error('Failed to load candidates:', error);
+    } finally {
+      setLoadingCandidates(false);
+    }
+  };
+
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+    
+    const validWinners = [];
+    for (const cand of programCandidates) {
+      const score = candidateScores[cand._id];
+      if (score && (score.position || (score.grade && score.grade !== 'None'))) {
+        const progId = editingResult.program?._id || editingResult.program;
+        validWinners.push({
+          position: score.position ? parseInt(score.position) : null,
+          chestNo: cand.programCodes?.[progId] || 'N/A',
+          name: cand.name,
+          team: cand.team?._id || cand.team,
+          points: 0,
+          grade: score.grade === 'None' ? '' : (score.grade || '')
+        });
+      }
+    }
+
     try {
       const res = await fetch(`${API_URL}/api/results/${editingResult._id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ winners: editingResult.winners }),
+        body: JSON.stringify({ winners: validWinners }),
       });
       if (res.ok) {
         setEditingResult(null);
@@ -257,6 +306,11 @@ export default function ResultManagement() {
       Swal.fire('Error', 'Server connection failed', 'error');
     }
   };
+
+  const handleProtectedEdit = (r) => {
+    handleProtectedAction(() => handleOpenEdit(r), r);
+  };
+
 
   const unpublishedResults = filteredResults.filter(r => r.status !== 'Published');
   const publishedResults = filteredResults.filter(r => r.status === 'Published');
@@ -349,7 +403,7 @@ export default function ResultManagement() {
                       {expandedResults[r._id] ? 'Hide' : 'View'}
                     </button>
                     <button
-                      onClick={() => handleProtectedAction(() => setEditingResult(r), r)}
+                      onClick={() => handleProtectedEdit(r)}
                       className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                       title="Edit Result"
                     >
@@ -691,86 +745,75 @@ export default function ResultManagement() {
             </div>
             
             <div className="p-6 overflow-y-auto flex-1">
-              <form id="editResultForm" onSubmit={handleEditSubmit} className="space-y-6">
-                {editingResult.winners?.map((w, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 p-4 border border-slate-100 rounded-2xl bg-slate-50/50">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Position</label>
-                      <input 
-                        type="number" 
-                        value={w.position || ''} 
-                        onChange={(e) => {
-                          const newWinners = [...editingResult.winners];
-                          newWinners[index].position = Number(e.target.value);
-                          setEditingResult({...editingResult, winners: newWinners});
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Chest No</label>
-                      <input 
-                        type="text" 
-                        value={w.chestNo || ''} 
-                        onChange={(e) => {
-                          const newWinners = [...editingResult.winners];
-                          newWinners[index].chestNo = e.target.value;
-                          setEditingResult({...editingResult, winners: newWinners});
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Name</label>
-                      <input 
-                        type="text" 
-                        value={w.name || ''} 
-                        onChange={(e) => {
-                          const newWinners = [...editingResult.winners];
-                          newWinners[index].name = e.target.value;
-                          setEditingResult({...editingResult, winners: newWinners});
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Team</label>
-                      <select 
-                        value={w.team?._id || w.team || ''}
-                        onChange={(e) => {
-                          const newWinners = [...editingResult.winners];
-                          const selectedTeam = teams.find(t => t._id === e.target.value);
-                          newWinners[index].team = selectedTeam || e.target.value;
-                          setEditingResult({...editingResult, winners: newWinners});
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
-                      >
-                        <option value="">Select Team</option>
-                        {teams.map(t => (
-                          <option key={t._id} value={t._id}>{t.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Grade</label>
-                      <select 
-                        value={w.grade || ''}
-                        onChange={(e) => {
-                          const newWinners = [...editingResult.winners];
-                          newWinners[index].grade = e.target.value;
-                          setEditingResult({...editingResult, winners: newWinners});
-                        }}
-                        className="w-full px-3 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none"
-                      >
-                        <option value="None">None</option>
-                        <option value="A">A Grade</option>
-                        <option value="B">B Grade</option>
-                        <option value="C">C Grade</option>
-                      </select>
-                    </div>
+              {loadingCandidates ? (
+                <div className="flex justify-center items-center py-12">
+                  <div className="w-8 h-8 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : programCandidates.length === 0 ? (
+                <div className="text-center py-8 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                  <p className="text-slate-500 font-medium">No candidates registered for this program.</p>
+                </div>
+              ) : (
+                <form id="editResultForm" onSubmit={handleEditSubmit} className="space-y-4">
+                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 grid grid-cols-12 gap-4 text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    <div className="col-span-2">Chest No</div>
+                    <div className="col-span-5">Candidate Name & Team</div>
+                    <div className="col-span-2">Position</div>
+                    <div className="col-span-3">Grade</div>
                   </div>
-                ))}
-              </form>
+                  
+                  {programCandidates.map((cand) => {
+                    const candId = cand._id;
+                    const progId = editingResult.program?._id || editingResult.program;
+                    const chestNo = cand.programCodes?.[progId] || 'N/A';
+                    
+                    return (
+                      <div key={candId} className="grid grid-cols-12 gap-4 items-center p-3 hover:bg-slate-50 rounded-xl transition border border-transparent hover:border-slate-200">
+                        <div className="col-span-2 font-mono font-bold text-slate-700">{chestNo}</div>
+                        <div className="col-span-5">
+                          <p className="font-bold text-slate-800">{cand.name}</p>
+                          <p className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'}</p>
+                        </div>
+                        <div className="col-span-2">
+                          <input 
+                            type="number" 
+                            min="1"
+                            max="3"
+                            placeholder="1-3"
+                            value={candidateScores[candId]?.position || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCandidateScores(prev => ({
+                                ...prev,
+                                [candId]: { ...prev[candId], position: val }
+                              }));
+                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none text-center font-bold text-slate-700 bg-white"
+                          />
+                        </div>
+                        <div className="col-span-3">
+                          <select 
+                            value={candidateScores[candId]?.grade || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setCandidateScores(prev => ({
+                                ...prev,
+                                [candId]: { ...prev[candId], grade: val }
+                              }));
+                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-teal-500 outline-none font-bold text-slate-700 bg-white"
+                          >
+                            <option value="">None</option>
+                            <option value="A">A Grade</option>
+                            <option value="B">B Grade</option>
+                            <option value="C">C Grade</option>
+                          </select>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </form>
+              )}
             </div>
             
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
