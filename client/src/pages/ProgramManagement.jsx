@@ -272,6 +272,35 @@ export default function ProgramManagement() {
     }
   };
 
+  // Restore deleted program
+  const handleRestore = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/restore/Program`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        Toast.fire({
+          icon: 'success',
+          title: data.message
+        });
+        fetchPrograms();
+      } else {
+        const errorData = await res.json();
+        Toast.fire({
+          icon: 'error',
+          title: errorData.message || 'Failed to restore'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to restore program:', error);
+      Toast.fire({
+        icon: 'error',
+        title: 'An unexpected error occurred'
+      });
+    }
+  };
+
   // Export to Excel / CSV
   const exportToExcel = () => {
     const headers = ['ID', 'Programme Name', 'Category', 'Type', 'Venue Type', 'Gender', 'Max Participants', 'Duration'];
@@ -501,6 +530,17 @@ export default function ProgramManagement() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
             </svg>
             Add programme
+          </button>
+
+          {/* Restore Button */}
+          <button
+            onClick={handleRestore}
+            className="px-4 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+            Restore
           </button>
 
           {/* Delete All Button */}

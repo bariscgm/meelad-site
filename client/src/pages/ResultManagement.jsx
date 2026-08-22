@@ -139,6 +139,38 @@ export default function ResultManagement() {
     return matchesSearch && matchesCategory && matchesGender && matchesStatus;
   });
 
+  // Restore deleted result
+  const handleRestore = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/restore/Result`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        Toast.fire({
+          icon: 'success',
+          title: data.message
+        });
+        fetchResults();
+      } else {
+        const errorData = await res.json();
+        Toast.fire({
+          icon: 'error',
+          title: errorData.message || 'Failed to restore'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to restore result:', error);
+      Toast.fire({
+        icon: 'error',
+        title: 'An unexpected error occurred'
+      });
+    }
+  };
+
   const handleStatusChange = async (id, newStatus) => {
     try {
       const res = await fetch(`${API_URL}/api/results/${id}`, {
@@ -390,10 +422,16 @@ export default function ResultManagement() {
           <span className="text-xs uppercase tracking-wider font-semibold text-teal-600">Results Control</span>
           <h1 className="text-3xl font-bold text-slate-800">Results Management</h1>
         </div>
-        <button onClick={() => window.print()} className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition flex items-center gap-2">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-          Print Results
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleRestore} className="px-5 py-2.5 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl shadow-lg transition flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+            Restore
+          </button>
+          <button onClick={() => window.print()} className="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl shadow-lg shadow-teal-500/30 transition flex items-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+            Print Results
+          </button>
+        </div>
       </div>
 
       {/* Overview Stat Cards */}
