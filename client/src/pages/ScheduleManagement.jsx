@@ -440,8 +440,8 @@ export default function ScheduleManagement() {
       if (s.customCounts) setCustomCounts(s.customCounts);
       if (s.programStageAssigns) setProgramStageAssigns(s.programStageAssigns);
     } else {
-      if (schedule.report?.stages) setStageQuantity(`${schedule.report.stages} stages`);
-      if (schedule.report?.sim) setSimultaneous(`${schedule.report.sim} programme`);
+      if (schedule.report?.stages) setStageQuantity(`${schedule.report.stages} stage${schedule.report.stages > 1 ? 's' : ''}`);
+      if (schedule.report?.sim) setSimultaneous(`${schedule.report.sim} programme${schedule.report.sim > 1 ? 's' : ''}`);
       
       if (schedule.stages?.[0]?.items?.[0]) {
          const t = schedule.stages[0].items[0].startTimeFormatted; 
@@ -455,12 +455,33 @@ export default function ScheduleManagement() {
            }
          }
       }
+      
       if (schedule.report?.breakdown) {
          const counts = {};
+         const cats = new Set();
+         let hasStage = false;
+         let hasOffStage = false;
+
          schedule.report.breakdown.forEach(b => {
            counts[b.id] = b.studentCount;
+           if (b.category) cats.add(b.category);
+           const vType = (b.venueType || '').toLowerCase();
+           if (vType === 'stage') hasStage = true;
+           if (vType === 'off-stage') hasOffStage = true;
          });
+         
          setCustomCounts(counts);
+         if (cats.size > 0) setSelectedCategories(Array.from(cats));
+         
+         if (hasStage && !hasOffStage) setProgrammeType('Stage');
+         else if (!hasStage && hasOffStage) setProgrammeType('Off-stage');
+         else setProgrammeType('Stage + Off-stage');
+
+         const nameLower = (schedule.name || '').toLowerCase();
+         if (nameLower.includes('boy')) setGenderFilter('Boys only');
+         else if (nameLower.includes('girl')) setGenderFilter('Girls only');
+         else if (nameLower.includes('general')) setGenderFilter('General');
+         else setGenderFilter('All');
       }
     }
     
