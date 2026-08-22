@@ -13,6 +13,7 @@ export default function ProgramManagement() {
   const [selectedGender, setSelectedGender] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [candidates, setCandidates] = useState([]);
   const fileInputRef = useRef(null);
 
   const Toast = Swal.mixin({
@@ -31,6 +32,7 @@ export default function ProgramManagement() {
   useEffect(() => {
     fetchPrograms();
     fetchCategories();
+    fetchCandidates();
   }, []);
 
   const fetchCategories = async () => {
@@ -63,6 +65,18 @@ export default function ProgramManagement() {
       }
     } catch (error) {
       console.error('Failed to fetch programs:', error);
+    }
+  };
+
+  const fetchCandidates = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/candidates`);
+      if (res.ok) {
+        const data = await res.json();
+        setCandidates(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch candidates:', error);
     }
   };
 
@@ -112,6 +126,35 @@ export default function ProgramManagement() {
     if (selectedGender !== 'All' && !gendersList.includes(selectedGender)) setSelectedGender('All');
     if (selectedVenue !== 'All' && !venuesList.includes(selectedVenue)) setSelectedVenue('All');
   }, [selectedCategory, selectedType, selectedGender, selectedVenue, dynamicCategories, typesList, gendersList, venuesList]);
+
+  // Calculate groups formed for a program
+  const getGroupCount = (p) => {
+    if (p.type !== 'Group') return null;
+    const progName = p.name.trim().toLowerCase();
+    
+    const eligibleCandidates = candidates.filter(c => {
+      if (c.category !== p.category) return false;
+      return c.programs && c.programs.some(cp => typeof cp === 'string' && cp.trim().toLowerCase() === progName);
+    });
+    
+    const uniqueGroups = new Set();
+    eligibleCandidates.forEach(c => {
+      let assignedGroup = null;
+      if (c.groupAssignments) {
+        for (const key in c.groupAssignments) {
+          if (key.trim().toLowerCase() === progName) {
+            assignedGroup = c.groupAssignments[key];
+            break;
+          }
+        }
+      }
+      if (assignedGroup) {
+        const teamId = c.team?._id || c.team?.id || c.team || 'unknown';
+        uniqueGroups.add(`${teamId}_${assignedGroup}`);
+      }
+    });
+    return uniqueGroups.size;
+  };
 
   // Filter logic for the table
   const filteredPrograms = programs.filter((p) => {
@@ -732,6 +775,11 @@ export default function ProgramManagement() {
                 <span className="bg-slate-100 px-2 py-1 rounded-md">{p.gender}</span>
                 <span className="bg-slate-100 px-2 py-1 rounded-md">Max {p.maxParticipants}</span>
                 <span className="bg-slate-100 px-2 py-1 rounded-md">{p.duration}</span>
+                {p.type === 'Group' && (
+                  <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md">
+                    {getGroupCount(p)} Groups
+                  </span>
+                )}
               </div>
             </div>
           ))}
