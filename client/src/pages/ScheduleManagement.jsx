@@ -19,6 +19,7 @@ export default function ScheduleManagement() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedPrograms, setSelectedPrograms] = useState([]); // IDs of selected programs
   const [customCounts, setCustomCounts] = useState({}); // Custom student counts for selected programs
+  const [programStageAssigns, setProgramStageAssigns] = useState({}); // Custom stage assignments
 
   const [candidates, setCandidates] = useState([]);
   const [actualSchedule, setActualSchedule] = useState(null);
@@ -178,6 +179,43 @@ export default function ScheduleManagement() {
     setActualSchedule(null);
   };
 
+  const handleMoveItem = (stageIndex, itemIndex, direction) => {
+    const newSchedule = [...actualSchedule];
+    const stage = { ...newSchedule[stageIndex] };
+    const items = [...stage.items];
+    
+    if (direction === 'up' && itemIndex > 0) {
+      const temp = items[itemIndex];
+      items[itemIndex] = items[itemIndex - 1];
+      items[itemIndex - 1] = temp;
+    } else if (direction === 'down' && itemIndex < items.length - 1) {
+      const temp = items[itemIndex];
+      items[itemIndex] = items[itemIndex + 1];
+      items[itemIndex + 1] = temp;
+    } else {
+      return;
+    }
+    
+    const [startH, startM] = startTime.split(':').map(Number);
+    let currentMinutes = startH * 60 + startM;
+    
+    const updatedItems = items.map(item => {
+      const startMin = currentMinutes;
+      const endMin = startMin + item.timeNeeded;
+      currentMinutes = endMin;
+      return {
+        ...item,
+        startTimeFormatted: formatMinutes(startMin),
+        endTimeFormatted: formatMinutes(endMin)
+      };
+    });
+    
+    stage.items = updatedItems;
+    stage.currentMinutes = currentMinutes;
+    newSchedule[stageIndex] = stage;
+    setActualSchedule(newSchedule);
+  };
+
   const generateSchedule = () => {
     setIsGenerating(true);
     
@@ -194,10 +232,17 @@ export default function ScheduleManagement() {
     const sortedBreakdown = [...details].filter(b => b.timeNeeded > 0).sort((a, b) => b.timeNeeded - a.timeNeeded);
     
     sortedBreakdown.forEach(item => {
-      let earliestStage = stageSchedules[0];
-      for (let i = 1; i < stageSchedules.length; i++) {
-        if (stageSchedules[i].currentMinutes < earliestStage.currentMinutes) {
-          earliestStage = stageSchedules[i];
+      const assigned = programStageAssigns[item.id];
+      let earliestStage;
+      
+      if (assigned && assigned !== 'Auto' && parseInt(assigned) <= stages) {
+        earliestStage = stageSchedules[parseInt(assigned) - 1];
+      } else {
+        earliestStage = stageSchedules[0];
+        for (let i = 1; i < stageSchedules.length; i++) {
+          if (stageSchedules[i].currentMinutes < earliestStage.currentMinutes) {
+            earliestStage = stageSchedules[i];
+          }
         }
       }
       
@@ -216,6 +261,7 @@ export default function ScheduleManagement() {
     setActualSchedule(stageSchedules);
     setIsGenerating(false);
   };
+
 
   const handleSaveSchedule = async () => {
     if (!actualSchedule || actualSchedule.length === 0) return;
@@ -686,6 +732,7 @@ export default function ScheduleManagement() {
                        <tr>
                          <th className="px-6 py-4">Programme</th>
                          <th className="px-6 py-4">Category</th>
+                         <th className="px-6 py-4 text-center">Stage</th>
                          <th className="px-6 py-4 text-center">Students</th>
                          <th className="px-6 py-4 text-center">Duration</th>
                          <th className="px-6 py-4 text-right">Total Time</th>
@@ -702,6 +749,18 @@ export default function ScheduleManagement() {
                                {item.name}
                              </td>
                              <td className="px-6 py-4">{item.category}</td>
+                             <td className="px-6 py-4 text-center" onClick={e => e.stopPropagation()}>
+                                <select 
+                                  value={programStageAssigns[item.id] || 'Auto'}
+                                  onChange={(e) => setProgramStageAssigns(prev => ({...prev, [item.id]: e.target.value}))}
+                                  className="bg-white border border-slate-200 text-slate-700 px-2 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                >
+                                  <option value="Auto">Auto</option>
+                                  {Array.from({ length: availabilityStats.stages }).map((_, i) => (
+                                    <option key={i} value={i + 1}>Stage {i + 1}</option>
+                                  ))}
+                                </select>
+                             </td>
                              <td className="px-6 py-4 text-center font-medium" onClick={e => e.stopPropagation()}>
                                 <input
                                   type="number"
@@ -797,6 +856,14 @@ export default function ScheduleManagement() {
                           </div>
                           <div className="flex-shrink-0 text-right">
                             <span className="text-xs font-bold text-slate-400">{item.timeNeeded}m</span>
+                          </div>
+                          <div className="flex-shrink-0 flex flex-col items-center ml-2 border-l border-slate-100 pl-2">
+                            <button onClick={() => handleMoveItem(idx, i, 'up')} disabled={i === 0} className={`p-1 rounded ${i === 0 ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-600'}`}>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/></svg>
+                            </button>
+                            <button onClick={() => handleMoveItem(idx, i, 'down')} disabled={i === stage.items.length - 1} className={`p-1 rounded ${i === stage.items.length - 1 ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-600'}`}>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
                           </div>
                         </div>
                       ))
