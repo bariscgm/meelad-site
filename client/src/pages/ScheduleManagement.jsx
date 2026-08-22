@@ -216,6 +216,90 @@ export default function ScheduleManagement() {
     setActualSchedule(newSchedule);
   };
 
+  const handleAddBreak = async (stageIndex) => {
+    const { value: formValues } = await Swal.fire({
+      title: 'Add Break',
+      html:
+        '<input id="swal-input1" class="swal2-input" placeholder="Break Name (e.g. Lunch Break)">' +
+        '<input id="swal-input2" type="number" class="swal2-input" placeholder="Duration in minutes (e.g. 30)">',
+      focusConfirm: false,
+      showCancelButton: true,
+      preConfirm: () => {
+        const name = document.getElementById('swal-input1').value;
+        const duration = parseInt(document.getElementById('swal-input2').value);
+        if (!name || !duration || isNaN(duration)) {
+          Swal.showValidationMessage('Please enter both name and valid duration');
+          return null;
+        }
+        return { name, duration };
+      }
+    });
+
+    if (formValues) {
+      const newSchedule = [...actualSchedule];
+      const stage = { ...newSchedule[stageIndex] };
+      const items = [...stage.items];
+      
+      items.push({
+        id: `break_${Date.now()}`,
+        name: formValues.name,
+        category: 'BREAK',
+        studentCount: '-',
+        durationPerStudent: formValues.duration,
+        timeNeeded: formValues.duration,
+        venueType: 'ALL',
+        type: 'Break',
+        isBreak: true
+      });
+      
+      const [startH, startM] = startTime.split(':').map(Number);
+      let currentMinutes = startH * 60 + startM;
+      
+      const updatedItems = items.map(item => {
+        const startMin = currentMinutes;
+        const endMin = startMin + item.timeNeeded;
+        currentMinutes = endMin;
+        return {
+          ...item,
+          startTimeFormatted: formatMinutes(startMin),
+          endTimeFormatted: formatMinutes(endMin)
+        };
+      });
+      
+      stage.items = updatedItems;
+      stage.currentMinutes = currentMinutes;
+      newSchedule[stageIndex] = stage;
+      setActualSchedule(newSchedule);
+    }
+  };
+
+  const handleRemoveBreak = (stageIndex, itemIndex) => {
+    const newSchedule = [...actualSchedule];
+    const stage = { ...newSchedule[stageIndex] };
+    const items = [...stage.items];
+    
+    items.splice(itemIndex, 1);
+    
+    const [startH, startM] = startTime.split(':').map(Number);
+    let currentMinutes = startH * 60 + startM;
+    
+    const updatedItems = items.map(item => {
+      const startMin = currentMinutes;
+      const endMin = startMin + item.timeNeeded;
+      currentMinutes = endMin;
+      return {
+        ...item,
+        startTimeFormatted: formatMinutes(startMin),
+        endTimeFormatted: formatMinutes(endMin)
+      };
+    });
+    
+    stage.items = updatedItems;
+    stage.currentMinutes = currentMinutes;
+    newSchedule[stageIndex] = stage;
+    setActualSchedule(newSchedule);
+  };
+
   const generateSchedule = () => {
     setIsGenerating(true);
     
@@ -835,35 +919,51 @@ export default function ScheduleManagement() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
               {actualSchedule.map((stage, idx) => (
                 <div key={idx} className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-                  <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+                  <div className="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex justify-between items-center">
                     <h3 className="text-lg font-bold text-indigo-900">{stage.stageName}</h3>
+                    <button 
+                      onClick={() => handleAddBreak(idx)}
+                      className="text-xs font-bold bg-white text-indigo-600 px-3 py-1.5 rounded-lg border border-indigo-200 hover:bg-indigo-600 hover:text-white transition flex items-center gap-1 shadow-sm"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"/></svg>
+                      Add Break
+                    </button>
                   </div>
                   <div className="divide-y divide-slate-100">
                     {stage.items.length > 0 ? (
                       stage.items.map((item, i) => (
-                        <div key={i} className="p-4 hover:bg-slate-50 transition flex items-start gap-4">
+                        <div key={item.id || i} className={`p-4 transition flex items-start gap-4 ${item.isBreak ? 'bg-orange-50/30 hover:bg-orange-50' : 'hover:bg-slate-50'}`}>
                           <div className="flex-shrink-0 text-center w-24">
                             <p className="text-xs font-bold text-slate-800">{item.startTimeFormatted}</p>
                             <p className="text-[10px] text-slate-400 font-medium">to</p>
                             <p className="text-xs font-bold text-slate-500">{item.endTimeFormatted}</p>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-bold text-slate-800 truncate">{item.name}</h4>
+                            <h4 className={`text-sm font-bold truncate ${item.isBreak ? 'text-orange-600' : 'text-slate-800'}`}>
+                              {item.name} {item.isBreak && '☕'}
+                            </h4>
                             <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{item.category}</span>
-                              <span className="text-xs text-slate-500">{item.studentCount} students</span>
+                              <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${item.isBreak ? 'text-orange-600 bg-orange-100' : 'text-indigo-600 bg-indigo-50'}`}>{item.category}</span>
+                              {!item.isBreak && <span className="text-xs text-slate-500">{item.studentCount} students</span>}
                             </div>
                           </div>
                           <div className="flex-shrink-0 text-right">
                             <span className="text-xs font-bold text-slate-400">{item.timeNeeded}m</span>
                           </div>
-                          <div className="flex-shrink-0 flex flex-col items-center ml-2 border-l border-slate-100 pl-2">
-                            <button onClick={() => handleMoveItem(idx, i, 'up')} disabled={i === 0} className={`p-1 rounded ${i === 0 ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-600'}`}>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/></svg>
-                            </button>
-                            <button onClick={() => handleMoveItem(idx, i, 'down')} disabled={i === stage.items.length - 1} className={`p-1 rounded ${i === stage.items.length - 1 ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-600'}`}>
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
+                          <div className="flex-shrink-0 flex items-center gap-1 ml-2 border-l border-slate-100 pl-2">
+                            <div className="flex flex-col gap-1">
+                              <button onClick={() => handleMoveItem(idx, i, 'up')} disabled={i === 0} className={`p-1 rounded ${i === 0 ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-600'}`}>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 15l7-7 7 7"/></svg>
+                              </button>
+                              <button onClick={() => handleMoveItem(idx, i, 'down')} disabled={i === stage.items.length - 1} className={`p-1 rounded ${i === stage.items.length - 1 ? 'text-slate-200' : 'text-slate-400 hover:bg-slate-100 hover:text-indigo-600'}`}>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"/></svg>
+                              </button>
+                            </div>
+                            {item.isBreak && (
+                              <button onClick={() => handleRemoveBreak(idx, i)} className="p-1.5 ml-1 rounded text-red-400 hover:bg-red-50 hover:text-red-600" title="Remove Break">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))
