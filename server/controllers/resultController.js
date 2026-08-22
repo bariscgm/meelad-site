@@ -1,5 +1,6 @@
 import Result from '../models/Result.js';
 import Program from '../models/Program.js';
+import DeletedItem from '../models/DeletedItem.js';
 
 // Get all results (for Controller)
 export const getResults = async (req, res) => {
@@ -144,8 +145,11 @@ export const updateResult = async (req, res) => {
 // Delete result
 export const deleteResult = async (req, res) => {
   try {
-    const result = await Result.findByIdAndDelete(req.params.id);
+    const result = await Result.findById(req.params.id);
     if (!result) return res.status(404).json({ message: 'Result not found' });
+
+    await DeletedItem.create({ collectionName: 'Result', documentId: result._id, data: result.toObject() });
+    await result.deleteOne();
     
     // Optionally set program back to Pending
     await Program.findByIdAndUpdate(result.program, { status: 'Pending' });

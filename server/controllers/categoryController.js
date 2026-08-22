@@ -1,4 +1,5 @@
 import Category from '../models/Category.js';
+import DeletedItem from '../models/DeletedItem.js';
 
 // @desc    Get all categories
 // @route   GET /api/categories
@@ -58,6 +59,7 @@ export const deleteCategory = async (req, res) => {
     const category = await Category.findById(req.params.id);
 
     if (category) {
+      await DeletedItem.create({ collectionName: 'Category', documentId: category._id, data: category.toObject() });
       await Category.deleteOne({ _id: req.params.id });
       res.json({ message: 'Category removed' });
     } else {

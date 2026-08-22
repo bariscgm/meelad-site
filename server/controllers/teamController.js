@@ -1,4 +1,5 @@
 import Team from '../models/Team.js';
+import DeletedItem from '../models/DeletedItem.js';
 
 import Candidate from '../models/Candidate.js';
 
@@ -73,6 +74,7 @@ export const deleteTeam = async (req, res) => {
   try {
     const team = await Team.findById(req.params.id);
     if (team) {
+      await DeletedItem.create({ collectionName: 'Team', documentId: team._id, data: team.toObject() });
       await team.deleteOne();
       res.json({ message: 'Team removed' });
     } else {

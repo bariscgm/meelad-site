@@ -1,5 +1,6 @@
 import Program from '../models/Program.js';
 import Candidate from '../models/Candidate.js';
+import DeletedItem from '../models/DeletedItem.js';
 
 // @desc    Get all programs
 // @route   GET /api/programs
@@ -98,6 +99,7 @@ export const deleteProgram = async (req, res) => {
     const program = await Program.findById(req.params.id);
 
     if (program) {
+      await DeletedItem.create({ collectionName: 'Program', documentId: program._id, data: program.toObject() });
       await program.deleteOne();
       res.json({ message: 'Program removed' });
     } else {

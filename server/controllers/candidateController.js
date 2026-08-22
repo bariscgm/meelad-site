@@ -1,5 +1,6 @@
 import Candidate from '../models/Candidate.js';
 import ControlLimits from '../models/ControlLimits.js';
+import DeletedItem from '../models/DeletedItem.js';
 
 // Helper to check limits
 const checkProgramLimit = async (category, programsLength) => {
@@ -144,11 +145,14 @@ export const updateCandidate = async (req, res) => {
 // @route   DELETE /api/candidates/:id
 export const deleteCandidate = async (req, res) => {
   try {
-    const candidate = await Candidate.findByIdAndDelete(req.params.id);
+    const candidate = await Candidate.findById(req.params.id);
     
     if (!candidate) {
       return res.status(404).json({ message: 'Candidate not found' });
     }
+
+    await DeletedItem.create({ collectionName: 'Candidate', documentId: candidate._id, data: candidate.toObject() });
+    await candidate.deleteOne();
 
     res.json({ message: 'Candidate removed' });
   } catch (error) {
