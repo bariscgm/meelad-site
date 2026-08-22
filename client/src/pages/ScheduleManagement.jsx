@@ -106,7 +106,10 @@ export default function ScheduleManagement() {
       // Find candidates for this program (case-insensitive, trimmed)
       const progName = p.name.trim().toLowerCase();
       const eligibleCandidates = candidates.filter(c => {
-        if (c.category !== p.category) return false;
+        const pCat = p.category ? p.category.toLowerCase() : '';
+        if (pCat !== 'general' && pCat !== 'common' && pCat !== 'all' && c.category !== p.category) {
+          return false;
+        }
         if (genderFilter !== 'All') {
           const fGender = genderFilter.toLowerCase();
           const cGender = (c.gender || '').toLowerCase();
