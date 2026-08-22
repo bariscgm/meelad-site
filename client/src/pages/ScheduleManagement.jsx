@@ -26,6 +26,7 @@ export default function ScheduleManagement() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [selectedReportProgram, setSelectedReportProgram] = useState(null);
   const [savedSchedules, setSavedSchedules] = useState([]);
+  const [editingScheduleName, setEditingScheduleName] = useState('');
 
   const formatMinutes = (totalMins) => {
     const h = Math.floor(totalMins / 60) % 24;
@@ -356,6 +357,7 @@ export default function ScheduleManagement() {
     const { value: scheduleName } = await Swal.fire({
       title: 'Save Schedule',
       input: 'text',
+      inputValue: editingScheduleName || '',
       inputLabel: 'Enter a name for this schedule (e.g. Day 1 - Boys Main)',
       inputPlaceholder: 'Schedule Name',
       showCancelButton: true,
@@ -380,7 +382,19 @@ export default function ScheduleManagement() {
               ...availabilityStats,
               breakdown: selectedProgramDetails.details,
               totalRequired: selectedProgramDetails.totalRequired,
-              isFeasible: selectedProgramDetails.isFeasible
+              isFeasible: selectedProgramDetails.isFeasible,
+              settings: {
+                date,
+                startTime,
+                endTime,
+                genderFilter,
+                stageQuantity,
+                simultaneous,
+                programmeType,
+                selectedCategories,
+                customCounts,
+                programStageAssigns
+              }
             }
           })
         });
@@ -397,6 +411,7 @@ export default function ScheduleManagement() {
             icon: 'success',
             title: 'Schedule saved successfully'
           });
+          setEditingScheduleName(scheduleName);
           fetchSchedules(); // Refresh the list
         } else {
           const err = await res.json();
@@ -406,6 +421,54 @@ export default function ScheduleManagement() {
         Swal.fire('Error', 'Network error while saving schedule', 'error');
       }
     }
+  };
+
+  const handleEditSchedule = (schedule) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setEditingScheduleName(schedule.name);
+    
+    if (schedule.report?.settings) {
+      const s = schedule.report.settings;
+      if (s.date) setDate(s.date);
+      if (s.startTime) setStartTime(s.startTime);
+      if (s.endTime) setEndTime(s.endTime);
+      if (s.genderFilter) setGenderFilter(s.genderFilter);
+      if (s.stageQuantity) setStageQuantity(s.stageQuantity);
+      if (s.simultaneous) setSimultaneous(s.simultaneous);
+      if (s.programmeType) setProgrammeType(s.programmeType);
+      if (s.selectedCategories) setSelectedCategories(s.selectedCategories);
+      if (s.customCounts) setCustomCounts(s.customCounts);
+      if (s.programStageAssigns) setProgramStageAssigns(s.programStageAssigns);
+    } else {
+      if (schedule.report?.stages) setStageQuantity(`${schedule.report.stages} stages`);
+      if (schedule.report?.sim) setSimultaneous(`${schedule.report.sim} programme`);
+      
+      if (schedule.stages?.[0]?.items?.[0]) {
+         const t = schedule.stages[0].items[0].startTimeFormatted; 
+         if (t) {
+           const [time, modifier] = t.split(' ');
+           if (time && modifier) {
+             let [hours, minutes] = time.split(':');
+             if (hours === '12') hours = '00';
+             if (modifier === 'PM') hours = (parseInt(hours, 10) + 12).toString();
+             setStartTime(`${hours.toString().padStart(2, '0')}:${minutes}`);
+           }
+         }
+      }
+      if (schedule.report?.breakdown) {
+         const counts = {};
+         schedule.report.breakdown.forEach(b => {
+           counts[b.id] = b.studentCount;
+         });
+         setCustomCounts(counts);
+      }
+    }
+    
+    if (schedule.report?.breakdown) {
+      setSelectedPrograms(schedule.report.breakdown.map(b => b.id));
+    }
+    
+    setActualSchedule(schedule.stages);
   };
 
   const handlePrint = (schedule) => {
@@ -1043,16 +1106,23 @@ export default function ScheduleManagement() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex gap-3 mt-4">
+                  <div className="flex gap-2 mt-4">
+                    <button 
+                      onClick={() => handleEditSchedule(schedule)}
+                      className="flex-1 px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-700 font-medium rounded-xl transition flex items-center justify-center gap-1.5 text-sm"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                      Edit
+                    </button>
                     <button 
                       onClick={() => handlePrint(schedule)}
-                      className="flex-1 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded-xl transition flex items-center justify-center gap-2"
+                      className="flex-1 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium rounded-xl transition flex items-center justify-center gap-1.5 text-sm"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                       </svg>
-                      View
+                      Preview
                     </button>
                     <button
                       onClick={async () => {
