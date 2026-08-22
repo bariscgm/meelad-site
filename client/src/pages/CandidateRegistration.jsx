@@ -389,6 +389,38 @@ export default function CandidateRegistration() {
     }, 250);
   };
 
+  // Restore deleted candidate
+  const handleRestore = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/restore/Candidate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        Toast.fire({
+          icon: 'success',
+          title: data.message
+        });
+        fetchCandidates();
+      } else {
+        const errorData = await res.json();
+        Toast.fire({
+          icon: 'error',
+          title: errorData.message || 'Failed to restore'
+        });
+      }
+    } catch (error) {
+      console.error('Failed to restore candidate:', error);
+      Toast.fire({
+        icon: 'error',
+        title: 'An unexpected error occurred'
+      });
+    }
+  };
+
   const handlePrintCard = () => {
     const printContent = `
       <html>
@@ -696,10 +728,21 @@ export default function CandidateRegistration() {
 
       {/* Registered Candidates Preview */}
       <div className="glass p-8 rounded-3xl space-y-6">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
-          Recently Registered ({filteredCandidates.length})
-        </h2>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+            Recently Registered ({filteredCandidates.length})
+          </h2>
+          <button
+            onClick={handleRestore}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+            Restore
+          </button>
+        </div>
 
         {/* Filters */}
         <div className="flex flex-wrap gap-4 items-center mb-6">

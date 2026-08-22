@@ -109,6 +109,26 @@ export default function TeamManagement() {
     }
   };
 
+  // Restore deleted team
+  const handleRestore = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/restore/Team`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        const data = await res.json();
+        alert(data.message); // Assuming Toast might not be available, using alert or a custom toast
+        fetchTeams();
+      } else {
+        const errorData = await res.json();
+        alert(errorData.message || 'Failed to restore');
+      }
+    } catch (error) {
+      console.error('Failed to restore team:', error);
+      alert('An unexpected error occurred');
+    }
+  };
+
   const handleCancelEdit = () => {
     setEditingId(null);
     setFormData({ name: '', code: '', color: '#0d9488' });
@@ -212,6 +232,15 @@ export default function TeamManagement() {
             <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
             Registered Teams ({teams.length})
           </h2>
+          <button
+            onClick={handleRestore}
+            className="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-semibold rounded-xl transition shadow-sm flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+            Restore
+          </button>
         </div>
 
         {teams.length === 0 ? (
