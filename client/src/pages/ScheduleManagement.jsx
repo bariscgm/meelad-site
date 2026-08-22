@@ -420,64 +420,90 @@ export default function ScheduleManagement() {
       <html>
       <head>
         <title>Print Schedule - ${schedule.name}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <style>
-          body { font-family: 'Inter', sans-serif; padding: 20px; color: #333; }
-          h1 { text-align: center; color: #1e1e1e; font-size: 24px; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 1px; }
-          .header-info { text-align: center; margin-bottom: 30px; font-size: 14px; color: #555; }
-          .stage-container { margin-bottom: 40px; page-break-inside: avoid; }
-          .stage-title { font-size: 18px; font-weight: bold; background-color: #f3f4f6; padding: 10px 15px; border-left: 4px solid #4f46e5; margin-bottom: 15px; }
-          table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-          th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
-          th { background-color: #f9fafb; font-weight: 600; font-size: 12px; text-transform: uppercase; color: #6b7280; }
-          td { font-size: 14px; }
-          .time-col { width: 150px; font-weight: bold; color: #4b5563; }
-          .meta-info { font-size: 12px; color: #6b7280; margin-top: 4px; }
-          .print-action { text-align: center; margin-bottom: 30px; }
-          .print-btn { background: #4f46e5; color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2); }
-          .print-btn:hover { background: #4338ca; }
+          body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #334155; }
           @media print {
-            body { padding: 0; }
-            .stage-container { page-break-inside: avoid; }
-            .print-action { display: none; }
+            body { background-color: white; }
+            .no-print { display: none !important; }
+            .print-break-avoid { page-break-inside: avoid; }
+            .glass { border: none !important; box-shadow: none !important; background: transparent !important; }
+            th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+            .break-row { background-color: #fff7ed !important; -webkit-print-color-adjust: exact; }
           }
+          .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+          }
+          .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+          .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+          .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         </style>
       </head>
-      <body>
-        <div class="print-action">
-          <button class="print-btn" onclick="window.print()">Print as PDF</button>
-        </div>
-        <h1>${schedule.name}</h1>
-        <div class="header-info">
-          Generated on: ${new Date(schedule.createdAt).toLocaleDateString()} at ${new Date(schedule.createdAt).toLocaleTimeString()}
-        </div>
-        
-        ${schedule.stages.map(stage => `
-          <div class="stage-container">
-            <div class="stage-title">${stage.stageName}</div>
-            <table>
-              <thead>
-                <tr>
-                  <th class="time-col">Time</th>
-                  <th>Programme</th>
-                  <th>Category</th>
-                  <th>Count</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${stage.items.length > 0 ? stage.items.map(item => `
-                  <tr>
-                    <td class="time-col">${item.startTimeFormatted} - ${item.endTimeFormatted}</td>
-                    <td>
-                      <div style="font-weight: bold;">${item.name}</div>
-                    </td>
-                    <td>${item.category}</td>
-                    <td>${item.studentCount} students</td>
-                  </tr>
-                `).join('') : '<tr><td colspan="4" style="text-align: center;">No programs scheduled</td></tr>'}
-              </tbody>
-            </table>
+      <body class="p-4 md:p-8 custom-scrollbar">
+        <div class="max-w-5xl mx-auto space-y-8">
+          <div class="no-print flex justify-end mb-4">
+            <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 transition flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              Print Schedule
+            </button>
           </div>
-        `).join('')}
+
+          <div class="glass p-8 rounded-3xl text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
+            <h1 class="text-3xl font-black text-slate-800 uppercase tracking-widest">${schedule.name}</h1>
+            <p class="text-slate-500 mt-2 font-medium">
+              Generated on: ${new Date(schedule.createdAt).toLocaleDateString()} at ${new Date(schedule.createdAt).toLocaleTimeString()}
+            </p>
+          </div>
+          
+          <div class="space-y-8">
+            ${schedule.stages.map(stage => `
+              <div class="glass rounded-3xl overflow-hidden print-break-avoid border border-slate-200">
+                <div class="bg-indigo-50/80 px-6 py-4 border-b border-indigo-100/50">
+                  <h3 class="text-xl font-bold text-indigo-900 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                    ${stage.stageName}
+                  </h3>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full text-left text-sm border-collapse">
+                    <thead class="bg-slate-50/80 border-b border-slate-200 text-xs uppercase text-slate-500 font-bold">
+                      <tr>
+                        <th class="px-6 py-4 w-48">Time</th>
+                        <th class="px-6 py-4">Programme</th>
+                        <th class="px-6 py-4">Category</th>
+                        <th class="px-6 py-4 text-center">Students</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100/80">
+                      ${stage.items.length > 0 ? stage.items.map(item => `
+                        <tr class="hover:bg-slate-50/50 transition ${item.isBreak ? 'bg-orange-50/40 break-row' : ''}">
+                          <td class="px-6 py-4 font-bold ${item.isBreak ? 'text-orange-600' : 'text-slate-600'} whitespace-nowrap">
+                            ${item.startTimeFormatted} <span class="text-slate-300 font-normal mx-1">to</span> ${item.endTimeFormatted}
+                          </td>
+                          <td class="px-6 py-4">
+                            <div class="font-bold ${item.isBreak ? 'text-orange-700 text-base' : 'text-slate-800'}">${item.name} ${item.isBreak ? '☕' : ''}</div>
+                          </td>
+                          <td class="px-6 py-4">
+                            ${item.category ? `<span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${item.isBreak ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-600'}">${item.category}</span>` : '-'}
+                          </td>
+                          <td class="px-6 py-4 text-center font-medium ${item.isBreak ? 'text-orange-400' : 'text-slate-500'}">
+                            ${item.isBreak ? '-' : item.studentCount + ' students'}
+                          </td>
+                        </tr>
+                      `).join('') : '<tr><td colspan="4" class="text-center py-8 text-slate-400">No programs scheduled</td></tr>'}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
       </body>
       </html>
     `;
