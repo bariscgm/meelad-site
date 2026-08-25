@@ -97,7 +97,13 @@ export default function ResultPoster({ result, onClose }) {
           {winner.position}
         </div>
         <h3 className="text-[#facc15] font-black text-lg uppercase tracking-[0.2em] mt-6 mb-3 drop-shadow-md text-center">{title}</h3>
-        <p className="text-white font-black text-3xl text-center leading-tight drop-shadow-lg break-words w-full">{displayName}</p>
+        
+        <p className="text-white font-black text-3xl text-center leading-tight drop-shadow-lg break-words w-full">{winner.name}</p>
+        
+        {displayName !== winner.name && (
+          <p className="text-white/80 font-semibold text-sm text-center leading-tight drop-shadow-md break-words w-full mt-1.5">{displayName}</p>
+        )}
+        
         <p className="text-teal-100 font-semibold text-lg mt-2 drop-shadow-md text-center break-words w-full">{winner.team?.name}</p>
         <div className="flex gap-3 mt-5">
           {winner.grade && winner.grade !== 'None' && (

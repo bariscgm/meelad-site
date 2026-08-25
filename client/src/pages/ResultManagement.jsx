@@ -460,8 +460,8 @@ export default function ResultManagement() {
                             </span>
                           </p>
                           {r.program?.type === 'Group' && groupMembers.length > 0 && (
-                            <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
-                              <span className="font-semibold">Members:</span> {groupMembers.join(', ')}
+                            <p className="text-[10.5px] text-slate-600 mt-0.5 font-medium leading-tight">
+                              {groupMembers.join(', ')}
                             </p>
                           )}
                           <p className="text-xs font-semibold mt-0.5" style={{ color: posColors.text }}>{w.team?.name}</p>

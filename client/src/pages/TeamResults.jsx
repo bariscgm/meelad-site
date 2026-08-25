@@ -153,9 +153,13 @@ export default function TeamResults() {
                     )}
                   </div>
                   <p className="font-medium text-slate-600 text-sm">
-                    {w.programType === 'Group' && w.groupMembers && w.groupMembers.length > 0 ? w.groupMembers.join(', ') : w.name} 
-                    <span className="text-slate-400 text-xs ml-1">({w.chestNo})</span>
+                    {w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span>
                   </p>
+                  {w.programType === 'Group' && w.groupMembers && w.groupMembers.length > 0 && (
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-tight">
+                      {w.groupMembers.join(', ')}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 sm:justify-end">
                   {w.position && (
