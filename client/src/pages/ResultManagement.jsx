@@ -438,6 +438,15 @@ export default function ResultManagement() {
                     const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
                     const candidate = candidates.find(c => c.name === w.name);
                     const actualChestNo = candidate ? candidate.chestNo : null;
+                    const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
+                       const progId = r.program?._id;
+                       const progName = r.program?.name;
+                       const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+                       if (assignedGroup && assignedGroup === w.name) return true;
+                       if ((w.name === (w.team && w.team.name) || w.name === c.team?.name) && c.programs?.includes(progName)) return true;
+                       return false;
+                    }).map(c => c.name) : [];
+
                     return (
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
                         <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg" style={{ backgroundColor: posColors.bg, color: posColors.text }}>
@@ -450,7 +459,12 @@ export default function ResultManagement() {
                               (Code: {w.chestNo}{actualChestNo ? ` | Chest No: ${actualChestNo}` : ''})
                             </span>
                           </p>
-                          <p className="text-xs font-semibold" style={{ color: posColors.text }}>{w.team?.name}</p>
+                          {r.program?.type === 'Group' && groupMembers.length > 0 && (
+                            <p className="text-[10px] text-slate-500 mt-0.5 leading-tight">
+                              <span className="font-semibold">Members:</span> {groupMembers.join(', ')}
+                            </p>
+                          )}
+                          <p className="text-xs font-semibold mt-0.5" style={{ color: posColors.text }}>{w.team?.name}</p>
                           <div className="flex gap-2 mt-1">
                             <span className="inline-block bg-teal-100 text-teal-800 text-xs font-bold px-1.5 py-0.5 rounded">
                               Grade {w.grade}
