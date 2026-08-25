@@ -12,22 +12,31 @@ export default function TeamResults() {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const teamId = user.teamId || user.id || user._id;
 
+  const [candidates, setCandidates] = useState([]);
+
   useEffect(() => {
-    const fetchResults = async () => {
+    const fetchData = async () => {
       try {
         if (!teamId) return;
-        const res = await fetch(`${API_URL}/api/results/published`);
-        if (res.ok) {
-          const data = await res.json();
+        const [resRes, candRes] = await Promise.all([
+          fetch(`${API_URL}/api/results/published`),
+          fetch(`${API_URL}/api/candidates/team/${teamId}`)
+        ]);
+        if (resRes.ok) {
+          const data = await resRes.json();
           setResults(data);
         }
+        if (candRes.ok) {
+          const candData = await candRes.json();
+          setCandidates(candData);
+        }
       } catch (error) {
-        console.error('Error fetching results:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchResults();
+    fetchData();
   }, [teamId]);
 
   const teamWins = [];
@@ -35,13 +44,26 @@ export default function TeamResults() {
     r.winners.forEach(w => {
       if ((w.team?._id || w.team?.id || w.team) === teamId) {
         teamWins.push({
+          programId: r.program?._id,
           programName: r.program?.name,
           programCategory: r.program?.category,
           programGender: r.program?.gender,
+          programType: r.program?.type,
           ...w
         });
       }
     });
+  });
+
+  teamWins.forEach(w => {
+    if (w.programType === 'Group') {
+      w.groupMembers = candidates.filter(c => {
+         const assignedGroup = c.groupAssignments?.[w.programId] || c.groupAssignments?.[w.programName];
+         if (assignedGroup && assignedGroup === w.name) return true;
+         if ((w.name === user.name || w.name === (w.team && w.team.name)) && c.programs?.includes(w.programName)) return true;
+         return false;
+      }).map(c => c.name);
+    }
   });
 
   const categories = [...new Set(teamWins.map(w => w.programCategory).filter(Boolean))];
@@ -131,6 +153,11 @@ export default function TeamResults() {
                     )}
                   </div>
                   <p className="font-medium text-slate-600 text-sm">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                  {w.programType === 'Group' && w.groupMembers && w.groupMembers.length > 0 && (
+                    <p className="text-xs text-slate-500 mt-1">
+                      <span className="font-semibold">Members:</span> {w.groupMembers.join(', ')}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 sm:justify-end">
                   {w.position && (

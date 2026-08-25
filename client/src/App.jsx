@@ -308,8 +308,10 @@ function TeamDashboard() {
     r.winners.forEach(w => {
       if ((w.team?._id || w.team?.id || w.team) === teamId) {
         teamWins.push({
+          programId: r.program?._id,
           programName: r.program?.name,
           programCategory: r.program?.category,
+          programType: r.program?.type,
           ...w
         });
         totalPoints += (w.points || 0);
@@ -321,6 +323,17 @@ function TeamDashboard() {
   });
 
   const upcomingPrograms = [...new Set(candidates.flatMap(c => c.programs))];
+
+  teamWins.forEach(w => {
+    if (w.programType === 'Group') {
+      w.groupMembers = candidates.filter(c => {
+         const assignedGroup = c.groupAssignments?.[w.programId] || c.groupAssignments?.[w.programName];
+         if (assignedGroup && assignedGroup === w.name) return true;
+         if ((w.name === teamName || w.name === (w.team && w.team.name)) && c.programs?.includes(w.programName)) return true;
+         return false;
+      }).map(c => c.name);
+    }
+  });
 
   return (
     <div className="space-y-6">
@@ -386,6 +399,11 @@ function TeamDashboard() {
                        <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-200 px-2 py-0.5 rounded-full">{w.programCategory}</span>
                      </div>
                      <p className="font-medium text-slate-600 text-sm">{w.name} <span className="text-slate-400 text-xs">({w.chestNo})</span></p>
+                     {w.programType === 'Group' && w.groupMembers && w.groupMembers.length > 0 && (
+                       <p className="text-xs text-slate-500 mt-1">
+                         <span className="font-semibold">Members:</span> {w.groupMembers.join(', ')}
+                       </p>
+                     )}
                    </div>
                    <div className="flex items-center gap-2 sm:justify-end">
                      {w.position && (
