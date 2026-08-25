@@ -439,6 +439,7 @@ export default function ResultManagement() {
                     const candidate = candidates.find(c => c.name === w.name);
                     const actualChestNo = candidate ? candidate.chestNo : null;
                     const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
+                       if (c.category !== r.program?.category) return false;
                        const progId = r.program?._id;
                        const progName = r.program?.name;
                        const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
