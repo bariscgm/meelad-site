@@ -443,7 +443,12 @@ export default function ResultManagement() {
                        const progName = r.program?.name;
                        const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
                        if (assignedGroup && assignedGroup === w.name) return true;
-                       if ((w.name === (w.team && w.team.name) || w.name === c.team?.name) && c.programs?.includes(progName)) return true;
+                       
+                       const wTeamId = w.team?._id || w.team;
+                       const cTeamId = c.team?._id || c.team;
+                       const wTeamName = w.team?.name;
+                       
+                       if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
                        return false;
                     }).map(c => c.name) : [];
 

@@ -43,27 +43,31 @@ export default function TeamResults() {
   results.forEach(r => {
     r.winners.forEach(w => {
       if ((w.team?._id || w.team?.id || w.team) === teamId) {
+        const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
+          const progId = r.program?._id;
+          const progName = r.program?.name;
+          const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+          if (assignedGroup && assignedGroup === w.name) return true;
+          
+          const wTeamId = w.team?._id || w.team?.id || w.team;
+          const cTeamId = c.team?._id || c.team?.id || c.team;
+          const wTeamName = w.team?.name;
+          
+          if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+          return false;
+        }).map(c => c.name) : [];
+
         teamWins.push({
           programId: r.program?._id,
           programName: r.program?.name,
           programCategory: r.program?.category,
           programGender: r.program?.gender,
           programType: r.program?.type,
+          groupMembers,
           ...w
         });
       }
     });
-  });
-
-  teamWins.forEach(w => {
-    if (w.programType === 'Group') {
-      w.groupMembers = candidates.filter(c => {
-         const assignedGroup = c.groupAssignments?.[w.programId] || c.groupAssignments?.[w.programName];
-         if (assignedGroup && assignedGroup === w.name) return true;
-         if ((w.name === user.name || w.name === (w.team && w.team.name)) && c.programs?.includes(w.programName)) return true;
-         return false;
-      }).map(c => c.name);
-    }
   });
 
   const categories = [...new Set(teamWins.map(w => w.programCategory).filter(Boolean))];

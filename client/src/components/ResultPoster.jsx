@@ -78,12 +78,17 @@ export default function ResultPoster({ result, onClose }) {
     
     if (result.program?.type === 'Group' && candidates && candidates.length > 0) {
       const groupMembers = candidates.filter(c => {
-         const progId = result.program?._id;
-         const progName = result.program?.name;
-         const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-         if (assignedGroup && assignedGroup === winner.name) return true;
-         if ((winner.name === (winner.team && winner.team.name) || winner.name === c.team?.name) && c.programs?.includes(progName)) return true;
-         return false;
+        const progId = result.program?._id;
+        const progName = result.program?.name;
+        const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+        if (assignedGroup && assignedGroup === winner.name) return true;
+        
+        const wTeamId = winner.team?._id || winner.team;
+        const cTeamId = c.team?._id || c.team;
+        const wTeamName = winner.team?.name;
+        
+        if (winner.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+        return false;
       }).map(c => c.name);
       
       if (groupMembers.length > 0) {
