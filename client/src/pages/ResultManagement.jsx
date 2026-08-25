@@ -438,19 +438,6 @@ export default function ResultManagement() {
                     const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
                     const candidate = candidates.find(c => c.name === w.name);
                     const actualChestNo = candidate ? candidate.chestNo : null;
-                    const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
-                       const progId = r.program?._id;
-                       const progName = r.program?.name;
-                       const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-                       if (assignedGroup && assignedGroup === w.name) return true;
-                       
-                       const wTeamId = w.team?._id || w.team;
-                       const cTeamId = c.team?._id || c.team;
-                       const wTeamName = w.team?.name;
-                       
-                       if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
-                       return false;
-                    }).map(c => c.name) : [];
 
                     return (
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
@@ -458,15 +445,21 @@ export default function ResultManagement() {
                           {w.position}
                         </div>
                         <div>
-                          <p className="text-sm font-bold text-slate-800">
-                            {w.name} 
-                            <span className="text-slate-400 text-xs ml-1">
-                              (Code: {w.chestNo}{actualChestNo ? ` | Chest No: ${actualChestNo}` : ''})
-                            </span>
-                          </p>
-                          {r.program?.type === 'Group' && groupMembers.length > 0 && (
-                            <p className="text-[10.5px] text-slate-600 mt-0.5 font-medium leading-tight">
-                              {groupMembers.join(', ')}
+                          {r.program?.type === 'Group' ? (
+                            <>
+                              <p className="text-sm font-bold text-slate-800">
+                                Code: {w.chestNo}{actualChestNo ? ` | Chest No: ${actualChestNo}` : ''}
+                              </p>
+                              <p className="text-[11px] text-slate-700 mt-0.5 font-bold leading-tight">
+                                {w.name}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="text-sm font-bold text-slate-800">
+                              {w.name} 
+                              <span className="text-slate-400 text-xs ml-1">
+                                (Code: {w.chestNo}{actualChestNo ? ` | Chest No: ${actualChestNo}` : ''})
+                              </span>
                             </p>
                           )}
                           <p className="text-xs font-semibold mt-0.5" style={{ color: posColors.text }}>{w.team?.name}</p>
