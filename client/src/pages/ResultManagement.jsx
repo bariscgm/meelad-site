@@ -741,7 +741,7 @@ export default function ResultManagement() {
 
       {/* Poster Generator Modal */}
       {posterResult && (
-        <ResultPoster result={posterResult} onClose={() => setPosterResult(null)} />
+        <ResultPoster result={posterResult} candidates={candidates} onClose={() => setPosterResult(null)} />
       )}
 
       {/* Edit Modal */}
