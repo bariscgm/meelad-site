@@ -13,6 +13,7 @@ export default function ControllerManagement() {
 
   const [users, setUsers] = useState([]);
   const [teams, setTeams] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [editingUserId, setEditingUserId] = useState(null);
   const [userForm, setUserForm] = useState({
     name: '',
@@ -45,6 +46,7 @@ export default function ControllerManagement() {
     loadDatabaseData();
     fetchUsers();
     fetchTeams();
+    fetchPrograms();
   }, []);
 
   const fetchUsers = async () => {
@@ -68,6 +70,37 @@ export default function ControllerManagement() {
       }
     } catch (error) {
       console.error('Failed to fetch teams', error);
+    }
+  };
+
+  const fetchPrograms = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/programs`);
+      if (res.ok) {
+        const data = await res.json();
+        setPrograms(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch programs', error);
+    }
+  };
+
+  const handleUpdateProgramStatus = async (programId, newStatus) => {
+    try {
+      const res = await fetch(`${API_URL}/api/programs/${programId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setPrograms(programs.map(p => p._id === programId ? { ...p, status: newStatus } : p));
+        showNotification('Program status updated successfully!');
+      } else {
+        const err = await res.json();
+        console.error('Failed to update program status', err);
+      }
+    } catch (error) {
+      console.error('Failed to update program status', error);
     }
   };
 
@@ -279,6 +312,7 @@ export default function ControllerManagement() {
     { name: 'Users', icon: '👤' },
     { name: 'Announcements', icon: '📢' },
     { name: 'Downloads', icon: '📥' },
+    { name: 'Status', icon: '📊' },
     { name: 'Danger zone', icon: '⚠️', isDanger: true },
   ];
 
@@ -691,7 +725,46 @@ export default function ControllerManagement() {
         </div>
       )}
 
-      {/* --- TAB 5: DANGER ZONE --- */}
+      {/* --- TAB 5: STATUS --- */}
+      {activeTab === 'Status' && (
+        <div className="space-y-6">
+          <div className="glass p-6 rounded-3xl space-y-4">
+            <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
+            <p className="text-slate-500 text-xs">Manage the current status of all programs.</p>
+            
+            <div className="space-y-3">
+              {programs.length === 0 ? (
+                <div className="p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
+                  No programs found in database.
+                </div>
+              ) : (
+                programs.map((p) => (
+                  <div key={p._id} className="glass p-5 rounded-2xl flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-base">{p.name}</h4>
+                      <p className="text-xs text-slate-500 mt-1">{p.category} - {p.type}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={p.status || 'Pending'}
+                        onChange={(e) => handleUpdateProgramStatus(p._id, e.target.value)}
+                        className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 bg-white"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Finished">Finished</option>
+                        <option value="Published">Published</option>
+                      </select>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- TAB 6: DANGER ZONE --- */}
       {activeTab === 'Danger zone' && (
         <div className="glass p-8 rounded-3xl border border-rose-200 bg-rose-50/20 space-y-6">
           <div className="flex items-start gap-4">
