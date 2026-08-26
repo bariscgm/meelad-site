@@ -32,16 +32,20 @@ export const getGroupMembers = (program, winner, candidates) => {
     // 1. Match by programCode (chestNo) if the group has a chest code assigned
     if (winner.chestNo && winner.chestNo !== 'N/A' && c.programCodes?.[progId] === winner.chestNo) return true;
     
-    // 2. Match by groupAssignments (e.g. winner.name is "Group 1" and candidate's assignment for this program is "Group 1")
-    const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-    if (assignedGroup && assignedGroup === winner.name) return true;
-    
-    // 3. Match by Team and Name (if winner.name is the team name and candidate is in that team and program)
     const wTeamId = winner.team?._id || winner.team;
     const cTeamId = c.team?._id || c.team;
+    
+    // Helper to compare IDs which might be objects or strings
+    const teamsMatch = wTeamId && cTeamId && wTeamId.toString() === cTeamId.toString();
+
+    // 2. Match by groupAssignments (e.g. winner.name is "Group 1" and candidate's assignment for this program is "Group 1")
+    const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+    if (assignedGroup && assignedGroup === winner.name && teamsMatch) return true;
+    
+    // 3. Match by Team and Name (if winner.name is the team name and candidate is in that team and program)
     const wTeamName = winner.team?.name;
     
-    if (winner.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+    if (winner.name === wTeamName && teamsMatch && c.programs?.includes(progName)) return true;
     
     return false;
   });
