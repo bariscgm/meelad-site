@@ -532,14 +532,12 @@ export default function ProgramManagement() {
             <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">
               {filteredPrograms.length} of {programs.length}
             </span>
-            {viewMode === 'status' && (
-              <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-                <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">Pending: {programs.filter(p => !p.status || p.status === 'Pending').length}</span>
-                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md border border-blue-200">Assigned: {programs.filter(p => p.status === 'Assigned').length}</span>
-                <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-200">Finished: {programs.filter(p => p.status === 'Finished').length}</span>
-                <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200">Published: {programs.filter(p => p.status === 'Published').length}</span>
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+              <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">Pending: {programs.filter(p => !p.status || p.status === 'Pending').length}</span>
+              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md border border-blue-200">Assigned: {programs.filter(p => p.status === 'Assigned').length}</span>
+              <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-200">Finished: {programs.filter(p => p.status === 'Finished').length}</span>
+              <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200">Published: {programs.filter(p => p.status === 'Published').length}</span>
+            </div>
           </div>
         </div>
 
