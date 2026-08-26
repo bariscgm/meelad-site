@@ -3,26 +3,7 @@ import Swal from 'sweetalert2';
 import { API_URL } from '../config/api.js';
 import ResultPoster from '../components/ResultPoster';
 
-const calculatePoints = (type, position, grade) => {
-  let pts = 0;
-  const pos = Number(position);
-  if (type === 'Individual') {
-    if (pos === 1) pts += 5;
-    else if (pos === 2) pts += 3;
-    else if (pos === 3) pts += 1;
-    if (grade === 'A') pts += 5;
-    else if (grade === 'B') pts += 3;
-    else if (grade === 'C') pts += 1;
-  } else if (type === 'Group') {
-    if (pos === 1) pts += 10;
-    else if (pos === 2) pts += 5;
-    else if (pos === 3) pts += 3;
-    if (grade === 'A') pts += 10;
-    else if (grade === 'B') pts += 5;
-    else if (grade === 'C') pts += 3;
-  }
-  return pts;
-};
+import { calculatePoints, getGroupMembers } from '../utils/resultUtils';
 
 export default function ResultManagement() {
   const [results, setResults] = useState([]);
@@ -438,26 +419,7 @@ export default function ResultManagement() {
                     const displayPoints = w.points || calculatePoints(r.program?.type, w.position, w.grade);
                     const candidate = candidates.find(c => c.name === w.name);
                     const actualChestNo = candidate ? candidate.chestNo : null;
-                    const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
-                       if (r.program?.category && r.program.category !== 'General' && c.category?.toLowerCase() !== r.program.category.toLowerCase()) return false;
-                       if (r.program?.gender && r.program.gender !== 'General' && c.gender?.toLowerCase() !== r.program.gender.toLowerCase()) return false;
-                       const progId = r.program?._id;
-                       
-                       if (w.chestNo && c.programCodes?.[progId] === w.chestNo) return true;
-                       
-                       if (!w.chestNo) {
-                         const progName = r.program?.name;
-                         const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-                         if (assignedGroup && assignedGroup === w.name) return true;
-                         
-                         const wTeamId = w.team?._id || w.team;
-                         const cTeamId = c.team?._id || c.team;
-                         const wTeamName = w.team?.name;
-                         
-                         if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
-                       }
-                       return false;
-                    }).map(c => c.name) : [];
+                    const groupMembers = getGroupMembers(r.program, w, candidates).map(c => c.name);
 
                     return (
                       <div key={idx} className="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 border border-slate-100">
@@ -597,26 +559,7 @@ export default function ResultManagement() {
                         };
                       }
                       
-                      const calculatePoints = (type, position, grade) => {
-                        let pts = 0;
-                        const pos = Number(position);
-                        if (type === 'Individual') {
-                          if (pos === 1) pts += 5;
-                          else if (pos === 2) pts += 3;
-                          else if (pos === 3) pts += 1;
-                          if (grade === 'A') pts += 5;
-                          else if (grade === 'B') pts += 3;
-                          else if (grade === 'C') pts += 1;
-                        } else if (type === 'Group') {
-                          if (pos === 1) pts += 10;
-                          else if (pos === 2) pts += 5;
-                          else if (pos === 3) pts += 3;
-                          if (grade === 'A') pts += 10;
-                          else if (grade === 'B') pts += 5;
-                          else if (grade === 'C') pts += 3;
-                        }
-                        return pts;
-                      };
+                      // `calculatePoints` is imported from utils
                       
                       const pts = w.points || calculatePoints(r.program?.type, w.position, w.grade);
                       

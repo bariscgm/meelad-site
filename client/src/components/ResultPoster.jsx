@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { toPng } from 'html-to-image';
 import { Download, X } from 'lucide-react';
 import Swal from 'sweetalert2';
+import { calculatePoints, getGroupMembers } from '../utils/resultUtils';
 
 export default function ResultPoster({ result, candidates, onClose }) {
   const posterRef = useRef(null);
@@ -28,26 +29,6 @@ export default function ResultPoster({ result, candidates, onClose }) {
   };
   const hueRotate = getHueRotation();
 
-  const calculatePoints = (type, position, grade) => {
-    let pts = 0;
-    const pos = Number(position);
-    if (type === 'Individual') {
-      if (pos === 1) pts += 5;
-      else if (pos === 2) pts += 3;
-      else if (pos === 3) pts += 1;
-      if (grade === 'A') pts += 5;
-      else if (grade === 'B') pts += 3;
-      else if (grade === 'C') pts += 1;
-    } else if (type === 'Group') {
-      if (pos === 1) pts += 10;
-      else if (pos === 2) pts += 5;
-      else if (pos === 3) pts += 3;
-      if (grade === 'A') pts += 10;
-      else if (grade === 'B') pts += 5;
-      else if (grade === 'C') pts += 3;
-    }
-    return pts;
-  };
 
   const handleDownload = async () => {
     if (!posterRef.current) return;
@@ -77,26 +58,7 @@ export default function ResultPoster({ result, candidates, onClose }) {
     let displayName = winner.name;
     
     if (result.program?.type === 'Group' && candidates && candidates.length > 0) {
-      const groupMembers = candidates.filter(c => {
-        if (result.program?.category && result.program.category !== 'General' && c.category?.toLowerCase() !== result.program.category.toLowerCase()) return false;
-        if (result.program?.gender && result.program.gender !== 'General' && c.gender?.toLowerCase() !== result.program.gender.toLowerCase()) return false;
-        const progId = result.program?._id;
-        
-        if (winner.chestNo && c.programCodes?.[progId] === winner.chestNo) return true;
-        
-        if (!winner.chestNo) {
-          const progName = result.program?.name;
-          const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-          if (assignedGroup && assignedGroup === winner.name) return true;
-          
-          const wTeamId = winner.team?._id || winner.team;
-          const cTeamId = c.team?._id || c.team;
-          const wTeamName = winner.team?.name;
-          
-          if (winner.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
-        }
-        return false;
-      }).map(c => c.name);
+      const groupMembers = getGroupMembers(result.program, winner, candidates).map(c => c.name);
       
       if (groupMembers.length > 0) {
         displayName = groupMembers.join(', ');

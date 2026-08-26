@@ -1,11 +1,13 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { API_URL } from '../config/api.js';
+import { getGroupMembers } from '../utils/resultUtils';
 
 export default function HomePage() {
   const [teams, setTeams] = useState([]);
   const [latestResults, setLatestResults] = useState([]);
   const [categorizedTeams, setCategorizedTeams] = useState({});
+  const [candidates, setCandidates] = useState([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const [chestNoSearch, setChestNoSearch] = useState('');
@@ -40,14 +42,18 @@ export default function HomePage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [resultsRes, teamsRes] = await Promise.all([
+        const [resultsRes, teamsRes, candidatesRes] = await Promise.all([
           fetch(`${API_URL}/api/results/published`),
-          fetch(`${API_URL}/api/teams`)
+          fetch(`${API_URL}/api/teams`),
+          fetch(`${API_URL}/api/candidates`)
         ]);
         
-        if (resultsRes.ok && teamsRes.ok) {
+        if (resultsRes.ok && teamsRes.ok && candidatesRes.ok) {
           const resultsData = await resultsRes.json();
           const teamsData = await teamsRes.json();
+          const candidatesData = await candidatesRes.json();
+          
+          setCandidates(candidatesData);
           
           const published = resultsData.reverse();
           setLatestResults(published.slice(0, 5));
@@ -386,7 +392,11 @@ export default function HomePage() {
                         <button
                           onClick={() => {
                             const text = `Meelad Fest Result: ${res.program?.name} (${res.program?.category})\n` + 
-                              res.winners.map(w => `${w.position}. ${w.name} (${w.team?.name}) - ${w.points} pts`).join('\n');
+                              res.winners.map(w => {
+                                const groupMembers = getGroupMembers(res.program, w, candidates).map(c => c.name);
+                                const displayName = groupMembers.length > 0 ? groupMembers.join(', ') : w.name;
+                                return `${w.position}. ${displayName} (${w.team?.name}) - ${w.points} pts`;
+                              }).join('\n');
                             if (navigator.share) {
                               navigator.share({ title: `${res.program?.name} Result`, text });
                             } else {
@@ -403,17 +413,25 @@ export default function HomePage() {
                         </button>
                       </div>
                       <div className="flex flex-col gap-1">
-                        {res.winners?.slice(0, 3).map((w, idx) => (
+                        {res.winners?.slice(0, 3).map((w, idx) => {
+                          const groupMembers = getGroupMembers(res.program, w, candidates).map(c => c.name);
+                          
+                          return (
                           <div key={idx} className="flex items-center justify-between text-xs">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold w-4" style={{ color: w.team?.color || '#94a3b8' }}>{w.position}</span>
-                              <span className="text-slate-300 truncate max-w-[120px]">{w.name}</span>
+                            <div className="flex items-center gap-2 max-w-[70%]">
+                              <span className="font-bold w-4 shrink-0" style={{ color: w.team?.color || '#94a3b8' }}>{w.position}</span>
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-slate-300 truncate">{w.name}</span>
+                                {groupMembers.length > 0 && (
+                                  <span className="text-[10px] text-slate-500 truncate">{groupMembers.join(', ')}</span>
+                                )}
+                              </div>
                             </div>
-                            <span className="font-semibold px-2 py-0.5 rounded text-white" style={{ backgroundColor: `${w.team?.color}40` || '#334155' }}>
+                            <span className="font-semibold px-2 py-0.5 rounded text-white shrink-0" style={{ backgroundColor: `${w.team?.color}40` || '#334155' }}>
                               {w.team?.name}
                             </span>
                           </div>
-                        ))}
+                        )})}
                       </div>
                     </div>
                   ))

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../config/api.js';
 import { socket } from '../config/socket.js';
+import { getGroupMembers } from '../utils/resultUtils';
 
 export default function LiveScore() {
   const [results, setResults] = useState([]);
@@ -277,7 +278,11 @@ export default function LiveScore() {
                               <button
                                 onClick={() => {
                                   const text = `Meelad Fest Result: ${res.program?.name} (${res.program?.category})\n` + 
-                                    res.winners.map(w => `${w.position}. ${w.name} (${w.team?.name}) - ${w.points} pts`).join('\n');
+                                    res.winners.map(w => {
+                                      const groupMembers = getGroupMembers(res.program, w, candidates).map(c => c.name);
+                                      const displayName = groupMembers.length > 0 ? groupMembers.join(', ') : w.name;
+                                      return `${w.position}. ${displayName} (${w.team?.name}) - ${w.points} pts`;
+                                    }).join('\n');
                                   if (navigator.share) {
                                     navigator.share({ title: `${res.program?.name} Result`, text });
                                   } else {
@@ -309,26 +314,7 @@ export default function LiveScore() {
                               };
                               const posStyle = getPosColor(w.position);
                               
-                              const groupMembers = res.program?.type === 'Group' ? candidates.filter(c => {
-                                 if (res.program?.category && res.program.category !== 'General' && c.category?.toLowerCase() !== res.program.category.toLowerCase()) return false;
-                                 if (res.program?.gender && res.program.gender !== 'General' && c.gender?.toLowerCase() !== res.program.gender.toLowerCase()) return false;
-                                 const progId = res.program?._id;
-                                 
-                                 if (w.chestNo && c.programCodes?.[progId] === w.chestNo) return true;
-                                 
-                                 if (!w.chestNo) {
-                                   const progName = res.program?.name;
-                                   const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-                                   if (assignedGroup && assignedGroup === w.name) return true;
-                                   
-                                   const wTeamId = w.team?._id || w.team;
-                                   const cTeamId = c.team?._id || c.team;
-                                   const wTeamName = w.team?.name;
-                                   
-                                   if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
-                                 }
-                                 return false;
-                              }).map(c => c.name) : [];
+                              const groupMembers = getGroupMembers(res.program, w, candidates).map(c => c.name);
                               
                               return (
                               <div key={idx} className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition"

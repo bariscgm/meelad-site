@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL } from '../config/api';
+import { getGroupMembers } from '../utils/resultUtils';
 
 export default function TeamResults() {
   const [results, setResults] = useState([]);
@@ -43,26 +44,7 @@ export default function TeamResults() {
   results.forEach(r => {
     r.winners.forEach(w => {
       if ((w.team?._id || w.team?.id || w.team) === teamId) {
-        const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
-          if (r.program?.category && r.program.category !== 'General' && c.category?.toLowerCase() !== r.program.category.toLowerCase()) return false;
-          if (r.program?.gender && r.program.gender !== 'General' && c.gender?.toLowerCase() !== r.program.gender.toLowerCase()) return false;
-          const progId = r.program?._id;
-          
-          if (w.chestNo && c.programCodes?.[progId] === w.chestNo) return true;
-          
-          if (!w.chestNo) {
-            const progName = r.program?.name;
-            const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-            if (assignedGroup && assignedGroup === w.name) return true;
-            
-            const wTeamId = w.team?._id || w.team?.id || w.team;
-            const cTeamId = c.team?._id || c.team?.id || c.team;
-            const wTeamName = w.team?.name;
-            
-            if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
-          }
-          return false;
-        }).map(c => c.name) : [];
+        const groupMembers = getGroupMembers(r.program, w, candidates).map(c => c.name);
 
         teamWins.push({
           programId: r.program?._id,

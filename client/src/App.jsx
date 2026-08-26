@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { API_URL } from './config/api.js';
 import AdminLayout from './layouts/AdminLayout';
 import TeamLayout from './layouts/TeamLayout';
+import { getGroupMembers } from './utils/resultUtils';
 
 function AdminDashboard() {
   const [studentCategoryFilter, setStudentCategoryFilter] = useState('All');
@@ -326,21 +327,8 @@ function TeamDashboard() {
 
   teamWins.forEach(w => {
     if (w.programType === 'Group') {
-      w.groupMembers = candidates.filter(c => {
-         if (w.chestNo && c.programCodes?.[w.programId] === w.chestNo) return true;
-         
-         if (!w.chestNo) {
-           const assignedGroup = c.groupAssignments?.[w.programId] || c.groupAssignments?.[w.programName];
-           if (assignedGroup && assignedGroup === w.name) return true;
-           
-           const wTeamId = w.team?._id || w.team;
-           const cTeamId = c.team?._id || c.team;
-           const wTeamName = w.team?.name;
-           
-           if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(w.programName)) return true;
-         }
-         return false;
-      }).map(c => c.name);
+      const mockProgram = { _id: w.programId, name: w.programName, type: 'Group', category: w.programCategory };
+      w.groupMembers = getGroupMembers(mockProgram, w, candidates).map(c => c.name);
     }
   });
 
