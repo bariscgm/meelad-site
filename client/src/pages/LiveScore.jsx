@@ -7,19 +7,24 @@ export default function LiveScore() {
   const [results, setResults] = useState([]);
   const [teams, setTeams] = useState([]);
   const [categorizedTeams, setCategorizedTeams] = useState({});
+  const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [resultsRes, teamsRes] = await Promise.all([
+        const [resultsRes, teamsRes, candidatesRes] = await Promise.all([
           fetch(`${API_URL}/api/results/published`),
-          fetch(`${API_URL}/api/teams`)
+          fetch(`${API_URL}/api/teams`),
+          fetch(`${API_URL}/api/candidates`)
         ]);
         
-        if (resultsRes.ok && teamsRes.ok) {
+        if (resultsRes.ok && teamsRes.ok && candidatesRes.ok) {
           const resultsData = await resultsRes.json();
           const teamsData = await teamsRes.json();
+          const candidatesData = await candidatesRes.json();
+          
+          setCandidates(candidatesData);
           
           const published = resultsData; // Backend already filters
           // Sort by creation date or just reverse since latest are typically at the end
@@ -304,6 +309,27 @@ export default function LiveScore() {
                               };
                               const posStyle = getPosColor(w.position);
                               
+                              const groupMembers = res.program?.type === 'Group' ? candidates.filter(c => {
+                                 if (c.category?.toLowerCase() !== res.program?.category?.toLowerCase()) return false;
+                                 if (res.program?.gender && res.program.gender !== 'General' && c.gender?.toLowerCase() !== res.program.gender.toLowerCase()) return false;
+                                 const progId = res.program?._id;
+                                 
+                                 if (w.chestNo && c.programCodes?.[progId] === w.chestNo) return true;
+                                 
+                                 if (!w.chestNo) {
+                                   const progName = res.program?.name;
+                                   const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+                                   if (assignedGroup && assignedGroup === w.name) return true;
+                                   
+                                   const wTeamId = w.team?._id || w.team;
+                                   const cTeamId = c.team?._id || c.team;
+                                   const wTeamName = w.team?.name;
+                                   
+                                   if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+                                 }
+                                 return false;
+                              }).map(c => c.name) : [];
+                              
                               return (
                               <div key={idx} className="px-6 py-4 flex items-center justify-between hover:bg-white/[0.02] transition"
                                    style={{ borderLeft: `4px solid ${posStyle.text}` }}>
@@ -314,6 +340,9 @@ export default function LiveScore() {
                                   </div>
                                   <div>
                                     <p className="text-base font-bold text-slate-200">{w.name} <span className="text-slate-500 text-sm font-normal">({w.chestNo})</span></p>
+                                    {groupMembers.length > 0 && (
+                                      <p className="text-xs text-slate-400 mt-0.5 font-medium">{groupMembers.join(', ')}</p>
+                                    )}
                                     <p className="text-xs font-semibold uppercase tracking-wider mt-0.5" style={{ color: w.team?.color || '#aaa' }}>
                                       {w.team?.name}
                                     </p>

@@ -470,9 +470,14 @@ export default function ResultManagement() {
                               <p className="text-sm font-bold text-slate-800">
                                 Code: {w.chestNo}{actualChestNo ? ` | Chest No: ${actualChestNo}` : ''}
                               </p>
-                              <p className="text-[11px] text-slate-700 mt-0.5 font-bold leading-tight">
-                                {groupMembers.length > 0 ? groupMembers.join(', ') : w.name}
+                              <p className="text-sm font-bold text-slate-800 mt-0.5">
+                                {w.name}
                               </p>
+                              {groupMembers.length > 0 && (
+                                <p className="text-[11px] text-slate-600 mt-0.5 font-medium leading-tight">
+                                  {groupMembers.join(', ')}
+                                </p>
+                              )}
                             </>
                           ) : (
                             <p className="text-sm font-bold text-slate-800">

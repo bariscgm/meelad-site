@@ -3,7 +3,7 @@ import { toPng } from 'html-to-image';
 import { Download, X } from 'lucide-react';
 import Swal from 'sweetalert2';
 
-export default function ResultPoster({ result, onClose }) {
+export default function ResultPoster({ result, candidates, onClose }) {
   const posterRef = useRef(null);
   const [scale, setScale] = React.useState(0.4444);
 
