@@ -442,15 +442,20 @@ export default function ResultManagement() {
                        if (c.category?.toLowerCase() !== r.program?.category?.toLowerCase()) return false;
                        if (r.program?.gender && r.program.gender !== 'General' && c.gender?.toLowerCase() !== r.program.gender.toLowerCase()) return false;
                        const progId = r.program?._id;
-                       const progName = r.program?.name;
-                       const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-                       if (assignedGroup && assignedGroup === w.name) return true;
                        
-                       const wTeamId = w.team?._id || w.team;
-                       const cTeamId = c.team?._id || c.team;
-                       const wTeamName = w.team?.name;
+                       if (w.chestNo && c.programCodes?.[progId] === w.chestNo) return true;
                        
-                       if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+                       if (!w.chestNo) {
+                         const progName = r.program?.name;
+                         const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+                         if (assignedGroup && assignedGroup === w.name) return true;
+                         
+                         const wTeamId = w.team?._id || w.team;
+                         const cTeamId = c.team?._id || c.team;
+                         const wTeamName = w.team?.name;
+                         
+                         if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+                       }
                        return false;
                     }).map(c => c.name) : [];
 

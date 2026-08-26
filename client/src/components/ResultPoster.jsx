@@ -81,15 +81,20 @@ export default function ResultPoster({ result, onClose }) {
         if (c.category?.toLowerCase() !== result.program?.category?.toLowerCase()) return false;
         if (result.program?.gender && result.program.gender !== 'General' && c.gender?.toLowerCase() !== result.program.gender.toLowerCase()) return false;
         const progId = result.program?._id;
-        const progName = result.program?.name;
-        const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
-        if (assignedGroup && assignedGroup === winner.name) return true;
         
-        const wTeamId = winner.team?._id || winner.team;
-        const cTeamId = c.team?._id || c.team;
-        const wTeamName = winner.team?.name;
+        if (winner.chestNo && c.programCodes?.[progId] === winner.chestNo) return true;
         
-        if (winner.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+        if (!winner.chestNo) {
+          const progName = result.program?.name;
+          const assignedGroup = c.groupAssignments?.[progId] || c.groupAssignments?.[progName];
+          if (assignedGroup && assignedGroup === winner.name) return true;
+          
+          const wTeamId = winner.team?._id || winner.team;
+          const cTeamId = c.team?._id || c.team;
+          const wTeamName = winner.team?.name;
+          
+          if (winner.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(progName)) return true;
+        }
         return false;
       }).map(c => c.name);
       

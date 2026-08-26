@@ -327,14 +327,18 @@ function TeamDashboard() {
   teamWins.forEach(w => {
     if (w.programType === 'Group') {
       w.groupMembers = candidates.filter(c => {
-         const assignedGroup = c.groupAssignments?.[w.programId] || c.groupAssignments?.[w.programName];
-         if (assignedGroup && assignedGroup === w.name) return true;
+         if (w.chestNo && c.programCodes?.[w.programId] === w.chestNo) return true;
          
-         const wTeamId = w.team?._id || w.team;
-         const cTeamId = c.team?._id || c.team;
-         const wTeamName = w.team?.name;
-         
-         if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(w.programName)) return true;
+         if (!w.chestNo) {
+           const assignedGroup = c.groupAssignments?.[w.programId] || c.groupAssignments?.[w.programName];
+           if (assignedGroup && assignedGroup === w.name) return true;
+           
+           const wTeamId = w.team?._id || w.team;
+           const cTeamId = c.team?._id || c.team;
+           const wTeamName = w.team?.name;
+           
+           if (w.name === wTeamName && wTeamId === cTeamId && c.programs?.includes(w.programName)) return true;
+         }
          return false;
       }).map(c => c.name);
     }
