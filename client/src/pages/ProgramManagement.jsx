@@ -532,12 +532,6 @@ export default function ProgramManagement() {
             <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">
               {filteredPrograms.length} of {programs.length}
             </span>
-            <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
-              <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">Pending: {programs.filter(p => !p.status || p.status === 'Pending').length}</span>
-              <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md border border-blue-200">Assigned: {programs.filter(p => p.status === 'Assigned').length}</span>
-              <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-200">Finished: {programs.filter(p => p.status === 'Finished').length}</span>
-              <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200">Published: {programs.filter(p => p.status === 'Published').length}</span>
-            </div>
           </div>
         </div>
 
@@ -769,8 +763,31 @@ export default function ProgramManagement() {
 
       {viewMode === 'status' ? (
         <div className="glass p-6 rounded-3xl space-y-4">
-          <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
-          <p className="text-slate-500 text-xs">Manage the current status of all programs.</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
+              <p className="text-slate-500 text-xs mt-1">Manage the current status of all programs.</p>
+            </div>
+            
+            <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider">
+              <div className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 flex flex-col items-center shadow-sm">
+                <span className="text-slate-400 text-[10px]">Pending</span>
+                <span className="text-slate-700 text-lg">{programs.filter(p => !p.status || p.status === 'Pending').length}</span>
+              </div>
+              <div className="bg-blue-50 px-3 py-2 rounded-xl border border-blue-200 flex flex-col items-center shadow-sm">
+                <span className="text-blue-400 text-[10px]">Assigned</span>
+                <span className="text-blue-700 text-lg">{programs.filter(p => p.status === 'Assigned').length}</span>
+              </div>
+              <div className="bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 flex flex-col items-center shadow-sm">
+                <span className="text-emerald-400 text-[10px]">Finished</span>
+                <span className="text-emerald-700 text-lg">{programs.filter(p => p.status === 'Finished').length}</span>
+              </div>
+              <div className="bg-amber-50 px-3 py-2 rounded-xl border border-amber-200 flex flex-col items-center shadow-sm">
+                <span className="text-amber-400 text-[10px]">Published</span>
+                <span className="text-amber-700 text-lg">{programs.filter(p => p.status === 'Published').length}</span>
+              </div>
+            </div>
+          </div>
           
           <div className="space-y-3 mt-4">
             {filteredPrograms.length === 0 ? (
