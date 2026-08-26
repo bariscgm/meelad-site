@@ -78,7 +78,7 @@ export default function ResultPoster({ result, candidates, onClose }) {
     
     if (result.program?.type === 'Group' && candidates && candidates.length > 0) {
       const groupMembers = candidates.filter(c => {
-        if (c.category?.toLowerCase() !== result.program?.category?.toLowerCase()) return false;
+        if (result.program?.category && result.program.category !== 'General' && c.category?.toLowerCase() !== result.program.category.toLowerCase()) return false;
         if (result.program?.gender && result.program.gender !== 'General' && c.gender?.toLowerCase() !== result.program.gender.toLowerCase()) return false;
         const progId = result.program?._id;
         

@@ -44,7 +44,7 @@ export default function TeamResults() {
     r.winners.forEach(w => {
       if ((w.team?._id || w.team?.id || w.team) === teamId) {
         const groupMembers = r.program?.type === 'Group' ? candidates.filter(c => {
-          if (c.category?.toLowerCase() !== r.program?.category?.toLowerCase()) return false;
+          if (r.program?.category && r.program.category !== 'General' && c.category?.toLowerCase() !== r.program.category.toLowerCase()) return false;
           if (r.program?.gender && r.program.gender !== 'General' && c.gender?.toLowerCase() !== r.program.gender.toLowerCase()) return false;
           const progId = r.program?._id;
           

@@ -310,7 +310,7 @@ export default function LiveScore() {
                               const posStyle = getPosColor(w.position);
                               
                               const groupMembers = res.program?.type === 'Group' ? candidates.filter(c => {
-                                 if (c.category?.toLowerCase() !== res.program?.category?.toLowerCase()) return false;
+                                 if (res.program?.category && res.program.category !== 'General' && c.category?.toLowerCase() !== res.program.category.toLowerCase()) return false;
                                  if (res.program?.gender && res.program.gender !== 'General' && c.gender?.toLowerCase() !== res.program.gender.toLowerCase()) return false;
                                  const progId = res.program?._id;
                                  
