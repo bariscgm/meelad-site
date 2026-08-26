@@ -524,18 +524,46 @@ export default function ProgramManagement() {
   return (
     <div className="space-y-6">
       {/* Top Title & Main Action Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
           <span className="text-xs uppercase tracking-wider font-semibold text-purple-600">Programme Control</span>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <h1 className="text-3xl font-bold text-slate-800">Programmes</h1>
             <span className="bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">
               {filteredPrograms.length} of {programs.length}
             </span>
+            {viewMode === 'status' && (
+              <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-wider">
+                <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md border border-slate-200">Pending: {programs.filter(p => !p.status || p.status === 'Pending').length}</span>
+                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded-md border border-blue-200">Assigned: {programs.filter(p => p.status === 'Assigned').length}</span>
+                <span className="bg-emerald-50 text-emerald-700 px-2 py-1 rounded-md border border-emerald-200">Finished: {programs.filter(p => p.status === 'Finished').length}</span>
+                <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md border border-amber-200">Published: {programs.filter(p => p.status === 'Published').length}</span>
+              </div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* View Mode Toggle */}
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center mr-1">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition ${
+                viewMode === 'grid' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Grid View
+            </button>
+            <button
+              onClick={() => setViewMode('status')}
+              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition ${
+                viewMode === 'status' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Status View
+            </button>
+          </div>
+
           {/* Import Excel */}
           <input 
             type="file" 
@@ -737,34 +765,6 @@ export default function ProgramManagement() {
                 </option>
               ))}
             </select>
-          </div>
-        </div>
-      </div>
-
-      {/* View Content */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Programme Management</h1>
-          <p className="text-slate-500 text-sm">Create, configure, and manage competition programmes.</p>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center mr-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition ${
-                viewMode === 'grid' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Grid View
-            </button>
-            <button
-              onClick={() => setViewMode('status')}
-              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition ${
-                viewMode === 'status' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Status Section
-            </button>
           </div>
         </div>
       </div>
