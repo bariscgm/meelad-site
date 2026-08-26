@@ -22,6 +22,12 @@ export const calculatePoints = (type, position, grade) => {
 export const getGroupMembers = (program, winner, candidates) => {
   if (program?.type !== 'Group') return [];
   
+  // If the winner refers to a candidate that is explicitly a group (has members)
+  const groupCandidate = candidates.find(c => c.name === winner.name && c.isGroup);
+  if (groupCandidate && groupCandidate.members && groupCandidate.members.length > 0) {
+    return groupCandidate.members;
+  }
+  
   return candidates.filter(c => {
     if (program.category && program.category !== 'General' && c.category?.toLowerCase() !== program.category.toLowerCase()) return false;
     if (program.gender && program.gender !== 'General' && c.gender?.toLowerCase() !== program.gender.toLowerCase()) return false;
