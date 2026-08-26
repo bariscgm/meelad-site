@@ -40,14 +40,7 @@ export default function StageDashboard() {
         const programsData = await programsRes.json();
         const judgesData = await judgesRes.json();
 
-        // Limit Finished programs to 10
-        const finishedPrograms = programsData.filter(p => p.status === 'Finished');
-        finishedPrograms.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-        const top10Finished = finishedPrograms.slice(0, 10);
-        
-        const processedPrograms = programsData.filter(p => p.status !== 'Finished' || top10Finished.some(f => f._id === p._id));
-
-        setPrograms(processedPrograms);
+        setPrograms(programsData);
         setJudges(judgesData.data || []);
 
         // Initialize pending judges state based on actual assignments
