@@ -536,25 +536,6 @@ export default function ProgramManagement() {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* View Mode Toggle */}
-          <div className="bg-slate-100 p-1 rounded-xl flex items-center mr-1">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition ${
-                viewMode === 'grid' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Grid View
-            </button>
-            <button
-              onClick={() => setViewMode('status')}
-              className={`px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition ${
-                viewMode === 'status' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              Status View
-            </button>
-          </div>
 
           {/* Import Excel */}
           <input 
@@ -761,67 +742,8 @@ export default function ProgramManagement() {
         </div>
       </div>
 
-      {viewMode === 'status' ? (
-        <div className="glass p-6 rounded-3xl space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
-              <p className="text-slate-500 text-xs mt-1">Manage the current status of all programs.</p>
-            </div>
-            
-            <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider">
-              <div className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 flex flex-col items-center shadow-sm">
-                <span className="text-slate-400 text-[10px]">Pending</span>
-                <span className="text-slate-700 text-lg">{programs.filter(p => !p.status || p.status === 'Pending').length}</span>
-              </div>
-              <div className="bg-blue-50 px-3 py-2 rounded-xl border border-blue-200 flex flex-col items-center shadow-sm">
-                <span className="text-blue-400 text-[10px]">Assigned</span>
-                <span className="text-blue-700 text-lg">{programs.filter(p => p.status === 'Assigned').length}</span>
-              </div>
-              <div className="bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 flex flex-col items-center shadow-sm">
-                <span className="text-emerald-400 text-[10px]">Finished</span>
-                <span className="text-emerald-700 text-lg">{programs.filter(p => p.status === 'Finished').length}</span>
-              </div>
-              <div className="bg-amber-50 px-3 py-2 rounded-xl border border-amber-200 flex flex-col items-center shadow-sm">
-                <span className="text-amber-400 text-[10px]">Published</span>
-                <span className="text-amber-700 text-lg">{programs.filter(p => p.status === 'Published').length}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div className="space-y-3 mt-4">
-            {filteredPrograms.length === 0 ? (
-              <div className="p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
-                No programs match the selected filters.
-              </div>
-            ) : (
-              filteredPrograms.map((p) => (
-                <div key={p.id} className="bg-white/60 p-4 rounded-2xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition">
-                  <div>
-                    <h4 className="font-bold text-slate-800 text-base">{p.name}</h4>
-                    <p className="text-xs text-slate-500 mt-1">{p.category} • {p.type} • {p.venueType}</p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status:</span>
-                    <select
-                      value={p.status || 'Pending'}
-                      onChange={(e) => handleUpdateProgramStatus(p.id, e.target.value)}
-                      className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer"
-                    >
-                      <option value="Pending">Pending</option>
-                      <option value="Assigned">Assigned</option>
-                      <option value="Finished">Finished</option>
-                      <option value="Published">Published</option>
-                    </select>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      ) : (
-        /* Programmes Card Grid */
-        filteredPrograms.length === 0 ? (
+      {/* Programmes Card Grid */}
+      {filteredPrograms.length === 0 ? (
           <div className="glass p-12 rounded-3xl text-center">
             <p className="text-slate-400 font-medium">No programmes match the selected filters.</p>
           </div>
@@ -892,8 +814,7 @@ export default function ProgramManagement() {
               </div>
             ))}
           </div>
-        )
-      )}
+        )}
 
       {/* Add / Edit Programme Modal */}
       {showAddModal && (

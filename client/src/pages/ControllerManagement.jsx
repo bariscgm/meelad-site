@@ -729,26 +729,50 @@ export default function ControllerManagement() {
       {activeTab === 'Status' && (
         <div className="space-y-6">
           <div className="glass p-6 rounded-3xl space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
-            <p className="text-slate-500 text-xs">Manage the current status of all programs.</p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
+                <p className="text-slate-500 text-xs mt-1">Manage the current status of all programs.</p>
+              </div>
+              
+              <div className="flex flex-wrap gap-3 text-xs font-bold uppercase tracking-wider">
+                <div className="bg-slate-50 px-3 py-2 rounded-xl border border-slate-200 flex flex-col items-center shadow-sm">
+                  <span className="text-slate-400 text-[10px]">Pending</span>
+                  <span className="text-slate-700 text-lg">{programs.filter(p => !p.status || p.status === 'Pending').length}</span>
+                </div>
+                <div className="bg-blue-50 px-3 py-2 rounded-xl border border-blue-200 flex flex-col items-center shadow-sm">
+                  <span className="text-blue-400 text-[10px]">Assigned</span>
+                  <span className="text-blue-700 text-lg">{programs.filter(p => p.status === 'Assigned').length}</span>
+                </div>
+                <div className="bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-200 flex flex-col items-center shadow-sm">
+                  <span className="text-emerald-400 text-[10px]">Finished</span>
+                  <span className="text-emerald-700 text-lg">{programs.filter(p => p.status === 'Finished').length}</span>
+                </div>
+                <div className="bg-amber-50 px-3 py-2 rounded-xl border border-amber-200 flex flex-col items-center shadow-sm">
+                  <span className="text-amber-400 text-[10px]">Published</span>
+                  <span className="text-amber-700 text-lg">{programs.filter(p => p.status === 'Published').length}</span>
+                </div>
+              </div>
+            </div>
             
-            <div className="space-y-3">
+            <div className="space-y-3 mt-4">
               {programs.length === 0 ? (
                 <div className="p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
                   No programs found in database.
                 </div>
               ) : (
                 programs.map((p) => (
-                  <div key={p._id} className="glass p-5 rounded-2xl flex items-center justify-between">
+                  <div key={p._id} className="bg-white/60 p-4 rounded-2xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition">
                     <div>
                       <h4 className="font-bold text-slate-800 text-base">{p.name}</h4>
-                      <p className="text-xs text-slate-500 mt-1">{p.category} - {p.type}</p>
+                      <p className="text-xs text-slate-500 mt-1">{p.category} • {p.type} • {p.venueType}</p>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status:</span>
                       <select
                         value={p.status || 'Pending'}
                         onChange={(e) => handleUpdateProgramStatus(p._id, e.target.value)}
-                        className="px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700 bg-white"
+                        className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer"
                       >
                         <option value="Pending">Pending</option>
                         <option value="Assigned">Assigned</option>
