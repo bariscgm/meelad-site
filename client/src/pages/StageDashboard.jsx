@@ -768,26 +768,80 @@ export default function StageDashboard() {
             </button>
             
             {showAssigned && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
                 {filteredPrograms.filter(p => p.status !== 'Pending').map(program => (
-                  <div key={program._id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm opacity-80 flex items-center justify-between group">
-                    <div className="flex-1 min-w-0 pr-4">
-                      <h3 className="text-sm font-bold text-slate-800 truncate" title={program.name}>{program.name}</h3>
-                      <p className="text-xs text-slate-500">{program.category} • {program.type}</p>
+                  <div key={program._id} className="p-4 rounded-xl bg-slate-50 border border-slate-200 shadow-sm opacity-80 flex flex-col gap-3 group">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0 pr-4">
+                        <h3 className="text-sm font-bold text-slate-800 truncate" title={program.name}>{program.name}</h3>
+                        <p className="text-xs text-slate-500">{program.category} • {program.type}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md whitespace-nowrap ${
+                            program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                            {program.status}
+                          </span>
+                          <button 
+                            onClick={() => handleReassign(program._id)}
+                            className="px-2 py-1 text-[10px] font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition whitespace-nowrap"
+                          >
+                            Re-assign
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 text-[10px] font-bold rounded-md whitespace-nowrap ${
-                        program.status === 'Finished' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                      }`}>
-                        {program.status}
-                      </span>
+
+                    <div className="flex justify-start">
                       <button 
-                        onClick={() => handleReassign(program._id)}
-                        className="px-2 py-1 text-[10px] font-bold text-amber-600 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-md transition whitespace-nowrap"
+                        onClick={() => handleToggleDetails(program._id)}
+                        className="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-lg transition"
                       >
-                        Re-assign
+                        {expandedDetails[program._id] ? 'Hide Candidates' : 'View Candidates'}
+                        <svg className={`w-3.5 h-3.5 transform transition-transform ${expandedDetails[program._id] ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
                       </button>
                     </div>
+
+                    {expandedDetails[program._id] && (
+                      <div className="pt-3 border-t border-slate-200">
+                        {loadingCandidates[program._id] ? (
+                          <p className="text-xs text-slate-500">Loading...</p>
+                        ) : (candidatesByProgram[program._id] || []).length === 0 ? (
+                          <p className="text-xs text-slate-500">No active candidates found for this program.</p>
+                        ) : (
+                          <ul className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                            {(candidatesByProgram[program._id] || []).map((cand, idx) => (
+                              <li key={cand._id} className="flex justify-between items-center text-sm p-2 bg-white rounded border border-slate-100 shadow-sm">
+                                <div className="flex flex-col">
+                                  <span className="font-semibold text-slate-700">{idx + 1}. {cand.name}</span>
+                                  <span className="text-xs text-slate-500">{cand.team?.name || 'Unknown Team'} • {cand.className} {cand.category ? `• ${cand.category}` : ''}</span>
+                                  {cand.isGroup && cand.members && (
+                                    <div className="mt-1 text-xs text-slate-400">
+                                      Members: {cand.members.map(m => m.name).join(', ')}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  {cand.programCodes && cand.programCodes[program._id] ? (
+                                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded">
+                                      Code: {cand.programCodes[program._id]}
+                                    </span>
+                                  ) : (
+                                    <span className="px-2 py-0.5 bg-slate-100 text-slate-500 font-medium text-[10px] rounded">
+                                      No Code
+                                    </span>
+                                  )}
+                                  {cand.absentPrograms && cand.absentPrograms.includes(program._id) && (
+                                    <span className="text-[10px] font-bold text-red-500">Absent</span>
+                                  )}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
