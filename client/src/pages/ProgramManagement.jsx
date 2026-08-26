@@ -12,6 +12,7 @@ export default function ProgramManagement() {
   const [selectedVenue, setSelectedVenue] = useState('All');
   const [selectedGender, setSelectedGender] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'status'
   const [editingId, setEditingId] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const fileInputRef = useRef(null);
@@ -225,6 +226,26 @@ export default function ProgramManagement() {
       duration: '10 min',
     });
     setShowAddModal(false);
+  };
+
+  const handleUpdateProgramStatus = async (programId, newStatus) => {
+    try {
+      const res = await fetch(`${API_URL}/api/programs/${programId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setPrograms(programs.map(p => p.id === programId ? { ...p, status: newStatus } : p));
+        Toast.fire({ icon: 'success', title: 'Program status updated!' });
+      } else {
+        console.error('Failed to update status');
+        Toast.fire({ icon: 'error', title: 'Failed to update status' });
+      }
+    } catch (error) {
+      console.error('Failed to update status', error);
+      Toast.fire({ icon: 'error', title: 'Error updating status' });
+    }
   };
 
   const handleEdit = (p) => {
@@ -720,73 +741,143 @@ export default function ProgramManagement() {
         </div>
       </div>
 
-      {/* Programmes Card Grid */}
-      {filteredPrograms.length === 0 ? (
-        <div className="glass p-12 rounded-3xl text-center">
-          <p className="text-slate-400 font-medium">No programmes match the selected filters.</p>
+      {/* View Content */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Programme Management</h1>
+          <p className="text-slate-500 text-sm">Create, configure, and manage competition programmes.</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
-          {filteredPrograms.map((p) => (
-            <div
-              key={p.id}
-              className="glass p-6 rounded-2xl border border-slate-100 hover:border-purple-200 transition shadow-sm hover:shadow-md flex flex-col justify-between"
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+          <div className="bg-slate-100 p-1 rounded-xl flex items-center mr-2">
+            <button
+              onClick={() => setViewMode('grid')}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition ${
+                viewMode === 'grid' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
             >
-              <div>
-                {/* Card Header: Stage Badge + Edit/Delete Actions */}
-                <div className="flex items-center justify-between mb-3">
-                  <span
-                    className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md tracking-wider ${
-                      p.venueType === 'STAGE'
-                        ? 'bg-purple-100 text-purple-700'
-                        : 'bg-emerald-100 text-emerald-700'
-                    }`}
-                  >
-                    {p.venueType}
-                  </span>
+              Grid View
+            </button>
+            <button
+              onClick={() => setViewMode('status')}
+              className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition ${
+                viewMode === 'status' ? 'bg-white text-purple-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Status Section
+            </button>
+          </div>
+        </div>
+      </div>
 
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleEdit(p)}
-                      className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
-                      title="Edit"
+      {viewMode === 'status' ? (
+        <div className="glass p-6 rounded-3xl space-y-4">
+          <h2 className="text-lg font-bold text-slate-800">Program Status Management</h2>
+          <p className="text-slate-500 text-xs">Manage the current status of all programs.</p>
+          
+          <div className="space-y-3 mt-4">
+            {filteredPrograms.length === 0 ? (
+              <div className="p-8 text-center bg-white/50 rounded-2xl text-slate-400 text-sm">
+                No programs match the selected filters.
+              </div>
+            ) : (
+              filteredPrograms.map((p) => (
+                <div key={p.id} className="bg-white/60 p-4 rounded-2xl border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm hover:shadow-md transition">
+                  <div>
+                    <h4 className="font-bold text-slate-800 text-base">{p.name}</h4>
+                    <p className="text-xs text-slate-500 mt-1">{p.category} • {p.type} • {p.venueType}</p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Status:</span>
+                    <select
+                      value={p.status || 'Pending'}
+                      onChange={(e) => handleUpdateProgramStatus(p.id, e.target.value)}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-white focus:ring-2 focus:ring-purple-500 focus:outline-none cursor-pointer"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      title="Delete"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+                      <option value="Pending">Pending</option>
+                      <option value="Assigned">Assigned</option>
+                      <option value="Finished">Finished</option>
+                      <option value="Published">Published</option>
+                    </select>
                   </div>
                 </div>
-
-                {/* Title & Category Subtitle */}
-                <h3 className="text-lg font-bold text-slate-800">{p.name}</h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5 mb-4">{p.category}</p>
-              </div>
-
-              {/* Tag Badges */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <span className="bg-slate-100 px-2 py-1 rounded-md">{p.type}</span>
-                <span className="bg-slate-100 px-2 py-1 rounded-md">{p.gender}</span>
-                <span className="bg-slate-100 px-2 py-1 rounded-md">Max {p.maxParticipants}</span>
-                <span className="bg-slate-100 px-2 py-1 rounded-md">{p.duration}</span>
-                {p.type === 'Group' && (
-                  <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md">
-                    {getGroupCount(p)} Groups
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+              ))
+            )}
+          </div>
         </div>
+      ) : (
+        /* Programmes Card Grid */
+        filteredPrograms.length === 0 ? (
+          <div className="glass p-12 rounded-3xl text-center">
+            <p className="text-slate-400 font-medium">No programmes match the selected filters.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+            {filteredPrograms.map((p) => (
+              <div
+                key={p.id}
+                className="glass p-6 rounded-2xl border border-slate-100 hover:border-purple-200 transition shadow-sm hover:shadow-md flex flex-col justify-between"
+              >
+                <div>
+                  {/* Card Header: Stage Badge + Edit/Delete Actions */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span
+                      className={`text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-md tracking-wider ${
+                        p.venueType === 'STAGE'
+                          ? 'bg-purple-100 text-purple-700'
+                          : 'bg-emerald-100 text-emerald-700'
+                      }`}
+                    >
+                      {p.venueType}
+                    </span>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleEdit(p)}
+                        className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition"
+                        title="Edit"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(p.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                        title="Delete"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Title & Category Subtitle */}
+                  <h3 className="text-lg font-bold text-slate-800">{p.name}</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-0.5 mb-4">{p.category}</p>
+                </div>
+
+                {/* Tag Badges */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  <span className="bg-slate-100 px-2 py-1 rounded-md">{p.type}</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md">{p.gender}</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md">Max {p.maxParticipants}</span>
+                  <span className="bg-slate-100 px-2 py-1 rounded-md">{p.duration}</span>
+                  {p.type === 'Group' && (
+                    <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-md">
+                      {getGroupCount(p)} Groups
+                    </span>
+                  )}
+                  {p.status && p.status !== 'Pending' && (
+                    <span className="bg-amber-50 text-amber-700 px-2 py-1 rounded-md">
+                      {p.status}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Add / Edit Programme Modal */}
