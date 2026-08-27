@@ -214,11 +214,13 @@ export default function HomePage() {
           </div>
 
           {/* Glassmorphic Scoreboard Preview */}
-          <div className="glass-dark p-8 rounded-3xl max-w-5xl mx-auto relative grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+          <div className={`glass-dark p-8 rounded-3xl max-w-5xl mx-auto relative grid ${studentResult ? 'grid-cols-1 max-w-2xl' : 'grid-cols-1 md:grid-cols-2'} gap-8 items-start`}>
             <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-3xl pointer-events-none" />
             
             {/* Top Teams Standings */}
             <div className="space-y-10">
+              {!studentResult && (
+                <>
               {/* Overall Teams */}
               <div>
                 <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
@@ -281,6 +283,8 @@ export default function HomePage() {
               <Link to="/score" className="block text-center w-full mt-6 py-4 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 font-medium transition border border-teal-500/20">
                 View Full Scoreboard
               </Link>
+                </>
+              )}
               
               {/* Student Result Search */}
               <div className="mt-8 bg-white/5 border border-white/10 rounded-2xl p-6">
@@ -293,7 +297,13 @@ export default function HomePage() {
                     placeholder="Enter Chest No..."
                     className="flex-1 bg-white/10 border border-white/20 text-white placeholder-slate-400 px-4 py-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500"
                     value={chestNoSearch}
-                    onChange={(e) => setChestNoSearch(e.target.value)}
+                    onChange={(e) => {
+                      setChestNoSearch(e.target.value);
+                      if (e.target.value === '') {
+                        setStudentResult(null);
+                        setSearchError('');
+                      }
+                    }}
                   />
                   <button
                     type="submit"
@@ -372,6 +382,7 @@ export default function HomePage() {
             </div>
             
             {/* Latest Published Results */}
+            {!studentResult && (
             <div>
               <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
@@ -438,6 +449,7 @@ export default function HomePage() {
                 )}
               </div>
             </div>
+            )}
           </div>
         </section>
 
